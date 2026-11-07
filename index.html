@@ -1,0 +1,4202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+ TOPOTAC SOURCE GUIDE
+ 01. Styles: map, controls, drawer, legend, and responsive layouts
+ 02. Markup: controls, GPS/situs readouts, GPX input, marked points
+ 03. Tools drawer and legend behavior
+ 04. Leaflet initialization and base maps
+ 05. ArcGIS exports: LiDAR, PLSS, public land, taxlots
+ 06. Parcel identify and GPS situs lookup
+ 07. Fire activity, current/historical perimeters
+ 08. Other layers: RAWS, USGS water, and additional overlays
+ 09. GPS tracking, GPX import, coordinate entry, marked points
+ 10. Refresh scheduling, layer controls, and event listeners
+ Keep index.html and guide.html in the same directory.
+-->
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOPOTAC | Tactical Mapping System</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+/* * TOPOTAC — PHASE 3: CONSOLIDATED CSS * Desktop is the base; smaller screens override only changed values. * Edit the appropriate device section to move readouts or buttons. * Device groups are mutually exclusive; no historical cascade patches remain. * JavaScript and HTML are unchanged. */
+
+/* ======================================================================
+ * DESKTOP DEFAULTS & SHARED STYLES — base layout and control appearances
+ * ====================================================================== */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+#map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #e5e5e5;
+}
+.leaflet-top.leaflet-right {
+  top: 10px;
+  right: 8px;
+  z-index: 2000;
+}
+.leaflet-control-layers {
+  max-width: min(230px, calc(100vw - 28px));
+  max-height: 48vh;
+  overflow-y: auto;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 1px 6px #777;
+  font-size: 14px;
+}
+.leaflet-control-layers-expanded {
+  padding: 10px 12px;
+}
+.leaflet-control-layers label {
+  margin: 6px 0;
+}
+.leaflet-control-layers-separator {
+  margin: 8px 0;
+}
+#opacityControl {
+  position: absolute;
+  top: 12px;
+  left: 10px;
+  z-index: 1000;
+  width: 180px;
+  padding: 10px;
+  box-sizing: border-box;
+  background: rgba(255,255,255,0.96);
+  border-radius: 6px;
+  box-shadow: 0 1px 6px #777;
+  font-size: 13px;
+}
+#opacityControl input {
+  width: 100%;
+  margin: 5px 0 8px;
+}
+.fire-perimeter-glow {
+  filter: drop-shadow(0 0 4px rgba(255, 20, 0, 0.9));
+}
+#coordinates {
+  position: absolute;
+  top: 8px !important;
+  left: 112px !important;
+  z-index: 1000;
+  max-width: calc(100vw - 40px);
+  padding: 8px 10px;
+  box-sizing: border-box;
+  background: rgba(255,255,255,0.96);
+  border-radius: 6px;
+  box-shadow: 0 1px 6px #777;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+#gpsCoordinates {
+  position: absolute;
+  top: 8px !important;
+  left: 335px !important;
+  z-index: 1000;
+  max-width: calc(100vw - 40px);
+  padding: 8px 10px;
+  box-sizing: border-box;
+  background: rgba(255,255,255,0.96);
+  border-radius: 6px;
+  box-shadow: 0 1px 6px #777;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+#situsAddress {
+  position: absolute;
+  top: 65px !important;
+  left: 8px !important;
+  z-index: 1000;
+  max-width: min(330px,calc(100vw - 145px)) !important;
+  padding: 8px 10px;
+  background: rgba(255,255,255,.96);
+  border-radius: 6px;
+  box-shadow: 0 1px 6px #777;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  width: auto !important;
+  bottom: auto !important;
+}
+#gpsButton {
+  position: absolute;
+  left: 10px;
+  bottom: 24px;
+  z-index: 1100;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 10px 13px;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.97);
+  box-shadow: 0 1px 6px #777;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#gpsButton:active {
+  background: #e8f1ff;
+}
+#gpsButton[aria-pressed="true"] {
+  color: #1769d2;
+  outline: 2px solid #1769d2;
+  outline-color: #f47a13;
+}
+#clearTrackButton {
+  position: absolute;
+  left: 10px;
+  bottom: 82px;
+  z-index: 1100;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.97);
+  box-shadow: 0 1px 6px #777;
+  color: #b42318;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#clearTrackButton:active {
+  background: #fee2e2;
+}
+.gpx-button {
+  position: absolute;
+  left: 10px;
+  z-index: 1100;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.97);
+  box-shadow: 0 1px 6px #777;
+  color: #1f2937;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#gpxImportButton {
+  bottom: 136px;
+}
+#clearGpxButton {
+  bottom: 184px;
+  color: #b42318;
+}
+#gpxFileInput {
+  display: none;
+}
+#gpxStatus {
+  position: absolute;
+  left: 10px;
+  bottom: 234px;
+  z-index: 1000;
+  max-width: min(300px, calc(100vw - 30px));
+  padding: 7px 9px;
+  box-sizing: border-box;
+  background: rgba(255,255,255,0.96);
+  border-radius: 6px;
+  box-shadow: 0 1px 6px #777;
+  font-size: 12px;
+  display: none !important;
+}
+.gpx-start-marker, .gpx-end-marker {
+  width: 12px;
+  height: 12px;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}
+.gpx-start-marker {
+  background: #16803c;
+}
+.gpx-end-marker {
+  background: #d62828;
+}
+.gps-accuracy-circle {
+  stroke: #2478e5;
+  stroke-opacity: 0.75;
+  stroke-width: 1.5;
+  fill: #3388ff;
+  fill-opacity: 0.16;
+}
+.gps-location-dot {
+  width: 16px;
+  height: 16px;
+  background: #2583ff;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.55);
+  box-sizing: border-box;
+}
+.raws-station-marker {
+  stroke: #ffffff;
+  stroke-width: 1.5;
+  fill: #087f8c;
+  fill-opacity: 1;
+}
+.usgs-waterbody {
+  color: #1769d2;
+  weight: 1.5;
+  fillcolor: #42a5f5;
+  fillopacity: 0.55;
+}
+.fire-label {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #777;
+  border-radius: 3px;
+  color: #111;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 4px;
+  box-shadow: 0 1px 3px #777;
+}
+#mapGuideButton {
+  position: absolute;
+  top: 12px;
+  left: 205px;
+  z-index: 1000;
+  padding: 8px 12px;
+  background: #171717;
+  color: #fff;
+  border: 1px solid white;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: bold;
+  border-color: #ff861c;
+}
+#mapGuideButton:hover {
+  background: #df6900;
+}
+.point-button {
+  position: absolute;
+  left: 10px;
+  z-index: 1100;
+  min-height: 40px;
+  padding: 8px 11px;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255,255,255,.97);
+  box-shadow: 0 1px 6px #777;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#addPointButton {
+  bottom: 14px !important;
+  left: 10px !important;
+  position: absolute !important;
+  top: auto !important;
+  z-index: 2100 !important;
+  min-height: 44px !important;
+  border: 2px solid #ff861c !important;
+}
+#clearPointsButton {
+  bottom: 332px;
+  color: #b42318;
+}
+#enterCoordsButton {
+  bottom: 380px;
+}
+.marked-point-pin {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #ff861c;
+  color: #111;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 5px #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: bold 12px Arial;
+}
+#pointEntryPanel {
+  position: absolute !important;
+  left: 10px !important;
+  bottom: auto !important;
+  z-index: 2300;
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px #555;
+  width: min(285px,calc(100vw - 25px));
+  font-size: 13px;
+  box-sizing: border-box;
+  top: 70px !important;
+  max-height: calc(100dvh - 90px);
+  overflow-y: auto;
+}
+#pointEntryPanel[hidden] {
+  display: none;
+}
+#pointEntryPanel input,#pointEntryPanel select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px;
+  margin: 4px 0 8px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+}
+#pointEntryPanel button {
+  padding: 7px 9px;
+  margin-right: 5px;
+}
+#pointEntryError {
+  color: #a02020;
+  min-height: 15px;
+}
+#toolsToggle {
+  position: absolute;
+  top: 8px !important;
+  left: 8px !important;
+  z-index: 2100;
+  background: #171717;
+  color: white;
+  border: 2px solid #ff861c;
+  border-radius: 7px;
+  padding: 8px 9px !important;
+  font: bold 13px Arial;
+  cursor: pointer;
+  min-height: 40px !important;
+  box-shadow: 0 2px 8px #555;
+  font-size: 12px !important;
+}
+#toolsDrawer {
+  position: absolute;
+  top: 64px;
+  left: 10px;
+  z-index: 2100;
+  width: min(285px,calc(100vw - 24px));
+  max-height: calc(100dvh - 80px);
+  overflow-y: auto;
+  background: rgba(255,255,255,.98);
+  border: 1px solid #ff861c;
+  border-radius: 9px;
+  padding: 12px;
+  box-sizing: border-box;
+  box-shadow: 0 3px 16px #555;
+}
+#toolsDrawer[hidden] {
+  display: none !important;
+}
+.tools-heading {
+  font: bold 12px Arial;
+  color: #b45309;
+  margin: 10px 0 6px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
+#toolsDrawer button:not(#toolsToggle),#toolsDrawer #mapGuideButton {
+  position: static !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 40px !important;
+  margin: 3px 3px 3px 0 !important;
+  padding: 8px 10px !important;
+  font-size: 12px !important;
+  vertical-align: middle;
+}
+#toolsDrawer #opacityControl {
+  position: static !important;
+  width: 100% !important;
+  box-shadow: none;
+  padding: 4px !important;
+  margin: 0 !important;
+}
+#toolsDrawer #mapGuideButton {
+  text-decoration: none;
+}
+#mapGuideButton.topbarGuide {
+  position: absolute !important;
+  top: 8px !important;
+  left: 105px !important;
+  z-index: 2100 !important;
+  min-height: 40px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  padding: 8px 9px !important;
+  font-size: 11px !important;
+}
+#legendToggle {
+  position: absolute;
+  top: 8px;
+  left: 208px;
+  z-index: 2100;
+  min-height: 40px;
+  background: #171717;
+  color: #fff;
+  border: 2px solid #ff861c;
+  border-radius: 6px;
+  font: bold 11px Arial;
+  padding: 7px 9px;
+  cursor: pointer;
+}
+#legendPanel {
+  position: absolute;
+  top: 58px;
+  left: 8px;
+  z-index: 2200;
+  width: min(315px,calc(100vw - 16px));
+  max-height: calc(100dvh - 70px);
+  overflow: auto;
+  background: #fff;
+  border: 2px solid #ff861c;
+  border-radius: 9px;
+  box-sizing: border-box;
+  padding: 12px;
+  box-shadow: 0 3px 16px #555;
+  font: 13px Arial;
+}
+#legendPanel[hidden] {
+  display: none !important;
+}
+.legend-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #171717;
+  font-size: 15px;
+}
+#legendClose {
+  border: 0;
+  background: #eee;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.legend-section {
+  font-weight: bold;
+  font-size: 11px;
+  color: #a44d00;
+  border-bottom: 1px solid #ddd;
+  margin: 13px 0 7px;
+  padding-bottom: 4px;
+}
+.legend-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 27px;
+}
+.legend-dot {
+  display: inline-block;
+  flex: 0 0 17px;
+  width: 17px;
+  height: 17px;
+  border: 2px solid #fff;
+  box-sizing: border-box;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #777;
+}
+.legend-line {
+  display: inline-block;
+  flex: 0 0 28px;
+  width: 28px;
+}
+.legend-area {
+  display: inline-block;
+  flex: 0 0 27px;
+  width: 27px;
+  height: 16px;
+  box-sizing: border-box;
+}
+.legend-area.current {
+  border: 3px solid #ff2100;
+  background: rgba(255,22,0,.10);
+}
+.legend-area.historical {
+  border: 2.5px dashed #000;
+  background: rgba(50,205,50,.12);
+}
+.legend-area.water {
+  border: 2px solid #1769d2;
+  background: rgba(66,165,245,.55);
+}
+.legend-note {
+  font-size: 11px;
+  color: #555;
+  line-height: 1.4;
+  margin: 5px 0 7px;
+}
+#mapGuideButton.topbarGuide, #toolsDrawer #mapGuideButton.topbarGuide {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  z-index: auto !important;
+}
+#toolsDrawer #legendToggle {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  z-index: auto !important;
+  min-height: 40px !important;
+  margin: 3px !important;
+  font-size: 12px !important;
+}
+.tools-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  border-top: 1px solid #ddd;
+  margin-top: 12px;
+  padding-top: 10px;
+  align-items: center;
+}
+
+ /* Match MAP GUIDE and LEGEND button sizes */
+#toolsDrawer .tools-links #mapGuideButton,
+#toolsDrawer .tools-links #legendToggle {
+  width: 110px !important;
+  height: 40px !important;
+  box-sizing: border-box;
+  padding: 8px !important;
+  margin: 3px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px !important;
+}
+ 
+#coordinates, #gpsCoordinates, #situsAddress {
+  box-sizing: border-box !important;
+  z-index: 1200 !important;
+}
+.gps-lat, .gps-lng {
+  display: inline;
+}
+.gps-lat::after {
+  content: "  ";
+}
+
+/* ======================================================================
+ * TABLET PORTRAIT — 601–900px
+ * ====================================================================== */
+@media (min-width: 601px) and (max-width: 900px) and (orientation: portrait) {
+  #coordinates {
+    top: 80px !important;
+    left: 10px !important;
+  }
+  #gpsCoordinates {
+    top: 115px !important;
+    left: 10px !important;
+  }
+  #situsAddress {
+    top: auto !important;
+    left: 135px !important;
+    bottom: 10px !important;
+  }
+}
+
+/* ======================================================================
+ * TABLET LANDSCAPE — 601–900px
+ * ====================================================================== */
+@media (min-width: 601px) and (max-width: 900px) and (orientation: landscape) {
+  .leaflet-top.leaflet-right {
+    right: 6px;
+  }
+  .leaflet-control-layers {
+    max-width: 210px;
+    max-height: 65vh;
+    font-size: 12px;
+  }
+  #opacityControl {
+    top: 8px;
+    left: 6px;
+    width: 145px;
+    padding: 6px;
+    font-size: 11px;
+  }
+  #coordinates {
+    top: 8px !important;
+    left: 102px !important;
+    max-width: 155px !important;
+    padding: 6px 8px !important;
+    font-size: 11px;
+    width: 155px !important;
+    right: auto !important;
+  }
+  #gpsCoordinates {
+    top: auto !important;
+    bottom: 8px !important;
+    left: 110px !important;
+    right: auto !important;
+    width: 115px !important;
+    max-width: 115px !important;
+    min-height: 48px;
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+  #situsAddress {
+    top: 61px !important;
+    bottom: auto !important;
+    left: 8px !important;
+    right: auto !important;
+    width: fit-content !important;
+    max-width: 60vw !important;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    font-size: 11px;
+  }
+  #gpsCoordinates .gps-lat,
+  #gpsCoordinates .gps-lng {
+    display: block;
+  }
+
+  #gpsCoordinates .gps-lat::after {
+    content: none;
+  }
+
+  #gpsButton {
+    left: 175px;
+    bottom: 8px;
+    min-width: 68px;
+    min-height: 40px;
+    padding: 6px 9px;
+    font-size: 12px;
+    width: 68px;
+    box-sizing: border-box;
+  }
+  #clearTrackButton {
+    left: 255px;
+    bottom: 8px;
+    min-height: 40px;
+    padding: 6px 9px;
+    font-size: 11px;
+    box-sizing: border-box;
+  }
+  .gpx-button {
+    padding: 6px 9px;
+    font-size: 11px;
+    box-sizing: border-box;
+    bottom: 8px;
+  }
+  #gpxImportButton {
+    bottom: 8px;
+    left: 8px;
+  }
+  #clearGpxButton {
+    bottom: 8px;
+    color: #c62828;
+    left: 88px;
+  }
+  #gpxStatus {
+    left: 8px;
+    bottom: 54px;
+    max-width: 210px;
+    font-size: 10px;
+  }
+  #mapGuideButton {
+    top: 65px;
+    left: 6px;
+  }
+  #addPointButton {
+    bottom: 8px !important;
+    left: 8px !important;
+  }
+  #clearPointsButton {
+    bottom: 8px;
+    left: 438px;
+  }
+  #enterCoordsButton {
+    bottom: 8px;
+    left: 550px;
+  }
+  #pointEntryPanel {
+    left: auto !important;
+    right: 8px !important;
+    top: 58px !important;
+  }
+  #toolsDrawer {
+    top: 58px;
+    left: 6px;
+    max-height: calc(100dvh - 65px);
+  }
+}
+
+/* ======================================================================
+ * PHONE PORTRAIT — 361–600px
+ * ====================================================================== */
+@media (min-width: 361px) and (max-width: 600px) and (orientation: portrait) {
+  .leaflet-top.leaflet-right {
+    right: 6px;
+  }
+  .leaflet-control-layers {
+    max-width: 210px;
+    max-height: 42vh;
+    font-size: 13px;
+  }
+  #opacityControl {
+    top: 10px;
+    left: 6px;
+    width: 145px;
+    padding: 8px;
+    font-size: 12px;
+  }
+  #coordinates {
+    left: 95px !important;
+    max-width: 220px !important;
+    padding: 6px 8px !important;
+    font-size: 12px !important;
+    width: fit-content !important;
+    right: auto !important;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
+  #gpsCoordinates {
+    top: auto !important;
+    left: 110px !important;
+    max-width: 115px !important;
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    width: 115px !important;
+    bottom: 12px !important;
+    right: auto !important;
+    min-height: 48px;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+  }
+  #situsAddress {
+    top: 61px;
+    left: 8px;
+    right: auto;
+
+    width: fit-content;
+    max-width: 60vw;
+
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+}
+  #gpsButton {
+    left: 8px;
+    bottom: 64px;
+    min-height: 40px;
+  }
+  #clearTrackButton {
+    left: 8px;
+    bottom: 12px;
+    min-height: 40px;
+  }
+  .gpx-button {
+    left: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    box-sizing: border-box;
+  }
+  #gpxImportButton {
+    bottom: 168px;
+    left: 8px;
+  }
+  #clearGpxButton {
+    bottom: 116px;
+    left: 8px;
+  }
+  #gpxStatus {
+    left: 6px;
+    bottom: 220px;
+    max-width: 155px;
+    font-size: 11px;
+  }
+  #mapGuideButton {
+    top: 76px;
+    left: 6px;
+  }
+  #addPointButton {
+    bottom: 12px !important;
+    left: 8px !important;
+  }
+  #clearPointsButton {
+    bottom: 268px;
+    left: 8px;
+  }
+  #enterCoordsButton {
+    bottom: 316px;
+    left: 8px;
+  }
+  #toolsDrawer {
+    top: 58px;
+    left: 6px;
+  }
+  #gpsCoordinates .gps-lat, #gpsCoordinates .gps-lng {
+    display: block;
+  }
+  #gpsCoordinates .gps-lat::after {
+    content: none;
+  }
+}
+
+/* ======================================================================
+ * PHONE LANDSCAPE — 361–600px
+ * ====================================================================== */
+@media (min-width: 361px) and (max-width: 600px) and (orientation: landscape) {
+  .leaflet-top.leaflet-right {
+    right: 6px;
+  }
+  .leaflet-control-layers {
+    max-width: 210px;
+    max-height: 65vh;
+    font-size: 12px;
+  }
+  #opacityControl {
+    top: 8px;
+    left: 6px;
+    width: 145px;
+    padding: 6px;
+    font-size: 11px;
+  }
+  #coordinates {
+    top: 8px !important;
+    left: 102px !important;
+    max-width: 155px !important;
+    padding: 6px 8px !important;
+    font-size: 11px;
+    width: 155px !important;
+    right: auto !important;
+  }
+  #gpsCoordinates {
+    top: auto !important;
+    bottom: 8px !important;
+    left: 110px !important;
+    right: auto !important;
+    width: 115px !important;
+    max-width: 115px !important;
+    min-height: 48px;
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+  #situsAddress {
+    top: 61px !important;
+    bottom: auto !important;
+    left: 8px !important;
+    right: auto !important;
+    width: fit-content !important;
+    max-width: 60vw !important;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    font-size: 11px;
+  }
+  #gpsCoordinates .gps-lat,
+  #gpsCoordinates .gps-lng {
+    display: block;
+  }
+
+  #gpsCoordinates .gps-lat::after {
+    content: none;
+  }
+
+  #gpsButton {
+    left: 175px;
+    bottom: 8px;
+    min-width: 68px;
+    min-height: 40px;
+    padding: 6px 9px;
+    font-size: 12px;
+    width: 68px;
+    box-sizing: border-box;
+  }
+  #clearTrackButton {
+    left: 255px;
+    bottom: 8px;
+    min-height: 40px;
+    padding: 6px 9px;
+    font-size: 11px;
+    box-sizing: border-box;
+  }
+  .gpx-button {
+    padding: 6px 9px;
+    font-size: 11px;
+    box-sizing: border-box;
+    bottom: 8px;
+  }
+  #gpxImportButton {
+    bottom: 8px;
+    left: 8px;
+  }
+  #clearGpxButton {
+    bottom: 8px;
+    color: #c62828;
+    left: 88px;
+  }
+  #gpxStatus {
+    left: 8px;
+    bottom: 54px;
+    max-width: 210px;
+    font-size: 10px;
+  }
+  #mapGuideButton {
+    top: 65px;
+    left: 6px;
+  }
+  #addPointButton {
+    bottom: 8px !important;
+    left: 8px !important;
+  }
+  #clearPointsButton {
+    bottom: 8px;
+    left: 438px;
+  }
+  #enterCoordsButton {
+    bottom: 8px;
+    left: 550px;
+  }
+  #pointEntryPanel {
+    left: auto !important;
+    right: 8px !important;
+    top: 58px !important;
+  }
+  #toolsDrawer {
+    top: 58px;
+    left: 6px;
+    max-height: calc(100dvh - 65px);
+  }
+}
+
+/* ======================================================================
+ * SMALL PHONE PORTRAIT — 360px and below
+ * ====================================================================== */
+@media (max-width: 360px) and (orientation: portrait) {
+  .leaflet-top.leaflet-right {
+    right: 6px;
+  }
+  .leaflet-control-layers {
+    max-width: 210px;
+    max-height: 42vh;
+    font-size: 13px;
+  }
+  #opacityControl {
+    top: 10px;
+    left: 6px;
+    width: 145px;
+    padding: 8px;
+    font-size: 12px;
+  }
+  #coordinates {
+    left: 100px !important;
+    max-width: 220px !important;
+    padding: 6px 8px !important;
+    font-size: 12px !important;
+    width: fit-content !important;
+    right: auto !important;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
+  #gpsCoordinates {
+    top: auto !important;
+    left: 110px !important;
+    max-width: 115px !important;
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    width: 115px !important;
+    bottom: 12px !important;
+    right: auto !important;
+    min-height: 48px;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+  }
+  #situsAddress {
+    top: 61px !important;
+    max-width: calc(100vw - 16px) !important;
+    font-size: 12px !important;
+    width: min(265px,calc(100vw - 16px)) !important;
+    box-sizing: border-box;
+    right: auto !important;
+  }
+  #gpsButton {
+    left: 8px;
+    bottom: 64px;
+    min-height: 40px;
+  }
+  #clearTrackButton {
+    left: 8px;
+    bottom: 12px;
+    min-height: 40px;
+  }
+  .gpx-button {
+    left: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    box-sizing: border-box;
+  }
+  #gpxImportButton {
+    bottom: 168px;
+    left: 8px;
+  }
+  #clearGpxButton {
+    bottom: 116px;
+    left: 8px;
+  }
+  #gpxStatus {
+    left: 6px;
+    bottom: 220px;
+    max-width: 155px;
+    font-size: 11px;
+  }
+  #mapGuideButton {
+    top: 76px;
+    left: 6px;
+  }
+  #addPointButton {
+    bottom: 12px !important;
+    left: 8px !important;
+  }
+  #clearPointsButton {
+    bottom: 268px;
+    left: 8px;
+  }
+  #enterCoordsButton {
+    bottom: 316px;
+    left: 8px;
+  }
+  #toolsToggle {
+    padding: 7px !important;
+    font-size: 11px !important;
+  }
+  #toolsDrawer {
+    top: 58px;
+    left: 6px;
+  }
+  #mapGuideButton.topbarGuide {
+    left: 94px !important;
+    padding: 7px !important;
+    font-size: 10px !important;
+  }
+  #legendToggle {
+    left: 188px;
+    padding: 7px;
+    font-size: 10px;
+  }
+  #gpsCoordinates .gps-lat, #gpsCoordinates .gps-lng {
+    display: block;
+  }
+  #gpsCoordinates .gps-lat::after {
+    content: none;
+  }
+}
+
+/* ======================================================================
+ * SMALL PHONE LANDSCAPE — 360px and below
+ * ====================================================================== */
+@media (max-width: 360px) and (orientation: landscape) {
+  .leaflet-top.leaflet-right {
+    right: 6px;
+  }
+  .leaflet-control-layers {
+    max-width: 210px;
+    max-height: 65vh;
+    font-size: 12px;
+  }
+  #opacityControl {
+    top: 8px;
+    left: 6px;
+    width: 145px;
+    padding: 6px;
+    font-size: 11px;
+  }
+  #coordinates {
+    max-width: 155px !important;
+    padding: 6px 8px !important;
+    font-size: 11px;
+    width: 155px !important;
+    right: auto !important;
+  }
+  #gpsCoordinates {
+    left: 277px !important;
+    max-width: 220px !important;
+    padding: 6px 8px !important;
+    font-size: 11px;
+    width: 220px !important;
+    right: auto !important;
+  }
+  #situsAddress {
+    top: auto !important;
+    left: 151px !important;
+    max-width: min(400px,calc(100vw - 165px)) !important;
+    font-size: 11px;
+    box-sizing: border-box;
+    bottom: 8px !important;
+    right: auto !important;
+  }
+  #gpsButton {
+    left: 175px;
+    bottom: 8px;
+    min-width: 68px;
+    min-height: 40px;
+    padding: 6px 9px;
+    font-size: 12px;
+    width: 68px;
+    box-sizing: border-box;
+  }
+  #clearTrackButton {
+    left: 255px;
+    bottom: 8px;
+    min-height: 40px;
+    padding: 6px 9px;
+    font-size: 11px;
+    box-sizing: border-box;
+  }
+  .gpx-button {
+    left: 8px;
+    padding: 6px 9px;
+    font-size: 11px;
+    box-sizing: border-box;
+    bottom: 8px;
+  }
+  #gpxImportButton {
+    bottom: 8px;
+    left: 8px;
+  }
+  #clearGpxButton {
+    bottom: 8px;
+    color: #c62828;
+    left: 88px;
+  }
+  #gpxStatus {
+    left: 8px;
+    bottom: 54px;
+    max-width: 210px;
+    font-size: 10px;
+  }
+  #mapGuideButton {
+    top: 65px;
+    left: 6px;
+  }
+  #addPointButton {
+    bottom: 8px !important;
+    left: 8px !important;
+  }
+  #clearPointsButton {
+    bottom: 8px;
+    left: 438px;
+  }
+  #enterCoordsButton {
+    bottom: 8px;
+    left: 550px;
+  }
+  #pointEntryPanel {
+    left: auto !important;
+    right: 8px !important;
+    top: 58px !important;
+  }
+  #toolsToggle {
+    padding: 7px !important;
+    font-size: 11px !important;
+  }
+  #toolsDrawer {
+    top: 58px;
+    left: 6px;
+    max-height: calc(100dvh - 65px);
+  }
+  #mapGuideButton.topbarGuide {
+    left: 94px !important;
+    padding: 7px !important;
+    font-size: 10px !important;
+  }
+  #legendToggle {
+    left: 188px;
+    padding: 7px;
+    font-size: 10px;
+  }
+}
+
+/* ======================================================================
+ * WIDE, SHORT LANDSCAPE VIEWPORTS — phones above 900 CSS px wide
+ * Uses viewport shape, not device brand; leaves normal desktop unchanged.
+ * ====================================================================== */
+@media (min-width: 901px) and (orientation: landscape) and (max-height: 500px) {
+  #coordinates {
+    top: 8px !important;
+    left: 100px !important;
+  }
+  #situsAddress {
+    top: 61px !important;
+    bottom: auto !important;
+    left: 8px !important;
+    right: auto !important;
+    width: fit-content !important;
+    max-width: 60vw !important;
+    overflow-wrap: anywhere;
+    font-size: 11px;
+  }
+  #gpsCoordinates {
+    top: auto !important;
+    bottom: 8px !important;
+    left: 110px !important;
+    right: auto !important;
+    width: 115px !important;
+    max-width: 115px !important;
+    min-height: 48px;
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+  #gpsCoordinates .gps-lat,
+  #gpsCoordinates .gps-lng {
+    display: block;
+  }
+  #gpsCoordinates .gps-lat::after {
+    content: none;
+  }
+}
+
+/* ======================================================================
+ * TOPOTAC UNIFIED THEME — online UI matched to offline v0.6.12
+ * Final responsive layout rules are grouped here for easy maintenance.
+ * Existing online map overlays, services, and LiDAR opacity are unchanged.
+ * ====================================================================== */
+:root {--tt-black:#171717;--tt-orange:#ff861c;--tt-white:#fff;}
+#toolsToggle,#addPointButton {
+  position:absolute!important;top:9px!important;bottom:auto!important;
+  z-index:2200!important;min-height:42px!important;box-sizing:border-box!important;
+  background:var(--tt-black)!important;color:var(--tt-white)!important;
+  border:2px solid var(--tt-orange)!important;border-radius:7px!important;
+  padding:8px 10px!important;font:bold 12px Arial!important;
+  width:auto!important;box-shadow:0 2px 7px #0005!important;
+}
+#toolsToggle {left:9px!important;}
+#addPointButton {left:105px!important;}
+/* ADD POINT recording-style active indicator: one authoritative rule. */
+#addPointButton[aria-pressed="true"] {
+  background:#e00000!important;
+  color:#fff!important;
+  box-shadow:0 0 0 3px rgba(224,0,0,.3)!important;
+}
+#toolsDrawer {
+  top:59px!important;left:9px!important;width:min(238px,calc(100vw - 18px))!important;
+  max-height:calc(100dvh - 68px)!important;background:var(--tt-black)!important;
+  color:var(--tt-white)!important;border:2px solid var(--tt-orange)!important;
+  padding:10px!important;box-sizing:border-box!important;
+}
+#toolsDrawer .tools-heading {color:var(--tt-orange)!important;border-bottom:1px solid #555!important;}
+#toolsDrawer section:not(.tools-links) {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:10px;}
+#toolsDrawer .tools-heading,#toolsDrawer #gpsCoordinates,#toolsDrawer #gpsStatsPanel,#toolsDrawer #measureStatus,#toolsDrawer #opacityControl {grid-column:1/-1;}
+#toolsDrawer .tools-heading {margin:8px 0 2px!important;}
+#toolsDrawer button:not(#toolsToggle),#toolsDrawer .tools-links a {
+  position:static!important;width:100%!important;min-width:0!important;
+  min-height:42px!important;margin:0!important;padding:7px 3px!important;
+  font:bold 11px Arial!important;background:var(--tt-orange)!important;
+  color:#111!important;border:0!important;border-radius:4px!important;
+  white-space:nowrap!important;box-sizing:border-box!important;text-align:center;
+}
+/* Bright recording indicator: the GPS ON button stays red while tracking is active. */
+#toolsDrawer #gpsButton[aria-pressed="true"] {
+  background:#e00000!important;color:#fff!important;
+  box-shadow:0 0 0 2px #fff5 inset!important;
+}
+#toolsDrawer #measureAreaButton[aria-pressed="true"] {background:#fff!important;}
+#toolsDrawer #gpsCoordinates {
+  position:static!important;display:block!important;top:auto!important;left:auto!important;
+  right:auto!important;bottom:auto!important;width:100%!important;max-width:none!important;
+  padding:7px 5px!important;background:#292929!important;color:#fff!important;
+  border:1px solid #555!important;border-radius:5px!important;box-shadow:none!important;
+  font:11px/1.5 Arial!important;overflow-wrap:anywhere!important;min-height:0!important;
+}
+#toolsDrawer #gpsCoordinates .gps-lat,#toolsDrawer #gpsCoordinates .gps-lng {display:block!important;}
+#toolsDrawer #gpsCoordinates .gps-lat::after {content:none!important;}
+#toolsDrawer #measureStatus {font:11px Arial;color:#ffbf83;overflow-wrap:anywhere;}
+#toolsDrawer #opacityControl {
+  position:static!important;top:auto!important;left:auto!important;bottom:auto!important;
+  width:100%!important;max-width:none!important;padding:7px!important;
+  background:#292929!important;color:#fff!important;box-shadow:none!important;
+  border:1px solid #555!important;border-radius:5px!important;
+}
+#toolsDrawer #opacityControl input {accent-color:var(--tt-orange);}
+#toolsDrawer .tools-links {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px!important;border-top:1px solid #555!important;}
+#toolsDrawer .tools-links #mapGuideButton,#toolsDrawer .tools-links #legendToggle {width:100%!important;height:42px!important;}
+#coordinates,#situsAddress {
+  position:absolute!important;left:9px!important;right:auto!important;top:auto!important;
+  width:fit-content!important;max-width:min(300px,calc(100vw - 95px))!important;
+  box-sizing:border-box!important;background:var(--tt-black)!important;color:#fff!important;
+  border:2px solid var(--tt-orange)!important;border-radius:6px!important;
+  box-shadow:0 2px 7px #0005!important;padding:8px 10px!important;
+  font:11px/1.4 Arial!important;overflow-wrap:anywhere!important;
+}
+#coordinates {bottom:10px!important;}
+#situsAddress {bottom:54px!important;}
+.leaflet-control-zoom {border:2px solid var(--tt-orange)!important;border-radius:7px!important;overflow:hidden;box-shadow:0 2px 7px #0005!important;}
+.leaflet-control-zoom a {width:42px!important;height:42px!important;line-height:42px!important;font-size:25px!important;color:#171717!important;}
+.leaflet-bottom.leaflet-right {bottom:8px!important;right:8px!important;}
+.measure-acres-label {background:#171717ed;color:#fff;border:1px solid #ff861c;border-radius:5px;padding:5px 7px;font:bold 12px Arial;white-space:nowrap;}
+@media(max-width:600px) {#toolsDrawer {width:min(210px,calc(100vw - 18px))!important;}#coordinates,#situsAddress {max-width:calc(100vw - 100px)!important;font-size:10px!important;}}
+@media(max-height:500px) and (orientation:landscape) {#toolsDrawer {max-height:calc(100dvh - 65px)!important;}#coordinates {bottom:8px!important;}#situsAddress {bottom:48px!important;}}
+
+
+/* GPS STATS — collapsible field readout in the two-column GPS tool group. */
+#toolsDrawer #gpsStatsPanel {font:11px/1.55 Arial;background:#292929;color:#fff;border:1px solid #555;border-radius:5px;padding:9px;overflow-wrap:anywhere;}
+#toolsDrawer #gpsStatsPanel[hidden] {display:none!important;}
+#toolsDrawer #gpsStatsPanel strong {color:#ffad62;}
+#toolsDrawer #gpsStatsButton[aria-expanded="true"] {background:#fff!important;}
+/* GPS recording warning: compact single line below the GPS heading. */
+#toolsDrawer .gps-screen-notice {grid-column:1/-1;color:#ffb66f;font-size:10px;font-weight:bold;white-space:nowrap;text-align:center;letter-spacing:-0.15px;margin:3px 0 6px;}
+
+/* LAYER MENU — fixed corner alignment, bounded GPX filenames, and topmost stacking.
+   Keep this in one place so imported track names cannot cover ADD POINT. */
+.leaflet-top.leaflet-right {
+  top: 0!important;
+  right: 0!important;
+  z-index: 3000!important;
+}
+.leaflet-top.leaflet-right .leaflet-control-layers {
+  margin: 9px 9px 0 0!important;
+  max-width: min(230px, calc(100vw - 18px))!important;
+  box-sizing: border-box!important;
+}
+.leaflet-control-layers-expanded {
+  overflow-x: hidden!important;
+}
+.leaflet-control-layers-expanded .leaflet-control-layers-list,
+.leaflet-control-layers-expanded .leaflet-control-layers-base,
+.leaflet-control-layers-expanded .leaflet-control-layers-overlays {
+  min-width: 0;
+  max-width: 100%;
+}
+.leaflet-control-layers-expanded label {
+  max-width: 100%;
+}
+.leaflet-control-layers-expanded label > span {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+}
+.leaflet-control-layers-expanded label > span > span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* MAP ZOOM LEVEL — compact readout directly beneath the Layers control. */
+.leaflet-control.zoom-level-readout {
+  float: right;
+  clear: both;
+  margin: 4px 9px 0 0 !important;
+  width: 44px;
+  box-sizing: border-box;
+  padding: 4px 7px;
+  background: #171717;
+  color: #fff;
+  border: 1px solid #ff861c;
+  border-radius: 5px;
+  font: bold 11px/1 Arial, sans-serif;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 1px 5px rgba(0,0,0,.35);
+}
+</style>
+</head>
+
+<body>
+
+<a id="mapGuideButton"
+   href="guide.html"
+   title="Open the map guide">MAP GUIDE</a>
+
+<div id="map"></div>
+
+<div id="opacityControl">
+  <div><strong>LiDaR opacity:</strong>
+    <span id="opacityValue">80%</span>
+  </div>
+  <input id="opacitySlider" type="range" min="0" max="100" value="80">
+</div>
+
+<div id="coordinates">Tap Map for Coordinates</div>
+<div id="gpsCoordinates" role="status">GPS: Off — tap GPS to start</div>
+<div id="situsAddress" role="status" aria-live="polite">Situs: GPS off</div>
+
+<button id="gpsButton" type="button"
+        aria-pressed="false"
+        title="Show my phone's GPS location">◎ GPS</button>
+
+<button id="clearTrackButton" type="button"
+        title="Delete the entire GPS track">CLEAR GPS</button>
+
+<button id="gpxImportButton" class="gpx-button" type="button"
+        title="Open a GPX track file from this device">OPEN GPX</button>
+  
+<button id="clearGpxButton" class="gpx-button" type="button"
+        title="Remove imported GPX tracks from the map">CLEAR GPX</button>
+  
+<input id="gpxFileInput" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml" multiple>
+<div id="gpxStatus" role="status" aria-live="polite"></div>
+
+
+<button id="addPointButton" class="point-button" type="button" aria-pressed="false">ADD POINT</button>
+<button id="clearPointsButton" class="point-button" type="button">CLEAR POINTS</button>
+<button id="enterCoordsButton" class="point-button" type="button">ENTER COORDS</button>
+<button id="measureAreaButton" type="button" aria-pressed="false">MEASURE AREA</button>
+<button id="clearMeasureButton" type="button">CLR MEASURE</button>
+<div id="measureStatus" role="status" hidden></div>
+<div id="pointEntryPanel" hidden>
+  <strong>Enter Coordinates</strong>
+  <label for="pointFormat">Format</label>
+
+<select id="pointFormat">
+  <option value="ddm">Degrees / decimal minutes (DDM)</option>
+  <option value="dd">Decimal degrees (DD)</option>
+</select>
+
+  <label for="pointLat">Latitude (N positive, S negative)</label>
+  <input id="pointLat" type="text" placeholder="42° 26.208' N">
+  <label for="pointLng">Longitude (W negative)</label>
+  <input id="pointLng" type="text" placeholder="123° 08.400' W">
+  <label for="pointName">Name (optional)</label>
+  <input id="pointName" type="text" maxlength="80" placeholder="Water source">
+  <div id="pointEntryError" role="status"></div>
+  <button id="placeEnteredPoint" type="button">PLACE POINT</button>
+  <button id="closePointEntry" type="button">CANCEL</button>
+</div>
+
+
+<script>
+/* Reparent existing controls; original event handlers and state remain intact. */
+(function(){
+ const toggle=document.createElement('button');toggle.id='toolsToggle';toggle.type='button';toggle.textContent='☰ TOOLS';toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-controls','toolsDrawer');
+ const drawer=document.createElement('div');drawer.id='toolsDrawer';drawer.hidden=true;
+ document.body.append(toggle,drawer);
+ const guide=document.getElementById('mapGuideButton');
+ // Guide remains inside the tools drawer.
+ const legendButton=document.createElement('button');legendButton.id='legendToggle';legendButton.type='button';legendButton.textContent='◈ LEGEND';legendButton.setAttribute('aria-expanded','false');legendButton.setAttribute('aria-controls','legendPanel');
+ const legend=document.createElement('div');legend.id='legendPanel';legend.hidden=true;legend.setAttribute('role','dialog');legend.setAttribute('aria-label','TOPOTAC map legend');
+ legend.innerHTML=`<div class="legend-title"><strong>MAP LEGEND</strong><button id="legendClose" type="button" aria-label="Close legend">✕</button></div>
+ <div class="legend-section">FIRE INCIDENTS</div>
+ <div class="legend-entry"><i class="legend-dot" style="background:#d62828"></i>Wildfire (WF)</div>
+ <div class="legend-entry"><i class="legend-dot" style="background:#2e9d50"></i>Prescribed fire (RX)</div>
+ <div class="legend-entry"><i class="legend-dot" style="background:#f28c00"></i>Incident complex (CX)</div>
+ <div class="legend-entry"><i class="legend-dot" style="background:#555555"></i>Other fire activity</div>
+ <div class="legend-section">FIRE PERIMETERS</div>
+ <div class="legend-entry"><i class="legend-area current"></i>Current fire perimeter</div>
+ <div class="legend-entry"><i class="legend-area historical"></i>Historical fire perimeter</div>
+ <div class="legend-section">GPS & POINTS</div>
+ <div class="legend-entry"><i class="legend-dot" style="background:#2583ff"></i>GPS location</div>
+ <div class="legend-entry"><i class="legend-line" style="background:#00a6ff;height:5px"></i>Recorded GPS track</div>
+ <div class="legend-entry"><i class="legend-dot" style="background:#ff861c;color:#111;font-weight:bold;font-style:normal;text-align:center;line-height:17px">1</i>Marked point (numbered)</div>
+ <div class="legend-entry"><i class="legend-dot" style="background:#16803c"></i>GPX start</div>
+ <div class="legend-entry"><i class="legend-dot" style="background:#d62828"></i>GPX end</div>
+ <div class="legend-note">Imported GPX line colors may vary by track.</div>
+ <div class="legend-section">AIR QUALITY — PM2.5 AQI</div>
+ <div class="legend-entry"><i class="legend-area" style="background:#00e400"></i>Good (0–50)</div>
+ <div class="legend-entry"><i class="legend-area" style="background:#ffff00"></i>Moderate (51–100)</div>
+ <div class="legend-entry"><i class="legend-area" style="background:#ff7e00"></i>Unhealthy for sensitive groups (101–150)</div>
+ <div class="legend-entry"><i class="legend-area" style="background:#ff0000"></i>Unhealthy (151–200)</div>
+ <div class="legend-entry"><i class="legend-area" style="background:#99004c"></i>Very unhealthy (201–300)</div>
+ <div class="legend-entry"><i class="legend-area" style="background:#4c0026"></i>Hazardous (301–500)</div>
+ <div class="legend-note">EPA AirNow estimated hourly PM2.5 AQI regions. Not a live smoke or on-scene exposure measurement.</div>
+ <div class="legend-section">OTHER FEATURES</div>
+ <div class="legend-entry"><i class="legend-dot" style="background:#9333ea"></i>Dog park</div>
+ <div class="legend-entry"><i class="legend-dot" style="background:#008CFF;border:2px solid white;border-radius:0;box-shadow:0 0 0 1px #777"></i>RAWS weather station</div>
+ <div class="legend-entry"><i class="legend-area water"></i>USGS waterbody</div>
+ <div class="legend-note">Basemaps, LiDAR hillshade, PLSS and taxlot overlays use service-rendered cartography; their appearance may change with zoom or source.</div>`;
+ document.body.append(legend);
+ // closeLegend: close legend logic.
+ function closeLegend(){legend.hidden=true;legendButton.setAttribute('aria-expanded','false')}
+ legendButton.addEventListener('click',e=>{e.stopPropagation();close();legend.hidden=!legend.hidden;legendButton.setAttribute('aria-expanded',String(!legend.hidden))});
+ legend.querySelector('#legendClose').addEventListener('click',closeLegend);
+ legend.addEventListener('click',e=>e.stopPropagation());legend.addEventListener('pointerdown',e=>e.stopPropagation());
+ document.getElementById('map').addEventListener('click',closeLegend);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLegend()});
+ // GPS tools are created before the drawer groups are assembled.
+ const saveGpsButton=document.createElement('button');saveGpsButton.id='saveGpsButton';saveGpsButton.type='button';saveGpsButton.textContent='SAVE GPX';
+ const gpsStatsButton=document.createElement('button');gpsStatsButton.id='gpsStatsButton';gpsStatsButton.type='button';gpsStatsButton.textContent='GPS STATS';gpsStatsButton.setAttribute('aria-expanded','false');
+ const gpsStatsPanel=document.createElement('div');gpsStatsPanel.id='gpsStatsPanel';gpsStatsPanel.hidden=true;gpsStatsPanel.setAttribute('role','status');gpsStatsPanel.textContent='Waiting for GPS data';
+ document.body.append(saveGpsButton,gpsStatsButton,gpsStatsPanel);
+ const groups=[['GPS & TRACKING',['gpsButton','clearTrackButton','saveGpsButton','gpsStatsButton','gpsCoordinates','gpsStatsPanel']],['GPX TRACKS',['gpxImportButton','clearGpxButton']],['POINTS & MEASURE',['enterCoordsButton','measureAreaButton','clearPointsButton','clearMeasureButton','measureStatus']],['DISPLAY',['opacityControl']]];
+ groups.forEach(([heading,ids])=>{const section=document.createElement('section');const label=document.createElement('div');label.className='tools-heading';label.textContent=heading;section.append(label);if(heading==='GPS & TRACKING'){const notice=document.createElement('div');notice.className='gps-screen-notice';notice.textContent='SCREEN MUST STAY ON TO RECORD';section.append(notice)}ids.forEach(id=>{const el=document.getElementById(id);if(el)section.append(el)});drawer.append(section)});
+ const links=document.createElement('section');links.className='tools-links';
+ links.append(guide,legendButton);drawer.append(links);
+ // Keep ADD POINT visible so its active state cannot be hidden in the drawer.
+ document.body.append(document.getElementById('addPointButton'));
+ // close: close logic.
+ function close(){drawer.hidden=true;toggle.setAttribute('aria-expanded','false')}
+ toggle.addEventListener('click',e=>{e.stopPropagation();closeLegend();drawer.hidden=!drawer.hidden;toggle.setAttribute('aria-expanded',String(!drawer.hidden))});
+ drawer.addEventListener('click',e=>e.stopPropagation()); // Only TOOLS toggles the drawer closed.
+ drawer.addEventListener('pointerdown',e=>e.stopPropagation());
+ drawer.addEventListener('dblclick',e=>e.stopPropagation());
+ drawer.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
+ // Keep the tools drawer open when interacting with the map.
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+})();
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  const map = L.map("map", {
+    zoomControl: false,
+    doubleClickZoom: true
+  }).setView([42.4368, -123.1400], 9);
+
+  // ZOOM CONTROLS — fixed in the lower-right corner.
+  L.control.zoom({position:"bottomright",zoomInTitle:"Zoom in",zoomOutTitle:"Zoom out"}).addTo(map);
+
+  // =========================================================
+  // BASE MAPS
+  // =========================================================
+
+  const streetMap = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+    {
+      attribution: "Tiles &copy; Esri",
+      maxZoom: 19
+    }
+  ).addTo(map);
+
+  const topoMap = L.tileLayer(
+    "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    {
+      attribution: "&copy; OpenTopoMap contributors",
+      maxZoom: 19
+    }
+  );
+
+  const aerialMap = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    {
+      attribution: "Imagery &copy; Esri, Vantor, Earthstar Geographics, and the GIS User Community",
+      maxZoom: 19
+    }
+  );
+
+  // =========================================================
+  // DOGAMI LIDAR HILLSHADE
+  // =========================================================
+
+  const dogamiUrl =
+    "https://gis.dogami.oregon.gov/arcgis/rest/services/lidar/DIGITAL_TERRAIN_MODEL_MOSAIC_HS/ImageServer/exportImage";
+
+  const hillshade = L.imageOverlay(
+    "",
+    [[42.0, -124.0], [43.0, -122.0]],
+    {
+      opacity: 0.80,
+      interactive: false
+    }
+  );
+
+  // =========================================================
+  // PUBLIC LAND OWNERSHIP
+  // =========================================================
+
+  const publicLandUrl =
+    "https://gis.odf.oregon.gov/ags1/rest/services/WebMercator/PublicOwnership/MapServer/export";
+
+  const publicLand = L.imageOverlay(
+    "",
+    [[42.0, -124.0], [43.0, -122.0]],
+    {
+      opacity: 0.65,
+      interactive: false
+    }
+  );
+
+  // =========================================================
+  // PLSS SECTIONS
+  // =========================================================
+
+  const plssUrl =
+    "https://gis.odf.oregon.gov/ags1/rest/services/WebMercator/PLSS/MapServer/export";
+
+  const plss = L.imageOverlay(
+    "",
+    [[42.0, -124.0], [43.0, -122.0]],
+    {
+      opacity: 1,
+      interactive: false
+    }
+  );
+
+  // Statewide ODF tax lot display, rendered only for the visible map extent.
+  const taxlotService = "https://gis.odf.oregon.gov/ags1/rest/services/WebMercator/TaxlotsDisplay/MapServer";
+  const taxlots = L.imageOverlay("", [[42, -124], [43, -122]], {opacity: 0.9, interactive: false});
+  let taxlotRequest = 0;
+  let taxlotMetadataPromise = null;
+  let taxlotLayers = [];
+  let situsRequest = 0;
+  let lastSitusPoint = null;
+  let lastSitusTime = 0;
+  const situsDisplay = document.getElementById("situsAddress");
+
+  // loadTaxlotMetadata: load taxlot metadata logic.
+  function loadTaxlotMetadata() {
+    if (!taxlotMetadataPromise) {
+      taxlotMetadataPromise = fetch(taxlotService + "?f=pjson")
+        .then(r => { if (!r.ok) throw Error("Taxlot metadata HTTP " + r.status); return r.json(); })
+        .then(data => {
+          if (data.error) throw Error(data.error.message || "Taxlot metadata error");
+          taxlotLayers = (data.layers || []).filter(l => l.type === "Feature Layer" ||
+            (l.subLayerIds == null && l.type !== "Group Layer"));
+          return data;
+        }).catch(err => { taxlotMetadataPromise = null; throw err; });
+    }
+    return taxlotMetadataPromise;
+  }
+
+  // Requests taxlot imagery for the visible map bounds at zoom 14+.
+  async function updateTaxlots() {
+    if (!map.hasLayer(taxlots)) return;
+    const request = ++taxlotRequest;
+    if (map.getZoom() < 14) { taxlots.setOpacity(0); return; }
+    taxlots.setOpacity(0.9);
+    const size = map.getSize();
+    const bounds = map.getBounds();
+    const sw = L.CRS.EPSG3857.project(bounds.getSouthWest());
+    const ne = L.CRS.EPSG3857.project(bounds.getNorthEast());
+    const params = {
+      bbox: [sw.x, sw.y, ne.x, ne.y].join(","), bboxSR: "3857", imageSR: "3857",
+      size: Math.round(size.x) + "," + Math.round(size.y), format: "png32",
+      transparent: "true", f: "image"
+    };
+    const url = makeExportUrl(taxlotService + "/export", params);
+    const img = new Image();
+    img.onload = () => {
+      if (request !== taxlotRequest || !map.hasLayer(taxlots)) return;
+      taxlots.setBounds(bounds);
+      taxlots.setUrl(url);
+    };
+    img.onerror = () => console.warn("Tax lot overlay could not load");
+    img.src = url;
+  }
+
+  // ArcGIS REST JSONP fallback for services that do not allow browser CORS.
+  // arcgisJsonp: arcgis jsonp logic.
+  function arcgisJsonp(url, params) {
+    return new Promise((resolve, reject) => {
+      const callback = "__odfTaxlotCallback" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
+      const script = document.createElement("script");
+      let finished = false;
+      const timer = setTimeout(() => finish(new Error("Service timed out")), 12000);
+      // finish: finish logic.
+      function finish(error, result) {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timer);
+        delete window[callback];
+        script.remove();
+        if (error) reject(error); else resolve(result);
+      }
+      window[callback] = data => finish(null, data);
+      script.onerror = () => finish(new Error("Service blocked or unreachable"));
+      const q = new URLSearchParams(params);
+      q.set("f", "json");
+      q.set("callback", callback);
+      script.src = url + "?" + q.toString();
+      document.head.appendChild(script);
+    });
+  }
+
+  // taxlotRest: taxlot rest logic.
+  async function taxlotRest(url, params) {
+    const query = new URLSearchParams(params);
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 7000);
+      let response;
+      try { response = await fetch(url + "?" + query, {signal: controller.signal}); }
+      finally { clearTimeout(timer); }
+      if (!response.ok) throw Error("HTTP " + response.status);
+      const data = await response.json();
+      if (data.error) throw Error(data.error.message || "ArcGIS service error");
+      return data;
+    } catch (firstError) {
+      console.warn("Tax lot direct request failed; trying JSONP:", firstError);
+      const data = await arcgisJsonp(url, params);
+      if (data.error) throw Error(data.error.message || "ArcGIS service error");
+      return data;
+    }
+  }
+
+  // Query-enabled sources; keep the ODF image overlay for statewide boundaries.
+  const parcelSources = [
+    {name:"Oregon Water Resources", url:"https://gis.wrd.state.or.us/server/rest/services/tax/Tax_Lots_Public_View_WGS84/FeatureServer/2/query"},
+    {name:"Jackson County", url:"https://jcportal.jacksoncountyor.gov/server/rest/services/Property/Taxlots/FeatureServer/2/query"},
+    {name:"Josephine County", url:"https://gis.co.josephine.or.us/arcgis/rest/services/Assessor/Assessor_Taxlots/FeatureServer/0/query"}
+  ];
+  // taxlotField: taxlot field logic.
+  function taxlotField(attrs, pattern) {
+    const key = Object.keys(attrs).find(k => pattern.test(k));
+    const value = key ? attrs[key] : null;
+    return value == null || String(value).trim() === "" || /^null$/i.test(String(value)) ? "" : String(value).trim();
+  }
+  // parcelDetails: parcel details logic.
+  function parcelDetails(a) {
+    const street = taxlotField(a, /^(site_address|SITEADDNAM|SITUS|SITUS_ADDRESS|SitusAddrsFull|SitusAddrs|SITUSADDR|STREETADDRESS)$/i);
+    const cityzip = taxlotField(a, /^(site_citystatezip|SitusCityStateZip)$/i);
+    const city = taxlotField(a, /^(SITEADDCTY|SITUS_CITY|SitusCity)$/i);
+    const zip = taxlotField(a, /^(SITEZIP|SITUS_ZIP|SitusZip1)$/i);
+    const lot = taxlotField(a, /^(maptaxlot|map_taxlot|ortaxlot|taxlot|taxlot_id|MAPNUMBER|MAPNUM|ACCOUNT|ACCOUNTNO|ACCT)$/i);
+    const acres = taxlotField(a, /^(taxlot_acre|ACRES|GISACRES|ACREAGE)$/i);
+    const address = [street, cityzip || [city,zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+    return {address,lot,acres};
+  }
+  // A point query avoids downloading statewide parcel geometry and works independently of map view.
+  // Queries address-capable parcel services for one latitude/longitude.
+  async function queryParcelAt(lat,lng) {
+    const params = {
+      where: "1=1", geometry: JSON.stringify({x:lng,y:lat,spatialReference:{wkid:4326}}),
+      geometryType: "esriGeometryPoint", inSR:"4326", spatialRel:"esriSpatialRelIntersects",
+      outFields:"*", returnGeometry:"false", resultRecordCount:"3", f:"json"
+    };
+    let lastError = null;
+    let foundWithoutAddress = null;
+    for (const source of parcelSources) {
+      try {
+        const data = await taxlotRest(source.url,params);
+        const features = Array.isArray(data.features) ? data.features : [];
+        if (features.length) {
+          const matches = features.map(f=>({source:source.name, details:parcelDetails(f.attributes||{})}));
+          const withAddress = matches.find(m=>m.details.address);
+          if (withAddress) return withAddress;
+          if (!foundWithoutAddress) foundWithoutAddress = matches[0];
+        }
+      } catch (err) {
+        lastError = err;
+        console.warn(source.name + " parcel query failed:",err);
+      }
+    }
+    if (foundWithoutAddress) return foundWithoutAddress;
+    if (lastError) throw Error("No parcel returned; one or more services failed. " + lastError.message);
+    return null;
+  }
+  let parcelClickSequence = 0;
+  // identifyClickedParcel: identify clicked parcel logic.
+  async function identifyClickedParcel(latlng) {
+    if (!map.hasLayer(taxlots) || map.getZoom() < 14) return;
+    const sequence = ++parcelClickSequence;
+    const popup = L.popup().setLatLng(latlng).setContent("Looking up tax lot…").openOn(map);
+    try {
+      const match = await queryParcelAt(latlng.lat,latlng.lng);
+      if (sequence !== parcelClickSequence || !map.hasLayer(taxlots)) return;
+      if (!match) { popup.setContent("No queryable tax lot found here. The statewide boundaries may cover areas not available in the address services."); return; }
+      const d = match.details;
+      popup.setContent("<div style='min-width:190px;line-height:1.5'>"+
+        "<strong>Oregon Tax Lot</strong><br>"+
+        "<strong>Situs:</strong> "+escapeHtml(d.address || "Not reported")+"<br>"+
+        "<strong>Tax lot:</strong> "+escapeHtml(d.lot || "Not reported")+
+        (d.acres ? "<br><strong>Acres:</strong> "+escapeHtml(d.acres) : "")+
+        "<br><small>Source: "+escapeHtml(match.source)+"</small></div>");
+    } catch(err) {
+      if (sequence === parcelClickSequence) popup.setContent("Tax lot lookup failed: "+escapeHtml(err.message || String(err)));
+    }
+  }
+  // Refreshes the situs readout when GPS moves enough or the cache expires.
+  async function updateGpsSitus(lat,lng,force) {
+    const point = L.latLng(lat,lng);
+    const now = Date.now();
+    if (!force && lastSitusPoint && point.distanceTo(lastSitusPoint) < 25 && now-lastSitusTime < 30000) return;
+    lastSitusPoint = point;
+    lastSitusTime = now;
+    const request = ++situsRequest;
+    situsDisplay.textContent = "Situs: Looking up parcel…";
+    try {
+      const match = await queryParcelAt(lat,lng);
+      if (request !== situsRequest) return;
+      situsDisplay.textContent = match && match.details.address ? "Situs: "+match.details.address : "Situs: No parcel address reported at GPS location";
+    } catch(err) {
+      if (request === situsRequest) situsDisplay.textContent = "Situs: Lookup unavailable (see console)";
+      console.warn("GPS situs lookup:",err);
+    }
+  }
+
+  let hillshadeRequest = 0;
+  let plssRequest = 0;
+  let publicLandRequest = 0;
+  let refreshTimer = null;
+
+  // makeExportUrl: make export url logic.
+  function makeExportUrl(serviceUrl, params) {
+    return serviceUrl + "?" + new URLSearchParams(params).toString();
+  }
+
+  // Exports DOGAMI hillshade for the current map extent.
+  function updateHillshade() {
+    if (!map.hasLayer(hillshade)) return;
+
+    const size = map.getSize();
+    if (size.x < 1 || size.y < 1) return;
+
+    const bounds = map.getBounds();
+    const south = bounds.getSouth();
+    const west = bounds.getWest();
+    const north = bounds.getNorth();
+    const east = bounds.getEast();
+
+    const imageBounds = L.latLngBounds(
+      [south, west],
+      [north, east]
+    );
+
+    const sw = L.CRS.EPSG3857.project(L.latLng(south, west));
+    const ne = L.CRS.EPSG3857.project(L.latLng(north, east));
+
+    const params = {
+      bbox: [sw.x, sw.y, ne.x, ne.y].join(","),
+      bboxSR: "3857",
+      imageSR: "3857",
+      size: Math.max(1, Math.round(size.x)) + "," +
+            Math.max(1, Math.round(size.y)),
+      format: "png32",
+      transparent: "true",
+      f: "image"
+    };
+
+    const requestNumber = ++hillshadeRequest;
+    const url = makeExportUrl(dogamiUrl, params);
+    const testImage = new Image();
+
+    testImage.onload = function () {
+      if (requestNumber !== hillshadeRequest) return;
+      if (!map.hasLayer(hillshade)) return;
+
+      hillshade.setBounds(imageBounds);
+      hillshade.setUrl(url);
+    };
+
+    testImage.onerror = function () {
+      if (requestNumber !== hillshadeRequest) return;
+      console.error("DOGAMI hillshade image request failed:", url);
+    };
+
+    testImage.src = url;
+  }
+
+// =========================================================
+// UPDATE PLSS
+// =========================================================
+
+// Exports PLSS section imagery for the current map extent.
+function updatePLSS() {
+  if (!map.hasLayer(plss)) return;
+
+  const size = map.getSize();
+  if (size.x < 1 || size.y < 1) return;
+
+  const bounds = map.getBounds();
+
+  // Convert map bounds to Web Mercator meters (EPSG:3857)
+  const southwest = L.CRS.EPSG3857.project(bounds.getSouthWest());
+  const northeast = L.CRS.EPSG3857.project(bounds.getNorthEast());
+
+  const imageBounds = L.latLngBounds(
+    bounds.getSouthWest(),
+    bounds.getNorthEast()
+  );
+
+  const params = {
+    bbox: [
+      southwest.x,
+      southwest.y,
+      northeast.x,
+      northeast.y
+    ].join(","),
+
+    bboxSR: "3857",
+    imageSR: "3857",
+
+    size: Math.max(1, Math.round(size.x)) + "," +
+          Math.max(1, Math.round(size.y)),
+
+    format: "png32",
+    transparent: "true",
+    layers: "show:0,1",
+    f: "image"
+  };
+
+  const requestNumber = ++plssRequest;
+  const url = makeExportUrl(plssUrl, params);
+  const testImage = new Image();
+
+  testImage.onload = function () {
+    if (requestNumber !== plssRequest) return;
+    if (!map.hasLayer(plss)) return;
+
+    plss.setBounds(imageBounds);
+    plss.setUrl(url);
+  };
+
+  testImage.onerror = function () {
+    if (requestNumber !== plssRequest) return;
+    console.error("PLSS image request failed:", url);
+  };
+
+  testImage.src = url;
+}
+
+
+// =========================================================
+// UPDATE PUBLIC LAND OWNERSHIP
+// =========================================================
+// Exports public ownership imagery for the current map extent.
+function updatePublicLand() {
+  if (!map.hasLayer(publicLand)) return;
+
+  const size = map.getSize();
+  if (size.x < 1 || size.y < 1) return;
+
+  const bounds = map.getBounds();
+
+  // Convert map bounds to Web Mercator meters (EPSG:3857)
+  const southwest = L.CRS.EPSG3857.project(bounds.getSouthWest());
+  const northeast = L.CRS.EPSG3857.project(bounds.getNorthEast());
+
+  const imageBounds = L.latLngBounds(
+    bounds.getSouthWest(),
+    bounds.getNorthEast()
+  );
+
+  const params = {
+    bbox: [
+      southwest.x,
+      southwest.y,
+      northeast.x,
+      northeast.y
+    ].join(","),
+
+    bboxSR: "3857",
+    imageSR: "3857",
+
+    size: Math.max(1, Math.round(size.x)) + "," +
+          Math.max(1, Math.round(size.y)),
+
+    format: "png32",
+    transparent: "true",
+    layers: "show:6",
+    f: "image"
+  };
+
+  const requestNumber = ++publicLandRequest;
+  const url = makeExportUrl(publicLandUrl, params);
+  const testImage = new Image();
+
+  testImage.onload = function () {
+    if (requestNumber !== publicLandRequest) return;
+    if (!map.hasLayer(publicLand)) return;
+
+    publicLand.setBounds(imageBounds);
+    publicLand.setUrl(url);
+  };
+
+  testImage.onerror = function () {
+    if (requestNumber !== publicLandRequest) return;
+    console.error("Public Land Ownership image request failed:", url);
+  };
+
+  testImage.src = url;
+}
+
+
+  // Debounces overlay requests after map movement.
+  function refreshVisibleOverlays() {
+    clearTimeout(refreshTimer);
+
+    refreshTimer = setTimeout(function () {
+      updateHillshade();
+      updatePLSS();
+      updatePublicLand();
+      updateTaxlots();
+      updateAirQuality();
+      scheduleHistoricalPerimeterRefresh();
+      scheduleCurrentPerimeterRefresh();
+
+      if (typeof scheduleWaterbodyRefresh === "function") {
+        scheduleWaterbodyRefresh();
+      }
+    }, 200);
+  }
+
+  // =========================================================
+  // SHARED HTML ESCAPING
+  // =========================================================
+
+  // escapeHtml: escape html logic.
+  function escapeHtml(value) {
+    return String(value == null || value === "" ? "Not reported" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  // =========================================================
+  // NIFC / IRWIN FIRE ACTIVITY — LAST 24 HOURS
+  // =========================================================
+
+  const nifc24hUrl =
+    "https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/WFIGS_Incident_Locations_Last24h/FeatureServer/0/query";
+
+  const nifcFireLayer = L.layerGroup().addTo(map);
+  let nifcRefreshInProgress = false;
+
+  // fireTypeLabel: fire type label logic.
+  function fireTypeLabel(code) {
+    if (code === "WF") return "Wildfire";
+    if (code === "RX") return "Prescribed fire";
+    if (code === "CX") return "Incident complex";
+    return code || "Fire activity";
+  }
+
+  // fireMarkerColor: fire marker color logic.
+  function fireMarkerColor(code) {
+    if (code === "RX") return "#2e9d50";
+    if (code === "CX") return "#f28c00";
+    if (code === "WF") return "#d62828";
+    return "#555555";
+  }
+
+  // Fetches recent Oregon incident points and replaces the fire layer.
+  async function updateNifcFires() {
+    if (nifcRefreshInProgress || !map.hasLayer(nifcFireLayer)) return;
+
+    nifcRefreshInProgress = true;
+
+    const params = new URLSearchParams({
+      where: "POOState = 'US-OR'",
+      outFields: "IncidentName,IncidentTypeCategory,InitialLatitude,InitialLongitude,POOCounty,POOProtectingAgency,POOState,FireDiscoveryDateTime",
+      outSR: "4326",
+      f: "json"
+    });
+
+    try {
+      const response = await fetch(
+        nifc24hUrl + "?" + params.toString()
+      );
+
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error.message || "NIFC query failed");
+      }
+
+      const replacementLayer = L.layerGroup();
+      const seenFireLocations = new Map();
+      const features = Array.isArray(data.features) ? data.features : [];
+
+      features.forEach(function (feature) {
+        const props = feature.attributes || {};
+        const geometry = feature.geometry || {};
+
+        const lat = Number(
+          geometry.y != null ? geometry.y : props.InitialLatitude
+        );
+
+        const lng = Number(
+          geometry.x != null ? geometry.x : props.InitialLongitude
+        );
+
+        if (
+          !Number.isFinite(lat) ||
+          !Number.isFinite(lng) ||
+          lat < -90 || lat > 90 ||
+          lng < -180 || lng > 180 ||
+          (lat === 0 && lng === 0)
+        ) return;
+
+        const type = props.IncidentTypeCategory || "";
+        const discoveryDate = props.FireDiscoveryDateTime
+        ? new Date(props.FireDiscoveryDateTime).toLocaleString()
+        : "Not reported";
+        const fireName = props.IncidentName || "Unnamed Fire";
+        const fireLabel = `${type || "Fire"}-${fireName}`;
+
+        const marker = L.circleMarker([lat, lng], {
+          radius: 6,
+          color: "#ffffff",
+          weight: 1.5,
+          fillColor: fireMarkerColor(type),
+          fillOpacity: 1
+        });
+
+        const locationKey = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+        const duplicateCount = seenFireLocations.get(locationKey) || 0;
+
+        seenFireLocations.set(locationKey, duplicateCount + 1);
+
+        const labelOffsetY = duplicateCount * 25;
+
+        marker.bindTooltip(fireLabel, {
+          permanent: true,
+          direction: "right",
+          offset: [7, -labelOffsetY],
+          className: "fire-label"
+        });
+
+        const popup =
+          "<div style='min-width:180px'>" +
+          "<strong>" + escapeHtml(fireName) + "</strong><br>" +
+          "Type: " + escapeHtml(fireTypeLabel(type)) + "<br>" +
+          "Discovery date/time: " + escapeHtml(discoveryDate) + "<br>" +
+          "County: " + escapeHtml(props.POOCounty) + "<br>" +
+          "Protecting agency: " + escapeHtml(props.POOProtectingAgency) + "<br>" +
+          "State: " + escapeHtml(props.POOState) +
+          "</div>";
+
+        marker.bindPopup(popup);
+        marker.addTo(replacementLayer);
+      });
+
+      nifcFireLayer.clearLayers();
+
+      replacementLayer.eachLayer(function (layer) {
+        layer.addTo(nifcFireLayer);
+      });
+
+      console.info(
+        "NIFC/IRWIN Oregon incidents in last-24-hour feed:",
+        features.length
+      );
+
+    } catch (error) {
+      console.error("Could not refresh NIFC/IRWIN fire activity:", error);
+    } finally {
+      nifcRefreshInProgress = false;
+    }
+  }
+
+  updateNifcFires();
+  setInterval(updateNifcFires, 5 * 60 * 1000);
+
+  // =========================================================
+  // CURRENT NIFC FIRE PERIMETERS
+  // Statewide, visible map extent at zoom 9+
+  // =========================================================
+
+  const perimeterQueryUrl =
+    "https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters_Current/FeatureServer/0/query";
+
+  const firePerimeterLayer = L.layerGroup().addTo(map);
+  let currentRequestSequence = 0;
+  let currentAbortController = null;
+  let currentLastViewKey = "";
+  let currentRefreshTimer = null;
+  let currentLastFetch = 0;
+  let perimeterFillOpacity = 0.10;
+
+  // perimeterStyle: perimeter style logic.
+  function perimeterStyle() {
+    return {
+      color: "#ff2100",
+      weight: 3,
+      opacity: 0.95,
+      fillColor: "#ff1600",
+      fillOpacity: perimeterFillOpacity,
+      className: "fire-perimeter-glow",
+      lineCap: "round",
+      lineJoin: "round"
+    };
+  }
+
+  // formatAcres: format acres logic.
+  function formatAcres(value) {
+    const acres = Number(value);
+
+    return Number.isFinite(acres)
+      ? acres.toLocaleString(undefined, {
+          maximumFractionDigits: 1
+        }) + " acres"
+      : "Not reported";
+  }
+
+  // updateFirePerimeters: update fire perimeters logic.
+  async function updateFirePerimeters(force = false) {
+    if (!map.hasLayer(firePerimeterLayer)) return;
+    if (map.getZoom() < 9) {
+      currentRequestSequence++;
+      if (currentAbortController) currentAbortController.abort();
+      currentAbortController = null;
+      currentLastViewKey = "";
+      firePerimeterLayer.clearLayers();
+      return;
+    }
+    const bounds = map.getBounds();
+    const sw = L.CRS.EPSG3857.project(bounds.getSouthWest());
+    const ne = L.CRS.EPSG3857.project(bounds.getNorthEast());
+    const bbox = [sw.x, sw.y, ne.x, ne.y].join(",");
+    const viewKey = bbox;
+    if (!force && currentLastViewKey === viewKey) return;
+    const sequence = ++currentRequestSequence;
+    if (currentAbortController) currentAbortController.abort();
+    const controller = new AbortController();
+    currentAbortController = controller;
+    const base = {
+      where: "1=1", geometry: bbox, geometryType: "esriGeometryEnvelope",
+      inSR: "3857", spatialRel: "esriSpatialRelIntersects",
+      outFields: "OBJECTID,poly_IncidentName,poly_GISAcres,attr_POOCounty",
+      outSR: "4326", returnGeometry: "true", orderByFields: "OBJECTID ASC",
+      resultRecordCount: "1000", f: "json"
+    };
+    try {
+      const features = [];
+      for (let offset = 0; ; offset += 1000) {
+        const params = new URLSearchParams({...base, resultOffset: String(offset)});
+        const response = await fetch(perimeterQueryUrl + "?" + params, {signal: controller.signal});
+        if (!response.ok) throw Error("Current perimeter HTTP " + response.status);
+        const data = await response.json();
+        if (data.error) throw Error(data.error.message || "Current perimeter query failed");
+        if (sequence !== currentRequestSequence || !map.hasLayer(firePerimeterLayer) || map.getZoom() < 9) return;
+        const page = Array.isArray(data.features) ? data.features : [];
+        features.push(...page);
+        if (!page.length || (!data.exceededTransferLimit && page.length < 1000)) break;
+      }
+      const replacementLayer = L.layerGroup();
+      features.forEach(function(feature) {
+        const attrs = feature.attributes || {};
+        const rings = feature.geometry && Array.isArray(feature.geometry.rings) ? feature.geometry.rings : [];
+        if (!rings.length) return;
+        const latLngRings = rings.map(ring => ring.map(point => [Number(point[1]), Number(point[0])]));
+        if (!latLngRings[0] || latLngRings[0].length < 3) return;
+        const polygon = L.polygon(latLngRings, perimeterStyle());
+        polygon.bindPopup("<div style='min-width:180px'><strong>" +
+          escapeHtml(attrs.poly_IncidentName || "Unnamed fire perimeter") + "</strong><br>County: " +
+          escapeHtml(attrs.attr_POOCounty) + "<br>Reported size: " +
+          escapeHtml(formatAcres(attrs.poly_GISAcres)) + "</div>");
+        polygon.addTo(replacementLayer);
+      });
+      firePerimeterLayer.clearLayers();
+      replacementLayer.eachLayer(layer => layer.addTo(firePerimeterLayer));
+      currentLastViewKey = viewKey;
+      currentLastFetch = Date.now();
+      console.info("Current fire perimeters in view:", features.length);
+    } catch(error) {
+      if (error.name !== "AbortError") console.error("Current perimeter query failed:", error);
+    } finally {
+      if (sequence === currentRequestSequence) currentAbortController = null;
+    }
+  }
+
+  // scheduleCurrentPerimeterRefresh: schedule current perimeter refresh logic.
+  function scheduleCurrentPerimeterRefresh() {
+    if (!map.hasLayer(firePerimeterLayer)) return;
+    clearTimeout(currentRefreshTimer);
+    currentRefreshTimer = setTimeout(() => updateFirePerimeters(), 300);
+  }
+  setInterval(() => {
+    if (map.hasLayer(firePerimeterLayer) && Date.now() - currentLastFetch >= 5 * 60 * 1000)
+      updateFirePerimeters(true);
+  }, 5 * 60 * 1000);
+
+  // =========================================================
+  // HISTORICAL FIRE PERIMETERS
+  // Jackson and Josephine counties, 2020 onward
+  // =========================================================
+
+  const historicalPerimeterQueryUrl =
+    "https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters/FeatureServer/0/query";
+
+  const historicalFirePerimeterLayer = L.layerGroup();
+  let historicalRequestSequence = 0;
+  let historicalAbortController = null;
+  let historicalLastViewKey = "";
+  let historicalRefreshTimer = null;
+
+  // formatHistoricalDate: format historical date logic.
+  function formatHistoricalDate(value) {
+    if (value == null || value === "") return "Not reported";
+
+    const timestamp = Number(value);
+
+    if (!Number.isFinite(timestamp) || timestamp <= 0) {
+      return "Not reported";
+    }
+
+    const date = new Date(timestamp);
+
+    if (Number.isNaN(date.getTime())) return "Not reported";
+
+    return escapeHtml(date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    }));
+  }
+
+  // formatHistoricalDateTime: format historical date time logic.
+  function formatHistoricalDateTime(value) {
+    if (value == null || value === "") return "Not reported";
+
+    const timestamp = Number(value);
+
+    if (!Number.isFinite(timestamp) || timestamp <= 0) {
+      return "Not reported";
+    }
+
+    const date = new Date(timestamp);
+
+    if (Number.isNaN(date.getTime())) return "Not reported";
+
+    return escapeHtml(date.toLocaleString());
+  }
+
+  // formatHistoricalCoordinate: format historical coordinate logic.
+  function formatHistoricalCoordinate(value) {
+    const number = Number(value);
+
+    if (!Number.isFinite(number)) return "Not reported";
+
+    const sign = number < 0 ? "-" : "";
+    const absolute = Math.abs(number);
+    const degrees = Math.floor(absolute);
+    const minutes = ((absolute - degrees) * 60).toFixed(3);
+
+    return sign + degrees + "° " + minutes + "'";
+  }
+
+  // historicalFireType: historical fire type logic.
+  function historicalFireType(code) {
+    if (code === "WF") return "Wildfire";
+    if (code === "RX") return "Prescribed fire";
+    if (code === "CX") return "Incident complex";
+    return code || "Not reported";
+  }
+
+// historicalPerimeterStyle: historical perimeter style logic.
+function historicalPerimeterStyle() {
+  return {
+    color: "#000000",
+    weight: 2.5,
+    opacity: 0.95,
+    fillColor: "#32CD32",
+    fillOpacity: 0.12,
+    dashArray: "6 4",
+    lineCap: "round",
+    lineJoin: "round"
+  };
+}
+
+  // updateHistoricalFirePerimeters: update historical fire perimeters logic.
+  async function updateHistoricalFirePerimeters(force = false) {
+    if (!map.hasLayer(historicalFirePerimeterLayer)) return;
+    if (map.getZoom() < 9) {
+      historicalRequestSequence++;
+      if (historicalAbortController) historicalAbortController.abort();
+      historicalAbortController = null;
+      historicalLastViewKey = "";
+      historicalFirePerimeterLayer.clearLayers();
+      return;
+    }
+
+    const bounds = map.getBounds();
+    const size = map.getSize();
+    if (!bounds.isValid() || size.x < 1 || size.y < 1) return;
+
+    // Query Oregon historical fire perimeters intersecting the current screen.
+    const sw = L.CRS.EPSG3857.project(bounds.getSouthWest());
+    const ne = L.CRS.EPSG3857.project(bounds.getNorthEast());
+    const bbox = [sw.x, sw.y, ne.x, ne.y].join(",");
+    const viewKey = [bbox, size.x, size.y].join("|");
+    if (!force && viewKey === historicalLastViewKey) return;
+
+    const sequence = ++historicalRequestSequence;
+    if (historicalAbortController) historicalAbortController.abort();
+    const controller = new AbortController();
+    historicalAbortController = controller;
+
+    const baseParams = {
+      where:
+        "attr_POOState = 'US-OR' " +
+        "AND attr_FireDiscoveryDateTime >= TIMESTAMP '2020-01-01 00:00:00'",
+      geometry: bbox,
+      geometryType: "esriGeometryEnvelope",
+      inSR: "3857",
+      spatialRel: "esriSpatialRelIntersects",
+      outFields:
+        "poly_IncidentName,poly_GISAcres,poly_CreateDate," +
+        "poly_DateCurrent,poly_PolygonDateTime," +
+        "attr_IncidentName,attr_IncidentTypeCategory," +
+        "attr_IncidentTypeKind,attr_IncidentSize," +
+        "attr_FireDiscoveryDateTime,attr_InitialLatitude," +
+        "attr_InitialLongitude,attr_PercentContained," +
+        "attr_POOCounty,attr_POOState," +
+        "attr_ContainmentDateTime,attr_FireOutDateTime",
+      outSR: "4326",
+      returnGeometry: "true",
+      orderByFields: "OBJECTID ASC",
+      resultRecordCount: "1000",
+      f: "json"
+    };
+
+    try {
+      const features = [];
+      const pageSize = 1000;
+      for (let offset = 0; ; offset += pageSize) {
+        const params = new URLSearchParams({
+          ...baseParams,
+          resultOffset: String(offset)
+        });
+        const response = await fetch(
+          historicalPerimeterQueryUrl + "?" + params.toString(),
+          {signal: controller.signal}
+        );
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message || "Historical perimeter query failed");
+        if (sequence !== historicalRequestSequence || !map.hasLayer(historicalFirePerimeterLayer)) return;
+        const page = Array.isArray(data.features) ? data.features : [];
+        features.push(...page);
+        if (!data.exceededTransferLimit && page.length < pageSize) break;
+        if (!page.length) break;
+      }
+      const replacementLayer = L.layerGroup();
+
+      features.forEach(function (feature) {
+        const a = feature.attributes || {};
+        const g = feature.geometry || {};
+        const rings = Array.isArray(g.rings) ? g.rings : [];
+
+        if (!rings.length) return;
+
+        const latLngRings = rings.map(function (ring) {
+          return ring.map(function (point) {
+            return [Number(point[1]), Number(point[0])];
+          });
+        });
+
+        if (!latLngRings[0] || latLngRings[0].length < 3) return;
+
+        const fireName =
+          a.poly_IncidentName ||
+          a.attr_IncidentName ||
+          "Unnamed historical fire";
+
+        const polygon = L.polygon(
+          latLngRings,
+          historicalPerimeterStyle()
+        );
+
+        const discoveryDate =
+          formatHistoricalDate(a.attr_FireDiscoveryDateTime);
+
+        const popup =
+          "<div style='min-width:210px;max-width:280px;line-height:1.5'>" +
+          "<strong style='font-size:15px'>" +
+          escapeHtml(fireName) +
+          "</strong><br>" +
+         "<span style='color:#228B22;font-weight:bold'>" +
+          "Historical Fire Perimeter</span><br>" +
+          "<strong>County:</strong> " +
+          escapeHtml(a.attr_POOCounty) + "<br>" +
+          "<strong>Fire type:</strong> " +
+          escapeHtml(historicalFireType(a.attr_IncidentTypeCategory)) +
+          "<br>" +
+          "<strong>GIS acres:</strong> " +
+          escapeHtml(formatAcres(a.poly_GISAcres)) + "<br>" +
+          "<strong>Reported incident size:</strong> " +
+          escapeHtml(formatAcres(a.attr_IncidentSize)) + "<br>" +
+          "<strong>Discovered:</strong> " +
+          discoveryDate + "<br>" +
+          "<strong>Perimeter date:</strong> " +
+          formatHistoricalDate(a.poly_PolygonDateTime) + "<br>" +
+          "<strong>Perimeter created:</strong> " +
+          formatHistoricalDate(a.poly_CreateDate) + "<br>" +
+          "<strong>Perimeter current as of:</strong> " +
+          formatHistoricalDate(a.poly_DateCurrent) + "<br>" +
+          "<strong>Initial latitude:</strong> " +
+          escapeHtml(formatHistoricalCoordinate(a.attr_InitialLatitude)) +
+          "<br>" +
+          "<strong>Initial longitude:</strong> " +
+          escapeHtml(formatHistoricalCoordinate(a.attr_InitialLongitude)) +
+          "<br>" +
+          "<strong>Percent contained:</strong> " +
+          (
+            a.attr_PercentContained == null
+              ? "Not reported"
+              : escapeHtml(a.attr_PercentContained) + "%"
+          ) + "<br>" +
+          "<strong>Containment date:</strong> " +
+          formatHistoricalDateTime(a.attr_ContainmentDateTime) + "<br>" +
+          "<strong>Fire out date:</strong> " +
+          formatHistoricalDateTime(a.attr_FireOutDateTime) +
+          "</div>";
+
+        polygon.bindPopup(popup);
+        polygon.addTo(replacementLayer);
+      });
+
+      if (sequence !== historicalRequestSequence || !map.hasLayer(historicalFirePerimeterLayer)) return;
+      historicalFirePerimeterLayer.clearLayers();
+      replacementLayer.eachLayer(function (layer) {
+        layer.addTo(historicalFirePerimeterLayer);
+      });
+      historicalLastViewKey = viewKey;
+      console.info("Historical perimeters in visible map extent:", features.length);
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        console.error("Could not refresh historical fire perimeters:", error);
+      }
+    } finally {
+      if (sequence === historicalRequestSequence) historicalAbortController = null;
+    }
+  }
+
+  // scheduleHistoricalPerimeterRefresh: schedule historical perimeter refresh logic.
+  function scheduleHistoricalPerimeterRefresh() {
+    if (!map.hasLayer(historicalFirePerimeterLayer)) return;
+    clearTimeout(historicalRefreshTimer);
+    historicalRefreshTimer = setTimeout(updateHistoricalFirePerimeters, 300);
+  }
+
+  // =========================================================
+  // RAWS WEATHER STATIONS
+  // Active Oregon stations in Jackson and Josephine counties
+  // =========================================================
+
+  const rawsQueryUrl =
+    "https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/PublicView_RAWS/FeatureServer/1/query";
+
+  const rawsLayer = L.layerGroup().addTo(map);
+  let rawsRefreshInProgress = false;
+
+  // rawsValue: raws value logic.
+  function rawsValue(value, suffix) {
+    if (
+      value == null ||
+      String(value).trim() === "" ||
+      String(value).trim().toUpperCase() === "NO DATA"
+    ) {
+      return "Not reported";
+    }
+
+    return escapeHtml(String(value).trim()) + (suffix || "");
+  }
+
+  // rawsTemperature: raws temperature logic.
+  function rawsTemperature(value) {
+    if (
+      value == null ||
+      String(value).trim() === "" ||
+      String(value).trim().toUpperCase() === "NO DATA"
+    ) {
+      return "Not reported";
+    }
+
+    const temperature = String(value)
+      .trim()
+      .replace(/ deg\. F/i, "")
+      .replace(/°\s*F/i, "")
+      .trim();
+
+    return escapeHtml(temperature) + "F";
+  }
+
+  // rawsWindDirection: raws wind direction logic.
+  function rawsWindDirection(value) {
+    if (
+      value == null ||
+      String(value).trim() === "" ||
+      String(value).trim().toUpperCase() === "NO DATA"
+    ) {
+      return "Not reported";
+    }
+
+    const degrees = Number(value);
+
+    if (!Number.isFinite(degrees)) {
+      return rawsValue(value, "");
+    }
+
+    const directions = [
+      "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+      "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"
+    ];
+
+    const compass = directions[
+      Math.round((((degrees % 360) + 360) % 360) / 22.5) % 16
+    ];
+
+    return compass + " (" + degrees + "°)";
+  }
+
+  // rawsObservationTime: raws observation time logic.
+  function rawsObservationTime(value) {
+    if (value == null || value === "") return "Not reported";
+
+    const timestamp = Number(value);
+
+    if (
+      !Number.isFinite(timestamp) ||
+      timestamp <= 0 ||
+      timestamp < Date.UTC(2000, 0, 1)
+    ) {
+      return "Not reported";
+    }
+
+    const date = new Date(timestamp);
+
+    if (Number.isNaN(date.getTime())) return "Not reported";
+
+    return escapeHtml(date.toLocaleString());
+  }
+
+  // updateRawsStations: update raws stations logic.
+  async function updateRawsStations() {
+    if (rawsRefreshInProgress || !map.hasLayer(rawsLayer)) return;
+
+    rawsRefreshInProgress = true;
+
+    const params = new URLSearchParams({
+      where: "Status = 'A' AND State = 'OR'",
+      outFields:
+        "StationName,ObservedDate,Elevation,Latitude,Longitude," +
+        "State,County,Status,RainAccumulation,WindSpeedMPH," +
+        "WindDirDegrees,AirTempStandPlace,RelativeHumidity," +
+        "WindSpeedPeak,WindDirPeak,StationID,MesoWestStationID," +
+        "WXID,MesoWestURL",
+      outSR: "4326",
+      returnGeometry: "true",
+      f: "json"
+    });
+
+    try {
+      const response = await fetch(
+        rawsQueryUrl + "?" + params.toString()
+      );
+
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error.message || "RAWS query failed");
+      }
+
+      const replacementLayer = L.layerGroup();
+      const features = Array.isArray(data.features) ? data.features : [];
+
+      features.forEach(function (feature) {
+        const a = feature.attributes || {};
+        const g = feature.geometry || {};
+
+        const lat = Number(g.y != null ? g.y : a.Latitude);
+        const lng = Number(g.x != null ? g.x : a.Longitude);
+
+        if (
+          !Number.isFinite(lat) ||
+          !Number.isFinite(lng) ||
+          lat < -90 || lat > 90 ||
+          lng < -180 || lng > 180 ||
+          (lat === 0 && lng === 0)
+        ) return;
+
+        const tempText = rawsTemperature(a.AirTempStandPlace);
+
+        const marker = L.marker([lat, lng], {
+          icon: L.divIcon({
+            className: "",
+            html: `
+              <div style="display:flex;align-items:center;gap:3px;white-space:nowrap;">
+                <div style="
+                  width:12px;
+                  height:12px;
+                  flex-shrink:0;
+                  background:#008CFF;
+                  border:2px solid white;
+                  box-shadow:0 1px 4px #555;
+                  box-sizing:border-box;
+                "></div>
+                <span style="
+                  color:#111;
+                  background:rgba(255,255,255,0.9);
+                  padding:1px 3px;
+                  border-radius:3px;
+                  font-size:12px;
+                  font-weight:bold;
+                ">${tempText}</span>
+              </div>
+            `,
+            iconSize: [150, 18],
+            iconAnchor: [6, 9]
+          })
+        });
+
+        let popup =
+          "<div style='min-width:210px;max-width:270px;line-height:1.5'>" +
+          "<strong style='font-size:15px'>" +
+          escapeHtml(a.StationName || "Unnamed RAWS station") +
+          "</strong><br>" +
+          "<span style='color:#555'>" +
+          escapeHtml(a.County || "Oregon") + " County RAWS</span>" +
+          "<hr style='margin:6px 0'>" +
+          "<strong>Temperature:</strong> " +
+          rawsTemperature(a.AirTempStandPlace) + "<br>" +
+          "<strong>Relative humidity:</strong> " +
+          rawsValue(a.RelativeHumidity, "").replace(/\s*%$/, "") +
+          (a.RelativeHumidity == null ||
+           String(a.RelativeHumidity).trim() === "" ||
+           String(a.RelativeHumidity).trim().toUpperCase() === "NO DATA"
+            ? ""
+            : "%") + "<br>" +
+          "<strong>Wind:</strong> " +
+          rawsValue(a.WindSpeedMPH, "") + " · " +
+          rawsWindDirection(a.WindDirDegrees) + "<br>" +
+          "<strong>Peak wind:</strong> " +
+          rawsValue(a.WindSpeedPeak, "") + " · " +
+          rawsWindDirection(a.WindDirPeak) + "<br>" +
+          "<strong>Rain accumulation:</strong> " +
+          rawsValue(a.RainAccumulation, "") + "<br>" +
+          "<strong>Elevation:</strong> " +
+          rawsValue(a.Elevation, " ft") + "<br>" +
+          "<strong>Observation:</strong> " +
+          rawsObservationTime(a.ObservedDate);
+
+        if (a.MesoWestURL) {
+          const weatherUrl = String(a.MesoWestURL);
+
+          if (/^https:\/\/[^\s"'<>]+$/i.test(weatherUrl)) {
+            popup +=
+              "<br><a href='" + escapeHtml(weatherUrl) +
+              "' target='_blank' rel='noopener noreferrer'>" +
+              "Detailed station weather</a>";
+          }
+        }
+
+        popup += "</div>";
+
+        marker.bindPopup(popup);
+        marker.addTo(replacementLayer);
+      });
+
+      rawsLayer.clearLayers();
+
+      replacementLayer.eachLayer(function (layer) {
+        layer.addTo(rawsLayer);
+      });
+
+      console.info(
+        "Active Jackson/Josephine RAWS stations loaded:",
+        features.length
+      );
+
+    } catch (error) {
+      console.error("Could not refresh RAWS weather stations:", error);
+    } finally {
+      rawsRefreshInProgress = false;
+    }
+  }
+
+  updateRawsStations();
+  setInterval(updateRawsStations, 15 * 60 * 1000);
+
+  // =========================================================
+  // USGS LAKES & PONDS
+  //
+  // featuretype = 3: Lake
+  // Minimum size = 0.25 acre
+  // Statewide, visible map extent at zoom 9+
+  // Only fetch waterbody geometry for the current map view
+  // =========================================================
+
+  const usgsWaterbodyQueryUrl =
+    "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer/60/query";
+
+  const oregonCountyQueryUrl =
+    "https://gis.wrd.state.or.us/server/rest/services/adm/Counties_WGS84/FeatureServer/0/query";
+
+  // 0.25 acre converted to square kilometers.
+  const waterbodyMinimumAreaSqKm = 0.0010117;
+
+  const waterbodyWhere =
+    "featuretype = 3 AND areasqkm >= " +
+    waterbodyMinimumAreaSqKm;
+
+  const usgsWaterbodyLayer = L.layerGroup();
+
+  let waterbodyRefreshSequence = 0;
+  let waterbodyRefreshTimer = null;
+  let waterbodyLastViewKey = "";
+  let waterbodyAbortController = null;
+
+  // formatWaterbodyAcres: format waterbody acres logic.
+  function formatWaterbodyAcres(areaSqKm) {
+    const squareKm = Number(areaSqKm);
+
+    if (!Number.isFinite(squareKm) || squareKm < 0) {
+      return "Not reported";
+    }
+
+    const acres = squareKm * 247.105381;
+
+    return acres.toLocaleString(undefined, {
+      maximumFractionDigits: 2
+    }) + " acres";
+  }
+
+  // formatWaterbodyDate: format waterbody date logic.
+  function formatWaterbodyDate(value) {
+    if (value == null || value === "") return "Not reported";
+
+    const timestamp = Number(value);
+
+    if (!Number.isFinite(timestamp)) return "Not reported";
+
+    const date = new Date(timestamp);
+
+    if (Number.isNaN(date.getTime())) return "Not reported";
+
+    return escapeHtml(date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    }));
+  }
+
+  // waterbodyPopup: waterbody popup logic.
+  function waterbodyPopup(attributes) {
+    const name =
+      attributes.gnisidlabel ||
+      attributes.id3dhp ||
+      "Unnamed lake or pond";
+
+    const type = attributes.featuretypelabel || "Lake";
+
+    return (
+      "<div style='min-width:190px;max-width:260px;line-height:1.5'>" +
+      "<strong style='font-size:15px'>" +
+      escapeHtml(name) +
+      "</strong><br>" +
+      "<span style='color:#1769d2;font-weight:bold'>" +
+      "USGS Waterbody</span><br>" +
+      "<strong>Type:</strong> " +
+      escapeHtml(type) + "<br>" +
+      "<strong>Mapped area:</strong> " +
+      escapeHtml(formatWaterbodyAcres(attributes.areasqkm)) + "<br>" +
+      "<strong>Feature ID:</strong> " +
+      escapeHtml(attributes.id3dhp) + "<br>" +
+      "<strong>Feature date:</strong> " +
+      formatWaterbodyDate(attributes.featuredate) +
+      "</div>"
+    );
+  }
+
+  // addWaterbodyFeature: add waterbody feature logic.
+  function addWaterbodyFeature(feature, targetLayer) {
+    const attributes = feature.attributes || {};
+    const geometry = feature.geometry || {};
+    const rings = Array.isArray(geometry.rings) ? geometry.rings : [];
+
+    if (!rings.length) return;
+
+    const latLngRings = rings.map(function (ring) {
+      return ring.map(function (point) {
+        return [Number(point[1]), Number(point[0])];
+      });
+    });
+
+    if (!latLngRings[0] || latLngRings[0].length < 3) return;
+
+    const polygon = L.polygon(latLngRings, {
+      color: "#1769d2",
+      weight: 1.5,
+      opacity: 0.95,
+      fillColor: "#42a5f5",
+      fillOpacity: 0.55
+    });
+
+    polygon.bindPopup(waterbodyPopup(attributes));
+    polygon.addTo(targetLayer);
+  }
+
+  // currentWaterbodyViewKey: current waterbody view key logic.
+  function currentWaterbodyViewKey() {
+    const bounds = map.getBounds();
+
+    // Rounded key avoids needless requests for tiny movement differences.
+    return [
+      bounds.getWest().toFixed(5),
+      bounds.getSouth().toFixed(5),
+      bounds.getEast().toFixed(5),
+      bounds.getNorth().toFixed(5),
+      map.getZoom()
+    ].join(",");
+  }
+
+  // updateWaterbodiesInView: update waterbodies in view logic.
+  async function updateWaterbodiesInView() {
+    if (!map.hasLayer(usgsWaterbodyLayer)) return;
+    if (map.getZoom() < 9) {
+      waterbodyRefreshSequence++;
+      if (waterbodyAbortController) waterbodyAbortController.abort();
+      waterbodyAbortController = null;
+      waterbodyLastViewKey = "";
+      usgsWaterbodyLayer.clearLayers();
+      return;
+    }
+    const viewKey = currentWaterbodyViewKey();
+    if (viewKey === waterbodyLastViewKey) return;
+    const sequence = ++waterbodyRefreshSequence;
+    if (waterbodyAbortController) waterbodyAbortController.abort();
+    const controller = new AbortController();
+    waterbodyAbortController = controller;
+    const bounds = map.getBounds();
+    const geometry = JSON.stringify({xmin: bounds.getWest(), ymin: bounds.getSouth(),
+      xmax: bounds.getEast(), ymax: bounds.getNorth(), spatialReference: {wkid:4326}});
+    const base = {
+      where: waterbodyWhere, geometry, geometryType: "esriGeometryEnvelope", inSR: "4326",
+      spatialRel: "esriSpatialRelIntersects",
+      outFields: "OBJECTID,id3dhp,gnisidlabel,featuretype,featuretypelabel,areasqkm,featuredate",
+      returnGeometry: "true", outSR: "4326", orderByFields: "OBJECTID ASC",
+      resultRecordCount: "1000", f: "json"
+    };
+    try {
+      const replacementLayer = L.layerGroup();
+      const loadedIds = new Set();
+      for (let offset = 0; ; offset += 1000) {
+        const response = await fetch(usgsWaterbodyQueryUrl, {
+          method: "POST", signal: controller.signal,
+          headers: {"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},
+          body: new URLSearchParams({...base, resultOffset: String(offset)}).toString()
+        });
+        if (!response.ok) throw Error("Waterbody HTTP " + response.status);
+        const data = await response.json();
+        if (data.error) throw Error(data.error.message || "Waterbody query failed");
+        if (sequence !== waterbodyRefreshSequence || !map.hasLayer(usgsWaterbodyLayer) || map.getZoom() < 9) return;
+        const page = Array.isArray(data.features) ? data.features : [];
+        page.forEach(feature => {
+          const id = feature.attributes && feature.attributes.OBJECTID;
+          if (id != null && loadedIds.has(id)) return;
+          if (id != null) loadedIds.add(id);
+          addWaterbodyFeature(feature, replacementLayer);
+        });
+        if (!page.length || (!data.exceededTransferLimit && page.length < 1000)) break;
+      }
+      usgsWaterbodyLayer.clearLayers();
+      replacementLayer.eachLayer(layer => layer.addTo(usgsWaterbodyLayer));
+      waterbodyLastViewKey = viewKey;
+      console.info("Oregon lakes and ponds in view:", loadedIds.size);
+    } catch(error) {
+      if (error.name !== "AbortError") console.error("Could not load USGS waterbodies:", error);
+    } finally {
+      if (sequence === waterbodyRefreshSequence) waterbodyAbortController = null;
+    }
+  }
+
+  // scheduleWaterbodyRefresh: schedule waterbody refresh logic.
+  function scheduleWaterbodyRefresh() {
+    if (!map.hasLayer(usgsWaterbodyLayer)) return;
+
+    clearTimeout(waterbodyRefreshTimer);
+
+    waterbodyRefreshTimer = setTimeout(function () {
+      updateWaterbodiesInView();
+    }, 300);
+  }
+
+
+
+  // =========================================================
+  // GPS TRACK — SEPARATE SEGMENT FOR EACH GPS SESSION
+  // =========================================================
+
+  // Visible by default. Layer visibility does not control recording.
+  const gpsTrackLayer = L.layerGroup().addTo(map);
+
+  const gpsTrackStyle = {
+    color: "#00a6ff",
+    weight: 5,
+    opacity: 0.9,
+    lineCap: "round",
+    lineJoin: "round"
+  };
+
+  // Persist short GPS segments locally. Storage is optional: GPS still works if blocked.
+  const GPS_DB_NAME = "topotac-gps-tracks";
+  const GPS_DB_STORE = "segments";
+  let gpsDb = null;
+  let gpsDbReady = false;
+  let gpsStorageWarningShown = false;
+  let gpsSegmentId = null;
+  let gpsLastFixTime = 0;
+  let gpsWriteQueue = Promise.resolve();
+  let gpsTrackGeneration = 0;
+  const GPS_GAP_MS = 60000;
+
+  // warnGpsStorage: warn gps storage logic.
+  function warnGpsStorage(err) {
+    console.warn("GPS track local storage unavailable:", err);
+    if (!gpsStorageWarningShown) {
+      gpsStorageWarningShown = true;
+      const note = document.createElement("div");
+      note.textContent = "GPS tracks are temporary: browser storage unavailable.";
+      note.setAttribute("role", "status");
+      note.style.cssText = "position:absolute;bottom:245px;right:8px;z-index:1200;background:#fff4dd;color:#3a2500;padding:9px;border:1px solid #bd8d31;border-radius:5px;max-width:220px;font:12px Arial";
+      document.body.appendChild(note);
+    }
+  }
+
+  // openGpsDb: open gps db logic.
+  function openGpsDb() {
+    if (!window.indexedDB) { warnGpsStorage("IndexedDB unsupported"); return Promise.resolve(null); }
+    return new Promise(resolve => {
+      let request;
+      try { request = indexedDB.open(GPS_DB_NAME, 1); }
+      catch (err) { warnGpsStorage(err); resolve(null); return; }
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(GPS_DB_STORE)) db.createObjectStore(GPS_DB_STORE, {keyPath:"id"});
+      };
+      request.onsuccess = () => { gpsDb = request.result; gpsDbReady = true; resolve(gpsDb); };
+      request.onerror = () => { warnGpsStorage(request.error); resolve(null); };
+      request.onblocked = () => { warnGpsStorage("Database upgrade blocked"); resolve(null); };
+    });
+  }
+
+  // gpsDbOperation: gps db operation logic.
+  function gpsDbOperation(mode, action) {
+    return new Promise((resolve, reject) => {
+      if (!gpsDbReady || !gpsDb) { resolve(null); return; }
+      try {
+        const tx = gpsDb.transaction(GPS_DB_STORE, mode);
+        const store = tx.objectStore(GPS_DB_STORE);
+        const req = action(store);
+        tx.oncomplete = () => resolve(req ? req.result : true);
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+      } catch(err) { reject(err); }
+    });
+  }
+
+  // Restore before recording new positions, so asynchronous reads never overwrite them.
+  const gpsRestorePromise = openGpsDb().then(async db => {
+    if (!db) return;
+    const generation = gpsTrackGeneration;
+    try {
+      const records = await gpsDbOperation("readonly", store => store.getAll());
+      if (generation !== gpsTrackGeneration) return;
+      for (const record of (records || [])) {
+        if (!Array.isArray(record.points) || !record.points.length) continue;
+        L.polyline(record.points, gpsTrackStyle).addTo(gpsTrackLayer);
+      }
+    } catch(err) { warnGpsStorage(err); }
+  });
+
+  // saveGpsSegment: save gps segment logic.
+  function saveGpsSegment() {
+    if (!gpsSegmentId || !gpsTrackPoints.length) return;
+    const record = {id:gpsSegmentId, points:gpsTrackPoints.map(p => [p.lat,p.lng])};
+    const generation = gpsTrackGeneration;
+    gpsWriteQueue = gpsWriteQueue.then(async () => {
+      await gpsRestorePromise;
+      if (generation !== gpsTrackGeneration) return;
+      await gpsDbOperation("readwrite", store => store.put(record));
+    }).catch(warnGpsStorage);
+  }
+
+  // Each GPS session gets its own polyline.
+  let gpsTrackLine = null;
+  let gpsTrackPoints = [];
+
+  // recordGpsTrackPoint: record gps track point logic.
+  function recordGpsTrackPoint(location) {
+    // Create a new line when a session starts or restarts.
+    const fixTime = Date.now();
+    if (gpsTrackLine && gpsLastFixTime && fixTime - gpsLastFixTime > GPS_GAP_MS) endGpsTrackSegment();
+    gpsLastFixTime = fixTime;
+    if (!gpsTrackLine) {
+      gpsSegmentId = "segment-" + fixTime + "-" + Math.random().toString(36).slice(2);
+      gpsTrackPoints = [];
+      gpsTrackLine = L.polyline([], gpsTrackStyle);
+      gpsTrackLine.addTo(gpsTrackLayer);
+    }
+
+    const previousPoint =
+      gpsTrackPoints.length > 0
+        ? gpsTrackPoints[gpsTrackPoints.length - 1]
+        : null;
+
+    // Ignore duplicate consecutive positions.
+    if (
+      !previousPoint ||
+      previousPoint.lat !== location.lat ||
+      previousPoint.lng !== location.lng
+    ) {
+      gpsTrackPoints.push(location);
+      gpsTrackLine.setLatLngs(gpsTrackPoints);
+      saveGpsSegment();
+    }
+  }
+
+  // End the current segment without deleting its line.
+  // endGpsTrackSegment: end gps track segment logic.
+  function endGpsTrackSegment() {
+    gpsTrackLine = null;
+    gpsTrackPoints = [];
+    gpsSegmentId = null;
+    gpsLastFixTime = 0;
+  }
+
+  const clearTrackButton =
+    document.getElementById("clearTrackButton");
+
+  L.DomEvent.disableClickPropagation(clearTrackButton);
+  L.DomEvent.disableScrollPropagation(clearTrackButton);
+
+  clearTrackButton.addEventListener("click", function () {
+    // Delete every segment, including earlier GPS sessions.
+    gpsTrackGeneration++;
+    gpsTrackLayer.clearLayers();
+    gpsRecordingStart=null;
+    updateGpsStats();
+    gpsWriteQueue = gpsWriteQueue.then(async () => {
+      await gpsRestorePromise;
+      await gpsDbOperation("readwrite", store => store.clear());
+    }).catch(warnGpsStorage);
+
+    // If GPS is still on, the next position starts a fresh line.
+    endGpsTrackSegment();
+  });
+
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) endGpsTrackSegment();
+  });
+  window.addEventListener("pagehide", endGpsTrackSegment);
+
+  // =========================================================
+  // GPX IMPORT LAYER
+  // =========================================================
+
+  // Master checkbox; its behavior is handled below.
+  const gpxTrackLayer = L.layerGroup();
+  const gpxOverlayLayers = [];
+
+  const markedPointsLayer = L.layerGroup().addTo(map);
+
+  // Oregon dog parks: static GeoJSON hosted beside index.html.
+  // Load once, on first checkbox activation; no Overpass requests.
+  const oregonDogParksLayer = L.layerGroup();
+  let oregonDogParksPromise = null;
+  // dogParkEscape: dog park escape logic.
+  function dogParkEscape(value) {
+    return String(value).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[ch]);
+  }
+  // loadOregonDogParks: load oregon dog parks logic.
+  function loadOregonDogParks() {
+    if (oregonDogParksPromise) return oregonDogParksPromise;
+    oregonDogParksPromise = fetch("oregon_dogparks.geojson")
+      .then(response => {
+        if (!response.ok) throw new Error("GeoJSON HTTP " + response.status);
+        return response.json();
+      })
+      .then(data => {
+        if (data.type !== "FeatureCollection" || !Array.isArray(data.features)) {
+          throw new Error("Invalid dog park GeoJSON");
+        }
+        const parks = L.geoJSON(data, {
+          pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+            radius: 7, color: "#ffffff", weight: 2,
+            fillColor: "#9333ea", fillOpacity: 0.95
+          }),
+          onEachFeature: (feature, layer) => {
+            const p = feature.properties || {};
+            const name = dogParkEscape(p.name || "Unnamed Dog Park");
+            let popup = "<strong>" + name + "</strong><br>Oregon Dog Park";
+            if (p.operator) popup += "<br>Operator: " + dogParkEscape(p.operator);
+            if (p.access) popup += "<br>Access: " + dogParkEscape(p.access);
+            if (p.dog) popup += "<br>Dog access: " + dogParkEscape(p.dog);
+            if (p.website && /^https?:\/\//i.test(p.website)) {
+              const url = dogParkEscape(p.website);
+              popup += '<br><a href="' + url + '" target="_blank" rel="noopener noreferrer">Park website</a>';
+            }
+            layer.bindPopup(popup);
+          }
+        });
+        parks.addTo(oregonDogParksLayer);
+        console.info("OR Dog Parks loaded:", data.features.length);
+      })
+      .catch(error => {
+        oregonDogParksPromise = null; // allow retry on next enable
+        console.error("OR Dog Parks GeoJSON failed to load:", error);
+        if (map.hasLayer(oregonDogParksLayer)) {
+          alert("OR Dog Parks could not load. Check that oregon_dogparks.geojson is beside index.html.");
+        }
+      });
+    return oregonDogParksPromise;
+  }
+
+  // =========================================================
+  // US AIR QUALITY — EPA AIRNOW HOURLY PM2.5 AQI CONTOURS
+  // Off by default. Request only visible polygons; refresh at most hourly.
+  // =========================================================
+  map.createPane("aqiPane");
+  map.getPane("aqiPane").style.zIndex = 450; // above map imagery, below markers
+  map.getPane("aqiPane").style.pointerEvents = "none";
+  const airQualityLayer = L.layerGroup();
+  const AQI_SERVICE = "https://services.arcgis.com/cJ9YHowT8TU7DUyn/ArcGIS/rest/services/AirNowLatestContoursPM25/FeatureServer/0/query";
+  const AQI_COLORS = [null, "#00e400", "#ffff00", "#ff7e00", "#ff0000", "#99004c", "#4c0026"];
+  const AQI_NAMES = [null, "Good", "Moderate", "Unhealthy for sensitive groups", "Unhealthy", "Very unhealthy", "Hazardous"];
+  let aqiController = null;
+  let aqiRequestId = 0;
+  let aqiLastView = "";
+  let aqiLastFetch = 0;
+  let aqiRefreshTimer = null;
+
+  async function updateAirQuality(force = false) {
+    if (!map.hasLayer(airQualityLayer)) return;
+    const bounds = map.getBounds();
+    const box = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
+    const viewKey = box.map(n => n.toFixed(2)).join(",");
+    if (!force && aqiLastView === viewKey && Date.now() - aqiLastFetch < 55 * 60 * 1000) return;
+    if (aqiController) aqiController.abort();
+    const controller = new AbortController();
+    aqiController = controller;
+    const requestId = ++aqiRequestId;
+    const params = new URLSearchParams({
+      f: "geojson", where: "1=1", outFields: "gridcode,Timestamp",
+      geometry: box.join(","), geometryType: "esriGeometryEnvelope",
+      inSR: "4326", outSR: "4326", spatialRel: "esriSpatialRelIntersects",
+      // Reduce geometry payload, particularly when zoomed out.
+      maxAllowableOffset: String(Math.max(0.005, 0.25 / Math.pow(2, Math.max(0, map.getZoom() - 6)))),
+      geometryPrecision: "4", returnGeometry: "true"
+    });
+    try {
+      const response = await fetch(AQI_SERVICE + "?" + params, {signal: controller.signal});
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const data = await response.json();
+      if (data.error || data.type !== "FeatureCollection") throw new Error(data.error?.message || "Invalid GeoJSON");
+      if (requestId !== aqiRequestId || !map.hasLayer(airQualityLayer)) return;
+      const polygons = L.geoJSON(data, {
+        pane: "aqiPane",
+        interactive: false,
+        style: feature => ({
+          color: "transparent", weight: 0,
+          fillColor: AQI_COLORS[Number(feature.properties?.gridcode)] || "#888888",
+          fillOpacity: 0.40
+        })
+      });
+      airQualityLayer.clearLayers();
+      airQualityLayer.addLayer(polygons);
+      aqiLastView = viewKey;
+      aqiLastFetch = Date.now();
+    } catch (error) {
+      if (error.name !== "AbortError") console.warn("AirNow AQI overlay unavailable:", error);
+    } finally {
+      if (aqiController === controller) aqiController = null;
+    }
+  }
+  // Poll hourly while enabled; movement loads the new viewport on demand.
+  aqiRefreshTimer = setInterval(() => updateAirQuality(true), 60 * 60 * 1000);
+
+  // =========================================================
+  // LAYER MENU
+  // =========================================================
+
+  const layerControl = L.control.layers(
+    {
+      "Esri Street Map": streetMap,
+      "OpenTopoMap": topoMap,
+      "Esri Aerial Imagery": aerialMap
+    },
+    {
+      "GPS Tracks": gpsTrackLayer,
+      "Marked Points": markedPointsLayer,
+      "OR LiDAR": hillshade,
+      "OR TRS": plss,
+      "OR Tax Lots": taxlots,
+      "OR Public Land": publicLand,
+      "Lakes/Ponds ¼ Acre+": usgsWaterbodyLayer,
+      "OR New Fires (24Hr)": nifcFireLayer,
+      "US Current Fires": firePerimeterLayer,
+      "OR Historical Fires": historicalFirePerimeterLayer,
+      "OR RAWS WX": rawsLayer,
+      "US Air Quality (AQI)": airQualityLayer,
+      "OR Dog Parks": oregonDogParksLayer
+    },
+    {
+      collapsed: true,
+      position: "topright"
+    }
+  ).addTo(map);
+
+  // Small live zoom indicator beneath the upper-right Layers menu.
+  const zoomReadout = L.control({ position: "topright" });
+  zoomReadout.onAdd = function () {
+    const label = L.DomUtil.create("div", "leaflet-control zoom-level-readout");
+    const update = () => { label.textContent = "Z " + map.getZoom(); };
+    update();
+    map.on("zoomend", update);
+    return label;
+  };
+  zoomReadout.addTo(map);
+
+  // =========================================================
+  // GPX IMPORT — local files, rendered as a separate map layer
+  // Files are read in this browser only; they are not uploaded.
+  // =========================================================
+
+  const gpxFileInput = document.getElementById("gpxFileInput");
+  const gpxImportButton = document.getElementById("gpxImportButton");
+  const clearGpxButton = document.getElementById("clearGpxButton");
+  const gpxStatus = document.getElementById("gpxStatus");
+  let gpxTrackCount = 0;
+  const gpxColors = [
+    "#7b2cbf", "#0077b6", "#d97706", "#008148",
+    "#c1121f", "#5a189a", "#0f766e", "#c026d3"
+  ];
+
+  // showGpxStatus: show gpx status logic.
+  function showGpxStatus(message, show) {
+    gpxStatus.textContent = message;
+    gpxStatus.style.display = show === false ? "none" : "block";
+  }
+
+  // gpxText: gpx text logic.
+  function gpxText(node, tagName) {
+    const child = node.getElementsByTagName(tagName)[0];
+    return child ? child.textContent.trim() : "";
+  }
+
+  // gpxPointFromNode: gpx point from node logic.
+  function gpxPointFromNode(node) {
+    const lat = Number(node.getAttribute("lat"));
+    const lon = Number(node.getAttribute("lon"));
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) ||
+        lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      return null;
+    }
+    return L.latLng(lat, lon);
+  }
+
+  // gpxDistanceMeters: gpx distance meters logic.
+  function gpxDistanceMeters(points) {
+    let distance = 0;
+    for (let i = 1; i < points.length; i++) {
+      distance += points[i - 1].distanceTo(points[i]);
+    }
+    return distance;
+  }
+
+  // formatGpxDistance: format gpx distance logic.
+  function formatGpxDistance(meters) {
+    const miles = meters / 1609.344;
+    if (miles < 0.1) return Math.round(meters) + " m";
+    return miles.toFixed(2) + " mi";
+  }
+
+  // makeGpxEndpointIcon: make gpx endpoint icon logic.
+  function makeGpxEndpointIcon(kind) {
+    return L.divIcon({
+      className: "",
+      html: '<div class="gpx-' + kind + '-marker"></div>',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    });
+  }
+
+  // addGpxFile: add gpx file logic.
+  async function addGpxFile(file) {
+    const text = await file.text();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(text, "application/xml");
+
+    if (xml.getElementsByTagName("parsererror").length) {
+      throw new Error("That file is not valid GPX/XML.");
+    }
+    const root = xml.documentElement;
+    if (!root || root.localName.toLowerCase() !== "gpx") {
+      throw new Error("That file does not appear to be a GPX file.");
+    }
+
+    const fileName = file.name || "Imported GPX";
+    const trackName = gpxText(xml, "name") ||
+      fileName.replace(/\.gpx$/i, "");
+    const color = gpxColors[gpxTrackCount % gpxColors.length];
+    const thisFileLayer = L.layerGroup();
+    const allPoints = [];
+    let lineCount = 0;
+
+    // Keep separate track segments separate; don't draw across gaps.
+    Array.from(xml.getElementsByTagName("trkseg")).forEach(function (segment) {
+      const points = Array.from(segment.getElementsByTagName("trkpt"))
+        .map(gpxPointFromNode).filter(Boolean);
+      if (points.length < 2) return;
+
+      L.polyline(points, {
+        color: color, weight: 4, opacity: 0.9,
+        lineCap: "round", lineJoin: "round"
+      }).addTo(thisFileLayer);
+
+      allPoints.push.apply(allPoints, points);
+      lineCount++;
+    });
+
+    // Also support GPX route files that use rtept instead of trkpt.
+    if (lineCount === 0) {
+      Array.from(xml.getElementsByTagName("rte")).forEach(function (route) {
+        const points = Array.from(route.getElementsByTagName("rtept"))
+          .map(gpxPointFromNode).filter(Boolean);
+        if (points.length < 2) return;
+
+        L.polyline(points, {
+          color: color, weight: 4, opacity: 0.9,
+          lineCap: "round", lineJoin: "round", dashArray: "7 5"
+        }).addTo(thisFileLayer);
+
+        allPoints.push.apply(allPoints, points);
+        lineCount++;
+      });
+    }
+
+    // Add named waypoints if the GPX contains them.
+    Array.from(xml.getElementsByTagName("wpt")).forEach(function (node) {
+      const point = gpxPointFromNode(node);
+      if (!point) return;
+      const name = gpxText(node, "name") || "Waypoint";
+      L.marker(point).bindPopup(
+        "<strong>" + escapeHtml(name) + "</strong><br>GPX waypoint"
+      ).addTo(thisFileLayer);
+    });
+
+    if (!allPoints.length) {
+      throw new Error("No usable track or route points were found in " + fileName + ".");
+    }
+
+    const firstPoint = allPoints[0];
+    const lastPoint = allPoints[allPoints.length - 1];
+    L.marker(firstPoint, { icon: makeGpxEndpointIcon("start") })
+      .bindPopup("<strong>Start</strong><br>" + escapeHtml(trackName))
+      .addTo(thisFileLayer);
+    L.marker(lastPoint, { icon: makeGpxEndpointIcon("end") })
+      .bindPopup("<strong>End</strong><br>" + escapeHtml(trackName))
+      .addTo(thisFileLayer);
+
+    const distance = gpxDistanceMeters(allPoints);
+   // Display this imported file immediately and track it
+   // separately so its own checkbox works independently.
+   thisFileLayer.addTo(map);
+   gpxOverlayLayers.push(thisFileLayer);
+   gpxTrackCount++;
+
+    layerControl.addOverlay(
+      thisFileLayer,
+      escapeHtml(trackName) + " (" + formatGpxDistance(distance) + ")"
+    );
+
+    const bounds = L.latLngBounds(allPoints);
+    if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), { maxZoom: 16 });
+
+    return trackName + ": " + allPoints.length + " points, " +
+      formatGpxDistance(distance);
+  }
+
+  gpxImportButton.addEventListener("click", function () {
+    gpxFileInput.click();
+  });
+
+  gpxFileInput.addEventListener("change", async function () {
+    const files = Array.from(gpxFileInput.files || []);
+    if (!files.length) return;
+
+    const messages = [];
+    showGpxStatus("Loading GPX file(s)…");
+
+    for (const file of files) {
+      try {
+        messages.push(await addGpxFile(file));
+      } catch (error) {
+        messages.push((file.name || "GPX file") + ": " +
+          (error && error.message ? error.message : "Could not import file."));
+      }
+    }
+
+    showGpxStatus(messages.join(" | "));
+    gpxFileInput.value = "";
+  });
+
+clearGpxButton.addEventListener("click", function () {
+    // Remove every imported GPX track from the map and layer menu.
+    gpxOverlayLayers.forEach(function (layer) {
+        if (map.hasLayer(layer)) {
+            map.removeLayer(layer);
+        }
+
+        layerControl.removeLayer(layer);
+    });
+
+    // Empty the list of imported GPX layers.
+    gpxOverlayLayers.length = 0;
+    gpxTrackCount = 0;
+
+    // Update the status message.
+    showGpxStatus("Imported GPX tracks cleared.");
+});
+
+  L.DomEvent.disableClickPropagation(gpxImportButton);
+  L.DomEvent.disableClickPropagation(clearGpxButton);
+  L.DomEvent.disableClickPropagation(gpxStatus);
+
+  map.on("overlayadd", function (event) {
+    if (event.layer === oregonDogParksLayer) loadOregonDogParks();
+    if (event.layer === airQualityLayer) updateAirQuality(true);
+
+    if (event.layer === hillshade) updateHillshade();
+    if (event.layer === publicLand) updatePublicLand();
+    if (event.layer === plss) updatePLSS();
+    if (event.layer === taxlots) updateTaxlots();
+    if (event.layer === nifcFireLayer) updateNifcFires();
+    if (event.layer === firePerimeterLayer) updateFirePerimeters();
+
+    if (event.layer === historicalFirePerimeterLayer) {
+      updateHistoricalFirePerimeters();
+    }
+
+    if (event.layer === rawsLayer) {
+      updateRawsStations();
+    }
+
+    if (event.layer === usgsWaterbodyLayer) {
+      waterbodyLastViewKey = "";
+      updateWaterbodiesInView();
+    }
+  });
+
+  map.on("overlayremove", function (event) {
+    if (event.layer === airQualityLayer) {
+      ++aqiRequestId;
+      if (aqiController) aqiController.abort();
+      aqiController = null;
+      airQualityLayer.clearLayers();
+      aqiLastView = "";
+    }
+    if (event.layer === firePerimeterLayer) {
+      clearTimeout(currentRefreshTimer);
+      currentRequestSequence++;
+      if (currentAbortController) currentAbortController.abort();
+      currentAbortController = null;
+      currentLastViewKey = "";
+    }
+
+    if (event.layer === historicalFirePerimeterLayer) {
+      clearTimeout(historicalRefreshTimer);
+      historicalRequestSequence++;
+      if (historicalAbortController) historicalAbortController.abort();
+      historicalAbortController = null;
+      historicalLastViewKey = "";
+    }
+    if (event.layer === taxlots) { taxlotRequest++; parcelClickSequence++; }
+    if (event.layer === publicLand) {
+      publicLandRequest++;
+    }
+
+
+    if (event.layer === usgsWaterbodyLayer) {
+      // Ignore any older request that finishes after the layer is turned off.
+      waterbodyRefreshSequence++;
+      if (waterbodyAbortController) waterbodyAbortController.abort();
+      waterbodyAbortController = null;
+      waterbodyLastViewKey = "";
+      clearTimeout(waterbodyRefreshTimer);
+    }
+  });
+
+  map.on("moveend", refreshVisibleOverlays);
+  map.on("zoomend", refreshVisibleOverlays);
+  map.on("resize", refreshVisibleOverlays);
+
+  if (typeof ResizeObserver !== "undefined") {
+    const observer = new ResizeObserver(function () {
+      map.invalidateSize({ pan: false });
+      refreshVisibleOverlays();
+    });
+
+    observer.observe(document.getElementById("map"));
+  }
+
+  // =========================================================
+  // DOGAMI OPACITY SLIDER
+  // =========================================================
+
+  const opacitySlider = document.getElementById("opacitySlider");
+  const opacityValue = document.getElementById("opacityValue");
+
+  L.DomEvent.disableClickPropagation(
+    document.getElementById("opacityControl")
+  );
+
+  opacitySlider.addEventListener("input", function () {
+    const opacity = Number(opacitySlider.value) / 100;
+
+    hillshade.setOpacity(opacity);
+    opacityValue.textContent = opacitySlider.value + "%";
+  });
+
+  // =========================================================
+  // COORDINATES — DEGREES AND DECIMAL MINUTES ONLY
+  // Negative values indicate south or west.
+  // =========================================================
+
+  // toDDM: to ddm logic.
+  function toDDM(value) {
+    const sign = value < 0 ? "-" : "";
+    const absolute = Math.abs(value);
+    const degrees = Math.floor(absolute);
+    const minutes = (absolute - degrees) * 60;
+
+    return sign + degrees + "° " + minutes.toFixed(3) + "'";
+  }
+
+  const coordinatesDisplay =
+    document.getElementById("coordinates");
+
+  const gpsCoordinatesDisplay =
+    document.getElementById("gpsCoordinates");
+
+  map.on("click", function (event) {
+    if (Date.now() < suppressPointClicksUntil ||
+        (event.originalEvent && event.originalEvent.target.closest &&
+         event.originalEvent.target.closest(".leaflet-popup"))) return;
+    coordinatesDisplay.textContent =
+      toDDM(event.latlng.lat) + "  " +
+      toDDM(event.latlng.lng);
+    if (measureActive) return;
+    if (pointPlacementActive) {
+      addMarkedPoint(event.latlng.lat, event.latlng.lng);
+    } else {
+      identifyClickedParcel(event.latlng);
+    }
+  });
+
+
+  // =========================================================
+  // MARKED POINTS — persistent user-created waypoints
+  // =========================================================
+  const pointStorageKey = "topotac.markedPoints.v1";
+  const addPointButton = document.getElementById("addPointButton");
+  const clearPointsButton = document.getElementById("clearPointsButton");
+  const enterCoordsButton = document.getElementById("enterCoordsButton");
+  const pointEntryPanel = document.getElementById("pointEntryPanel");
+  const pointFormat = document.getElementById("pointFormat");
+  const pointLat = document.getElementById("pointLat");
+  const pointLng = document.getElementById("pointLng");
+  const pointName = document.getElementById("pointName");
+  const pointEntryError = document.getElementById("pointEntryError");
+  let pointPlacementActive = false;
+  let suppressPointClicksUntil = 0;
+  // blockDialogClickThrough: block dialog click through logic.
+  function blockDialogClickThrough() { suppressPointClicksUntil = Date.now() + 650; }
+  let markedPoints = [];
+  let nextPointId = 1;
+  const pointMarkers = new Map();
+
+  // saveMarkedPoints: save marked points logic.
+  function saveMarkedPoints() {
+    try { localStorage.setItem(pointStorageKey, JSON.stringify({points:markedPoints,nextId:nextPointId})); }
+    catch (err) { console.warn("Marked points could not be saved:", err); }
+  }
+  // pointPopup: point popup logic.
+  function pointPopup(p) {
+    const name = p.name ? "<strong>"+escapeHtml(p.name)+"</strong><br>" : "";
+    return '<div style="min-width:190px;line-height:1.6">'+name+
+      '<strong>Point '+p.id+'</strong><br>'+
+      toDDM(Math.abs(p.lat))+(p.lat>=0?' N':' S')+', '+toDDM(Math.abs(p.lng))+(p.lng>=0?' E':' W')+'<br>'+
+      p.lat.toFixed(6)+', '+p.lng.toFixed(6)+'<br>'+
+      '<button type="button" data-point-action="copy" data-point-id="'+p.id+'">COPY</button> '+
+      '<button type="button" data-point-action="rename" data-point-id="'+p.id+'">RENAME</button> '+
+      '<button type="button" data-point-action="delete" data-point-id="'+p.id+'">DELETE POINT</button>'+
+      '<br><small>Drag marker to move</small></div>';
+  }
+  // renderMarkedPoint: render marked point logic.
+  function renderMarkedPoint(p) {
+    const icon = L.divIcon({className:"",html:'<div class="marked-point-pin">'+p.id+'</div>',iconSize:[26,26],iconAnchor:[13,13]});
+    const marker = L.marker([p.lat,p.lng],{icon,draggable:true,bubblingMouseEvents:false});
+    marker.bindPopup(pointPopup(p));
+    marker.on("dragend", () => {
+      const pos = marker.getLatLng();
+      p.lat=pos.lat; p.lng=pos.lng;
+      marker.setPopupContent(pointPopup(p));
+      saveMarkedPoints();
+    });
+    pointMarkers.set(p.id,marker);
+    markedPointsLayer.addLayer(marker);
+    return marker;
+  }
+  // addMarkedPoint: add marked point logic.
+  function addMarkedPoint(lat,lng,name="") {
+    if (!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180) return;
+    const p={id:nextPointId++,lat,lng,name};
+    markedPoints.push(p);
+    const marker=renderMarkedPoint(p);
+    if (!map.hasLayer(markedPointsLayer)) markedPointsLayer.addTo(map);
+    saveMarkedPoints();
+    marker.openPopup();
+    return marker;
+  }
+  try {
+    const stored=JSON.parse(localStorage.getItem(pointStorageKey)||"null");
+    if (stored && Array.isArray(stored.points)) {
+      markedPoints=stored.points.filter(p=>Number.isSafeInteger(p.id)&&p.id>0&&Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&Math.abs(p.lat)<=90&&Math.abs(p.lng)<=180).map(p=>({id:p.id,lat:p.lat,lng:p.lng,name:String(p.name||"").slice(0,80)}));
+      nextPointId=Math.max(Number.isSafeInteger(stored.nextId)?stored.nextId:1,1,...markedPoints.map(p=>p.id+1));
+      markedPoints.forEach(renderMarkedPoint);
+    }
+  } catch(err) {console.warn("Could not restore marked points:",err);}
+  // setPointMode: set point mode logic.
+  function setPointMode(active) {
+    pointPlacementActive=active;
+    addPointButton.setAttribute("aria-pressed",String(active));
+    addPointButton.textContent=active?"✓ ADD POINT":"ADD POINT";
+    map.getContainer().style.cursor=active?"crosshair":"";
+  }
+  addPointButton.addEventListener("click",()=>{if(measureActive)stopMeasure();setPointMode(!pointPlacementActive);});
+  clearPointsButton.addEventListener("click",()=>{
+    if (!markedPoints.length) return;
+    const confirmed=confirm("Delete all "+markedPoints.length+" marked points?");
+    blockDialogClickThrough();
+    if (!confirmed) return;
+    markedPoints=[];pointMarkers.clear();markedPointsLayer.clearLayers();
+    nextPointId=1;saveMarkedPoints();
+  });
+  enterCoordsButton.addEventListener("click",()=>{pointEntryPanel.hidden=!pointEntryPanel.hidden;pointEntryError.textContent="";});
+  document.getElementById("closePointEntry").addEventListener("click",()=>pointEntryPanel.hidden=true);
+  pointFormat.addEventListener("change",()=>{
+    pointLat.placeholder=pointFormat.value==="dd"?"42.4368":"42° 26.208' N";
+    pointLng.placeholder=pointFormat.value==="dd"?"-123.1400":"123° 08.400' W";
+  });
+  // parsePointCoordinate: parse point coordinate logic.
+  function parsePointCoordinate(input,format,latitude) {
+    const s=input.trim().toUpperCase().replace(/[−–]/g,"-");
+    if (latitude && /[EW]/.test(s)) return NaN;
+    if (!latitude && /[NS]/.test(s)) return NaN;
+    if (format==="dd") {
+      const match=s.match(/^([+-]?\d+(?:\.\d+)?)\s*([NSEW])?$/);
+      if (!match) return NaN;
+      let value=Number(match[1]);
+      if (match[2]) value=Math.abs(value)*(match[2]==="S"||match[2]==="W"?-1:1);
+      return value;
+    }
+    const match=s.match(/^([+-]?\d{1,3})\s*(?:°|D|\s)\s*(\d+(?:\.\d+)?)\s*(?:'|′|M)?\s*([NSEW])?$/);
+    if (!match || Number(match[2])>=60) return NaN;
+    const neg=match[3] ? /[SW]/.test(match[3]) : match[1].startsWith("-");
+    return (Math.abs(Number(match[1]))+Number(match[2])/60)*(neg?-1:1);
+  }
+  document.getElementById("placeEnteredPoint").addEventListener("click",()=>{
+    const lat=parsePointCoordinate(pointLat.value,pointFormat.value,true);
+    const lng=parsePointCoordinate(pointLng.value,pointFormat.value,false);
+    if (!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180) {
+      pointEntryError.textContent="Enter valid latitude (-90 to 90) and longitude (-180 to 180).";
+      return;
+    }
+    const marker=addMarkedPoint(lat,lng,pointName.value.trim());
+    map.setView([lat,lng],Math.max(map.getZoom(),14));
+    marker.openPopup();
+    pointEntryPanel.hidden=true;pointEntryError.textContent="";
+    pointName.value="";
+  });
+  map.on("popupopen",event=>{
+    const root=event.popup.getElement();
+    if (!root) return;
+    L.DomEvent.disableClickPropagation(root);
+    root.querySelectorAll("[data-point-action]").forEach(button=>{
+      button.addEventListener("click",async(event)=>{
+        event.stopPropagation();
+        const id=Number(button.dataset.pointId);
+        const p=markedPoints.find(x=>x.id===id);
+        if (!p) return;
+        const action=button.dataset.pointAction;
+        if (action==="copy") {
+          const coords =
+  toDDM(Math.abs(p.lat)) + (p.lat >= 0 ? " N" : " S") +
+  ", " +
+  toDDM(Math.abs(p.lng)) + (p.lng >= 0 ? " E" : " W");
+          try { await navigator.clipboard.writeText(coords);button.textContent="COPIED"; }
+          catch(err) { window.prompt("Copy coordinates:",coords); }
+        } else if (action==="rename") {
+          const name=prompt("Point name:",p.name||"");
+          blockDialogClickThrough();
+          if (name===null) return;
+          p.name=name.trim().slice(0,80);
+          pointMarkers.get(id).setPopupContent(pointPopup(p));saveMarkedPoints();
+        } else if (action==="delete") {
+          const confirmed=confirm("Delete point "+id+"?");
+          blockDialogClickThrough();
+          if (!confirmed) return;
+          markedPoints=markedPoints.filter(x=>x.id!==id);
+          markedPointsLayer.removeLayer(pointMarkers.get(id));
+          pointMarkers.delete(id);saveMarkedPoints();
+        }
+      });
+    });
+  });
+  [addPointButton,clearPointsButton,enterCoordsButton,pointEntryPanel].forEach(el=>{
+    L.DomEvent.disableClickPropagation(el);
+    L.DomEvent.disableScrollPropagation(el);
+  });
+
+
+  // =========================================================
+  // AREA MEASUREMENT — POLYGON CORNERS AND ACRES
+  // Tap MEASURE AREA, tap polygon corners, then FINISH MEASURE.
+  // CLEAR MEASURE removes only the measurement, never marked points.
+  // Spherical polygon area is approximate, not a legal survey.
+  // =========================================================
+  const measureAreaButton=document.getElementById("measureAreaButton");
+  const clearMeasureButton=document.getElementById("clearMeasureButton");
+  const measureStatus=document.getElementById("measureStatus");
+  const measureLayer=L.layerGroup().addTo(map);
+  let measureActive=false,measureVertices=[],measureLine=null,measurePolygon=null,measureLabel=null;
+  function acreage(latlngs){
+    if(latlngs.length<3)return 0;
+    const rad=Math.PI/180,R=6378137;
+    let sum=0;
+    for(let i=0;i<latlngs.length;i++){
+      const a=latlngs[i],b=latlngs[(i+1)%latlngs.length];
+      let d=(b.lng-a.lng)*rad;
+      if(d>Math.PI)d-=2*Math.PI;
+      if(d< -Math.PI)d+=2*Math.PI;
+      sum+=d*(2+Math.sin(a.lat*rad)+Math.sin(b.lat*rad));
+    }
+    return Math.abs(sum*R*R/2)/4046.8564224;
+  }
+  function measureText(){return acreage(measureVertices).toFixed(2)+" acres";}
+  function showMeasureStatus(message){measureStatus.hidden=false;measureStatus.textContent=message;}
+  function stopMeasure(){
+    measureActive=false;
+    measureAreaButton.textContent="MEASURE AREA";
+    measureAreaButton.setAttribute("aria-pressed","false");
+    map.getContainer().style.cursor=pointPlacementActive?"crosshair":"";
+  }
+  function clearMeasure(){
+    stopMeasure();measureVertices=[];measureLayer.clearLayers();
+    measureLine=null;measurePolygon=null;measureLabel=null;measureStatus.hidden=true;
+  }
+  measureAreaButton.addEventListener("click",()=>{
+    if(measureActive){
+      if(measureVertices.length<3){showMeasureStatus("Add at least 3 corners");return;}
+      if(measureLine){measureLayer.removeLayer(measureLine);measureLine=null;}
+      if(measurePolygon)measureLayer.removeLayer(measurePolygon);
+      measurePolygon=L.polygon(measureVertices,{color:"#ff861c",weight:3,fillColor:"#ff861c",fillOpacity:0.22,interactive:false}).addTo(measureLayer);
+      measureLabel=L.marker(measurePolygon.getBounds().getCenter(),{
+        interactive:false,icon:L.divIcon({className:"",html:'<span class="measure-acres-label">'+measureText()+'</span>',iconSize:[0,0],iconAnchor:[0,0]})
+      }).addTo(measureLayer);
+      showMeasureStatus("Area: "+measureText());stopMeasure();return;
+    }
+    clearMeasure();setPointMode(false);measureActive=true;
+    measureAreaButton.textContent="FINISH MEASURE";
+    measureAreaButton.setAttribute("aria-pressed","true");
+    map.getContainer().style.cursor="crosshair";
+    showMeasureStatus("Tap corners on map");
+  });
+  clearMeasureButton.addEventListener("click",clearMeasure);
+  map.on("click",e=>{
+    if(!measureActive)return;
+    measureVertices.push(e.latlng);
+    L.circleMarker(e.latlng,{radius:4,color:"#fff",weight:1,fillColor:"#ff861c",fillOpacity:1,interactive:false}).addTo(measureLayer);
+    if(measureLine)measureLayer.removeLayer(measureLine);
+    measureLine=L.polyline(measureVertices,{color:"#ff861c",weight:3,interactive:false}).addTo(measureLayer);
+    if(measureVertices.length>=3){
+      if(measurePolygon)measureLayer.removeLayer(measurePolygon);
+      measurePolygon=L.polygon(measureVertices,{color:"#ff861c",weight:1,fillColor:"#ff861c",fillOpacity:0.16,interactive:false}).addTo(measureLayer);
+      showMeasureStatus("Area: "+measureText()+" (drawing)");
+    }else showMeasureStatus(measureVertices.length+" corner"+(measureVertices.length===1?"":"s")+" placed");
+  });
+  [measureAreaButton,clearMeasureButton,measureStatus].forEach(el=>{
+    L.DomEvent.disableClickPropagation(el);
+    L.DomEvent.disableScrollPropagation(el);
+  });
+
+  // =========================================================
+  // GPS EXPORT & FIELD STATS
+  // GPX export includes all recorded segments, even if the layer is hidden.
+  // Stats use the browser's latest GPS fix and the track's recorded geometry.
+  // =========================================================
+  const saveGpsButton = document.getElementById("saveGpsButton");
+  const gpsStatsButton = document.getElementById("gpsStatsButton");
+  const gpsStatsPanel = document.getElementById("gpsStatsPanel");
+  let latestGpsPosition = null;
+  let gpsRecordingStart = null;
+
+  function gpsSegmentsForExport() {
+    const segments = [];
+    gpsTrackLayer.eachLayer(layer => {
+      if (!(layer instanceof L.Polyline)) return;
+      const points = layer.getLatLngs();
+      if (Array.isArray(points) && points.length) segments.push(points);
+    });
+    return segments;
+  }
+
+  function gpsXmlEscape(value) {
+    return String(value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  saveGpsButton.addEventListener("click", () => {
+    const segments = gpsSegmentsForExport();
+    if (!segments.length) { alert("No recorded GPS track points to save."); return; }
+    const tracks = segments.map((points,i) =>
+      `<trk><name>TopoTac GPS Segment ${i+1}</name><trkseg>` +
+      points.map(p => `<trkpt lat="${p.lat.toFixed(7)}" lon="${p.lng.toFixed(7)}"></trkpt>`).join("") +
+      `</trkseg></trk>`).join("");
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="TopoTac Online" xmlns="http://www.topografix.com/GPX/1/1">${tracks}</gpx>`;
+    const blob = new Blob([xml], {type:"application/gpx+xml"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href=url;a.download="TopoTac_GPS_"+new Date().toISOString().replace(/[:.]/g,"-")+".gpx";
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),10000);
+  });
+
+  function formatGpsDDM(value,latitude) {
+    const abs=Math.abs(value),degrees=Math.floor(abs),minutes=(abs-degrees)*60;
+    return `${degrees}° ${minutes.toFixed(4)}' ${latitude?(value<0?'S':'N'):(value<0?'W':'E')}`;
+  }
+  function formatGpsDMS(value,latitude) {
+    const abs=Math.abs(value),degrees=Math.floor(abs),mins=(abs-degrees)*60;
+    const wholeMins=Math.floor(mins),seconds=(mins-wholeMins)*60;
+    return `${degrees}° ${wholeMins}' ${seconds.toFixed(2)}" ${latitude?(value<0?'S':'N'):(value<0?'W':'E')}`;
+  }
+  function recordedTrackStats() {
+    let distance=0,count=0;
+    for(const segment of gpsSegmentsForExport()) {
+      count+=segment.length;
+      for(let i=1;i<segment.length;i++) distance+=map.distance(segment[i-1],segment[i]);
+    }
+    return {distance,count};
+  }
+  function updateGpsStats() {
+    if(gpsStatsPanel.hidden)return;
+    const {distance,count}=recordedTrackStats();
+    const pos=latestGpsPosition;
+    const c=pos?.coords;
+    const lat=c?.latitude,lng=c?.longitude;
+    const fmt=(value,digits=1)=>Number.isFinite(value)?value.toFixed(digits):"Unavailable";
+    const elapsed=gpsRecordingStart?Math.floor((Date.now()-gpsRecordingStart)/1000):null;
+    const elapsedText=elapsed===null?'Unavailable':`${Math.floor(elapsed/3600)}h ${Math.floor(elapsed%3600/60)}m ${elapsed%60}s`;
+    gpsStatsPanel.innerHTML =
+      `<strong>CURRENT POSITION (When GPS is on)</strong>` +
+      (Number.isFinite(lat)&&Number.isFinite(lng) ?
+       `<div>DD: ${lat.toFixed(6)}, ${lng.toFixed(6)}</div>`+
+       `<div>DDM: ${formatGpsDDM(lat,true)} / ${formatGpsDDM(lng,false)}</div>`+
+       `<div>DMS: ${formatGpsDMS(lat,true)} / ${formatGpsDMS(lng,false)}</div>` :
+       `<div>No current GPS fix</div>`) +
+      `<strong>GPS FIX</strong>`+
+      `<div>Accuracy: ${c&&Number.isFinite(c.accuracy)?'±'+fmt(c.accuracy,0)+' m':'Unavailable'}</div>`+
+      `<div>Speed: ${c&&Number.isFinite(c.speed)?fmt(c.speed*2.236936,1)+' mph':'Unavailable'}</div>`+
+      `<div>Heading: ${c&&Number.isFinite(c.heading)?fmt(c.heading,0)+'°':'Unavailable'}</div>`+
+      `<strong>RECORDED TRACK</strong>`+
+      `<div>Distance: ${(distance/1609.344).toFixed(2)} mi (${(distance/1000).toFixed(2)} km)</div>`+
+      `<div>Points: ${count}</div>`+
+      `<div>Session elapsed: ${elapsedText}</div>`+
+      `<div style="color:#ccc">Distance is based on recorded GPS fixes; accuracy varies.</div>`;
+  }
+  gpsStatsButton.addEventListener("click",()=>{
+    gpsStatsPanel.hidden=!gpsStatsPanel.hidden;
+    gpsStatsButton.setAttribute('aria-expanded',String(!gpsStatsPanel.hidden));
+    updateGpsStats();
+  });
+  setInterval(updateGpsStats,1000);
+
+  // =========================================================
+  // PHONE GPS
+  // =========================================================
+
+  const gpsButton = document.getElementById("gpsButton");
+
+  let gpsWatchId = null;
+  let gpsMarker = null;
+  let gpsAccuracy = null;
+  let gpsHasCentered = false;
+
+  const gpsIcon = L.divIcon({
+    className: "",
+    html: '<div class="gps-location-dot"></div>',
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  });
+
+  L.DomEvent.disableClickPropagation(gpsButton);
+
+  // stopGpsTracking: stop gps tracking logic.
+  function stopGpsTracking() {
+    situsRequest++;
+    lastSitusPoint = null;
+    situsDisplay.textContent = "Situs: GPS off";
+  endGpsTrackSegment();
+    if (gpsWatchId !== null && navigator.geolocation) {
+      navigator.geolocation.clearWatch(gpsWatchId);
+    }
+
+    gpsWatchId = null;
+    gpsHasCentered = false;
+
+    if (gpsMarker) {
+      map.removeLayer(gpsMarker);
+      gpsMarker = null;
+    }
+
+    if (gpsAccuracy) {
+      map.removeLayer(gpsAccuracy);
+      gpsAccuracy = null;
+    }
+
+    gpsButton.setAttribute("aria-pressed", "false");
+    gpsButton.textContent = "◎ GPS";
+    gpsButton.title = "Show my phone's GPS location";
+
+    gpsCoordinatesDisplay.textContent =
+      "GPS: Off — tap GPS to start";
+  }
+
+  // gpsError: gps error logic.
+  function gpsError(error) {
+    stopGpsTracking();
+
+    if (error.code === 1) {
+      gpsCoordinatesDisplay.textContent =
+        "GPS: Permission denied. Allow browser location access, then try again.";
+    } else if (error.code === 2) {
+      gpsCoordinatesDisplay.textContent =
+        "GPS: Could not determine location. Check device location services.";
+    } else if (error.code === 3) {
+      gpsCoordinatesDisplay.textContent =
+        "GPS: Timed out. Tap GPS to try again.";
+    } else {
+      gpsCoordinatesDisplay.textContent =
+        "GPS: Unable to get location.";
+    }
+  }
+
+  gpsButton.addEventListener("click", function () {
+    if (gpsWatchId !== null) {
+      stopGpsTracking();
+      return;
+    }
+
+    if (!("geolocation" in navigator)) {
+      gpsCoordinatesDisplay.textContent =
+        "GPS: This browser does not support location access.";
+      return;
+    }
+
+    if (!window.isSecureContext) {
+      gpsCoordinatesDisplay.textContent =
+        "GPS: Requires a secure HTTPS page. Open the map using HTTPS.";
+      return;
+    }
+
+    gpsHasCentered = false;
+
+    gpsButton.setAttribute("aria-pressed", "true");
+    gpsButton.textContent = "GPS…";
+    gpsButton.title = "Stop GPS tracking";
+
+    gpsCoordinatesDisplay.textContent =
+      "GPS: Waiting for device location…";
+
+    gpsWatchId = navigator.geolocation.watchPosition(
+      function (position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const accuracy = Math.max(
+          0,
+          position.coords.accuracy || 0
+        );
+
+        const location = L.latLng(lat, lng);
+
+ // Record each new GPS position for the track.
+
+     if (!gpsRecordingStart) gpsRecordingStart=Date.now();
+     latestGpsPosition=position;
+     recordGpsTrackPoint(location);
+     updateGpsStats();
+
+        if (!gpsAccuracy) {
+          gpsAccuracy = L.circle(location, {
+            radius: accuracy,
+            className: "gps-accuracy-circle",
+            interactive: false
+          }).addTo(map);
+        } else {
+          gpsAccuracy.setLatLng(location);
+          gpsAccuracy.setRadius(accuracy);
+        }
+
+        if (!gpsMarker) {
+          gpsMarker = L.marker(location, {
+            icon: gpsIcon,
+            interactive: false,
+            keyboard: false,
+            zIndexOffset: 1000
+          }).addTo(map);
+        } else {
+          gpsMarker.setLatLng(location);
+        }
+
+        gpsCoordinatesDisplay.innerHTML =
+          '<span class="gps-lat">Lat: ' + toDDM(lat) + '</span>' +
+          '<span class="gps-lng">Lon: ' + toDDM(lng) +
+          ' (±' + Math.round(accuracy) + ' m) GPS</span>';
+
+        gpsButton.textContent = "GPS ON";
+        updateGpsSitus(lat, lng, false);
+
+        if (!gpsHasCentered) {
+          map.setView(
+            location,
+            Math.max(map.getZoom(), 17)
+          );
+
+          gpsHasCentered = true;
+        }
+      },
+      gpsError,
+      {
+        enableHighAccuracy: true,
+        maximumAge: 3000,
+        timeout: 20000
+      }
+    );
+  });
+
+  // =========================================================
+  // INITIAL MAP SIZING
+  // =========================================================
+
+  setTimeout(function () {
+    map.invalidateSize();
+  }, 500);
+
+})();
+</script>
+
+</body>
+</html>
