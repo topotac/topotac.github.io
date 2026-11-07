@@ -3904,7 +3904,8 @@ clearGpxButton.addEventListener("click", function () {
     const safeXml=t=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");
     const xml='<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="TopoTac Online" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>'+safeXml(line.name)+'</name><trkseg>'+line.vertices.map(v=>'<trkpt lat="'+v.lat.toFixed(7)+'" lon="'+v.lng.toFixed(7)+'"/>').join('')+'</trkseg></trk></gpx>';
     const url=URL.createObjectURL(new Blob([xml],{type:"application/gpx+xml"}));
-    const a=document.createElement("a");a.href=url;a.download="TopoTac_Line_"+line.id+".gpx";document.body.append(a);a.click();a.remove();
+    const filename=(String(line.name || "Line " + line.id).trim().replace(/[\\/:*?"<>|\x00-\x1f]/g,"_").replace(/[. ]+$/g,"").slice(0,120) || "Line " + line.id) + ".gpx";
+    const a=document.createElement("a");a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),10000);
   }
   function renderDrawnLine(line) {
