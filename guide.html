@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="#111111" name="theme-color"/>
+<title>TOPOTAC — Field Guide</title>
+<style>
+:root {
+  --bg: #0d0e10;
+  --panel: #1a1b1e;
+  --panel2: #252527;
+  --text: #f8f8f8;
+  --muted: #c3c3c3;
+  --accent: #ff861c;
+  --line: #45403b;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.65 Arial, sans-serif;
+}
+a { color: #ffad60; }
+a:hover { color: white; }
+header {
+  position: relative;
+  overflow: hidden;
+  padding: 42px 20px 38px;
+  background: linear-gradient(135deg, #352015, #111113 75%);
+  border-bottom: 1px solid var(--line);
+}
+header::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 0 38%;
+  opacity: .23;
+  pointer-events: none;
+  background:
+    repeating-radial-gradient(
+      ellipse at 65% 50%,
+      transparent 0 17px,
+      #ff861c 18px 19px,
+      transparent 20px 31px
+    );
+  mask-image: linear-gradient(90deg, transparent, black);
+}
+.header-inner, main, footer {
+  width: min(1050px, calc(100% - 32px));
+  margin: auto;
+}
+.header-inner { position: relative; z-index: 1; }
+.brand-line { display: flex; align-items: center; gap: 18px; }
+.brand-target { width: 62px; height: 62px; flex: 0 0 62px; color: #ff861c; }
+.brand-name { margin: 0; font-size: clamp(2.7rem, 8vw, 5rem); line-height: 1; letter-spacing: -.045em; font-weight: 800; }
+.brand-name .tac { color: #ff861c; }
+.brand-subtitle { margin: 16px 0 0; font-size: clamp(.85rem, 2vw, 1.08rem); font-weight: 700; letter-spacing: .16em; color: #fff; }
+.brand-divider { width: min(460px, 100%); height: 1px; background: #484848; margin: 18px 0 12px; }
+.brand-tagline { margin: 0; font-size: .8rem; letter-spacing: .12em; color: #bcbcbc; font-weight: 600; }
+.eyebrow {
+  color: var(--accent);
+  font-size: .78rem;
+  font-weight: bold;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+h1 {
+  max-width: 700px;
+  margin: 8px 0;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  line-height: 1.08;
+}
+header p { max-width: 650px; color: var(--muted); }
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+.button {
+  display: inline-block;
+  padding: 10px 16px;
+  border: 1px solid #f58b2d;
+  border-radius: 8px;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+.button.primary { background: #a94400; }
+main { padding: 26px 0 48px; }
+.intro {
+  margin: 0 0 22px;
+  color: var(--muted);
+}
+.section-title {
+  margin: 34px 0 14px;
+  font-size: 1.45rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.card {
+  min-width: 0;
+  padding: 19px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--panel);
+}
+.card h3 { margin: 0 0 8px; font-size: 1.12rem; }
+.card p { margin: 8px 0; color: var(--muted); }
+.card ul { padding-left: 21px; margin-bottom: 0; }
+.card li { margin: 5px 0; }
+.art {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 62px;
+  margin-bottom: 12px;
+}
+.art svg { width: 76px; height: 62px; flex: 0 0 76px; }
+.swatch {
+  display: inline-block;
+  width: 25px;
+  height: 12px;
+  margin-right: 7px;
+  border: 1px solid #dce6df;
+  vertical-align: middle;
+}
+.dot {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  margin-right: 8px;
+  border: 2px solid white;
+  border-radius: 50%;
+  vertical-align: -2px;
+}
+.legend-row { margin: 8px 0; }
+.callout {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--panel2);
+}
+kbd {
+  padding: 2px 6px;
+  border: 1px solid #756354;
+  border-radius: 5px;
+  background: #302720;
+  font: inherit;
+  font-size: .9em;
+}
+footer {
+  padding: 20px 0 34px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: .9rem;
+}
+footer a { margin-right: 14px; }
+@media (max-width: 650px) {
+  .grid { grid-template-columns: 1fr; }
+  header { padding-top: 28px; }
+  .card { padding: 16px; }
+  .brand-target { width: 46px; height: 46px; flex-basis: 46px; }
+  .brand-line { gap: 11px; }
+  .brand-tagline { font-size: .67rem; letter-spacing: .06em; }
+}
+
+/* TopoTac Online: active controls, section labels, and RAWS legend. */
+.section-title { border-bottom:1px solid #555; padding-bottom:9px; color:#ffad62; }
+.card h3 { color:#fff; }
+.button.primary { background:#ff861c; color:#171717; border-color:#ff861c; }
+.button:hover { border-color:#fff; }
+.control-demo {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-width:340px;margin:12px 0;}
+.control-demo span {background:#ff861c;color:#171717;text-align:center;padding:10px 5px;border-radius:5px;font:bold 12px Arial,sans-serif;}
+.control-demo .recording {background:#ff0000;color:#fff;}
+.small-note {font-size:.86rem;color:#ffb66f;font-weight:bold;letter-spacing:-.1px;}
+.raws-square {display:inline-block;width:13px;height:13px;background:#008cff;border:2px solid white;box-shadow:0 0 0 1px #777;margin-right:8px;vertical-align:-2px;}
+
+/* Compact layer reference: keep each description on one line when space allows. */
+.layer-order { padding-left: 26px; margin: 12px 0; }
+.layer-order li { margin: 3px 0; line-height: 1.45; white-space: nowrap; font-size: 14px; }
+.layer-order strong { color: #fff; }
+.layer-description { color: var(--muted); }
+@media (max-width: 750px) {
+  .layer-order li { white-space: normal; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="header-inner">
+<div class="brand-line">
+<svg aria-label="Orange GPS target icon" class="brand-target" role="img" viewbox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+<circle cx="32" cy="32" fill="none" r="20" stroke="currentColor" stroke-width="3"></circle>
+<circle cx="32" cy="32" fill="none" r="10" stroke="currentColor" stroke-width="3"></circle>
+<circle cx="32" cy="32" fill="currentColor" r="3.5"></circle>
+<path d="M32 2v15 M32 47v15 M2 32h15 M47 32h15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<h1 class="brand-name"><span>TOPO</span><span class="tac">TAC</span></h1>
+</div>
+<div class="brand-subtitle">TACTICAL MAPPING SYSTEM</div>
+<div class="brand-divider"></div>
+<p class="brand-tagline">TERRAIN / INTELLIGENCE / OPERATIONS</p>
+<div class="actions">
+<a class="button primary" href="https://bluefincnc.github.io/bluefincnc/">
+        ← Return to Map
+      </a>
+<a class="button" href="#layers">Explore Map Layers ↓</a>
+</div>
+</div>
+</header>
+<main>
+<p class="intro">Use the layer menu in the upper-right to control map overlays and base maps; see the <a href="#layer-order">current layer order</a> below. Tap TOOLS at the upper-left to open the tool drawer; tap TOOLS again to close it. ADD POINT stays beside TOOLS for quick access. The zoom buttons are at the lower-right.</p><h2 class="section-title" id="tools">Tools drawer and controls</h2><div class="grid"><section class="card"><h3>TOOLS drawer</h3><p>Tap <kbd>☰ TOOLS</kbd> to open the drawer, and tap the same button again to close it. The drawer stays open when you use its controls or interact with the map.</p><p>The drawer groups controls under <strong>GPS &amp; TRACKING</strong>, <strong>GPX TRACKS</strong>, <strong>POINTS &amp; MEASURE</strong>, and <strong>DISPLAY</strong>. MAP GUIDE and LEGEND are also accessible there.</p><p>Use the upper-right layer checkboxes to show or hide individual overlays, including GPS tracks and imported GPX files.</p></section><section class="card"><h3>Button colors and map controls</h3><p>TopoTac uses a black, white, and orange interface. The <strong>GPS ON</strong> button turns bright red with white text while GPS tracking is active. <strong>ADD POINT</strong> also turns bright red while point-placement mode is active.</p><div class="control-demo"><span class="recording">GPS ON (ACTIVE)</span><span class="recording">ADD POINT (ACTIVE)</span><span>SAVE GPX</span><span>GPS STATS</span></div><p>Tap a map location to read its coordinates at the lower-left; the situs address display sits just above it. Use the + and − zoom controls at the lower-right.</p></section></div>
+
+<h2 class="section-title" id="layer-order">Layer menu reference — current order</h2>
+<section class="card">
+<p>The upper-right layer menu lists three base maps first (Esri Street Map, OpenTopoMap, Esri Aerial Imagery). Below them, overlay checkboxes appear in this order:</p>
+<ol class="layer-order">
+<li><strong>GPS Tracks</strong><span class="layer-description"> — Your own GPS recorded tracks.</span></li>
+<li><strong>Marked Points</strong><span class="layer-description"> — Points you place on the map.</span></li>
+<li><strong>OR LiDAR</strong><span class="layer-description"> — Oregon terrain hillshade.</span></li>
+<li><strong>OR TRS</strong><span class="layer-description"> — Township, range, and section boundaries.</span></li>
+<li><strong>OR Tax Lots</strong><span class="layer-description"> — Oregon parcel boundaries.</span></li>
+<li><strong>OR Public Land</strong><span class="layer-description"> — Mapped public land ownership.</span></li>
+<li><strong>Lakes/Ponds ¼ Acre+</strong><span class="layer-description"> — Mapped lakes and ponds.</span></li>
+<li><strong>OR New Fires (24Hr)</strong><span class="layer-description"> — Recently reported Oregon fires.</span></li>
+<li><strong>US Current Fires</strong><span class="layer-description"> — Current mapped fire perimeters.</span></li>
+<li><strong>OR Historical Fires</strong><span class="layer-description"> — Past Oregon fire perimeters.</span></li>
+<li><strong>OR RAWS WX</strong><span class="layer-description"> — Oregon remote weather stations.</span></li>
+<li><strong>OR Dog Parks</strong><span class="layer-description"> — Mapped Oregon dog parks.</span></li>
+</ol>
+<p>Choose one base map at a time; check or uncheck overlays independently. Imported GPX files add their own named entries when opened, so those entries may appear in addition to this default list. Long filenames may be shortened visually in the menu.</p>
+</section>
+<h2 class="section-title" id="layers">Base maps and terrain</h2>
+<div class="grid">
+<section class="card">
+<div class="art">
+<svg aria-label="Road map illustration" role="img" viewbox="0 0 100 70">
+<rect fill="#e8e8d7" height="70" rx="8" width="100"></rect>
+<path d="M-5 55 L35 30 57 40 105 8" fill="none" stroke="#b3c4a8" stroke-width="15"></path>
+<path d="M-5 55 L35 30 57 40 105 8" fill="none" stroke="#fff" stroke-width="9"></path>
+<path d="M8 -5 L45 75 M74 -5 L48 75" fill="none" stroke="#e3b969" stroke-width="4"></path>
+<path d="M0 16 L100 55" fill="none" stroke="#c7d4df" stroke-width="5"></path>
+</svg>
+<div>
+<h3>Esri Street Map</h3>
+<p>Roads and place references.</p>
+</div>
+</div>
+      Use this as a general-purpose background for finding roads,
+      communities, and geographic context. Max zoom level is 19.
+    </section>
+<section class="card">
+<div class="art">
+<svg aria-label="Topographic terrain illustration" role="img" viewbox="0 0 100 70">
+<rect fill="#d8e5c4" height="70" rx="8" width="100"></rect>
+<path d="M-8 48 Q15 8 38 38 T78 25 T110 12" fill="none" stroke="#8fae7d" stroke-width="2"></path>
+<path d="M-8 57 Q15 17 38 47 T78 34 T110 21" fill="none" stroke="#8fae7d" stroke-width="2"></path>
+<path d="M-8 67 Q15 27 38 57 T78 44 T110 31" fill="none" stroke="#8fae7d" stroke-width="2"></path>
+<path d="M20 70 L48 16 78 70" fill="#b8c7a0" stroke="#7f9871" stroke-width="2"></path>
+<path d="M37 39 L48 16 60 39" fill="#f1f0dc"></path>
+</svg>
+<div>
+<h3>OpenTopoMap</h3>
+<p>Terrain and topographic context.</p>
+</div>
+</div>
+      Use this to help interpret the surrounding terrain and landscape in a topography
+      format. The map currently allows zoom level 19, although source tiles may not be available at every zoom level.
+    </section>
+<section class="card">
+<div class="art">
+<svg aria-label="Aerial imagery illustration" role="img" viewbox="0 0 100 70">
+<rect fill="#496c50" height="70" rx="8" width="100"></rect>
+<path d="M-8 12 L38 0 62 70 18 70Z" fill="#71906a"></path>
+<path d="M60 -5 L48 30 100 48" fill="none" stroke="#b8b7a1" stroke-width="9"></path>
+<path d="M-5 49 L100 12" fill="none" stroke="#b8b7a1" stroke-width="7"></path>
+<path d="M-5 49 L100 12" fill="none" stroke="#e3d6b5" stroke-width="2"></path>
+<path d="M22 4 L37 18 26 32 13 23Z" fill="#9caa73"></path>
+<path d="M68 45 L81 34 93 47 84 62Z" fill="#8a9e67"></path>
+</svg>
+<div>
+<h3>Esri Aerial Imagery</h3>
+<p>Satellite and aerial-style imagery.</p>
+</div>
+</div>
+      Satellite imagery when you want to compare mapped features
+      against visible ground conditions, max zoom is 19.
+    </section>
+<section class="card">
+<div class="art">
+<svg aria-label="Hillshade terrain illustration" role="img" viewbox="0 0 100 70">
+<defs>
+<lineargradient id="shade" x1="0" x2="1" y1="0" y2="1">
+<stop offset="0" stop-color="#f2f0df"></stop>
+<stop offset=".48" stop-color="#a4ad9b"></stop>
+<stop offset="1" stop-color="#555f57"></stop>
+</lineargradient>
+</defs>
+<rect fill="url(#shade)" height="70" rx="8" width="100"></rect>
+<path d="M-5 54 Q25 5 48 38 T105 12" fill="none" stroke="#e6e5d6" stroke-width="2"></path>
+<path d="M-5 62 Q25 13 48 46 T105 20" fill="none" stroke="#59695b" stroke-width="2"></path>
+<path d="M-5 70 Q25 21 48 54 T105 28" fill="none" stroke="#59695b" stroke-width="2"></path>
+</svg>
+<div>
+<h3>DOGAMI LiDAR</h3>
+<p>Terrain hillshade overlay.</p>
+</div>
+</div>
+      LiDAR hillshade emphasizes landform and terrain shape. Use the
+      <strong>LiDaR opacity</strong> slider to adjust its visibility
+      over the selected base map.
+      <div class="callout">
+        A hillshade is a shaded terrain visualization; it is not
+        the same thing as a survey-grade elevation measurement. The underlying terrain model is derived from airborne laser measurements; displayed hillshade is a visualization, not a legal survey.
+      </div>
+</section>
+</div>
+<h2 class="section-title">Land-survey and natural features</h2>
+<div class="grid">
+<section class="card">
+<div class="art">
+<svg aria-label="Township and section grid" role="img" viewbox="0 0 100 70">
+<rect fill="#e5e6df" height="70" rx="8" width="100"></rect>
+<g fill="none" stroke="#555d58" stroke-width="1.5">
+<path d="M8 8 H92 V62 H8 Z M36 8 V62 M64 8 V62 M8 35 H92"></path>
+</g>
+<g fill="#333" font-family="Arial" font-size="10" text-anchor="middle">
+<text x="22" y="25">1</text><text x="50" y="25">2</text>
+<text x="78" y="25">3</text><text x="22" y="52">4</text>
+<text x="50" y="52">5</text><text x="78" y="52">6</text>
+</g>
+</svg>
+<div>
+<h3>OR TRS</h3>
+<p>Public Land Survey System overlay.</p>
+</div>
+</div>
+      Displays section boundaries to help identify survey-section locations.
+      Use the underlying map and available survey records for additional
+      context; the overlay is not a substitute for a legal survey.
+    </section>
+<section class="card">
+<div class="art">
+<svg aria-label="Public land ownership illustration" role="img" viewbox="0 0 100 70">
+<rect fill="#dbe6d4" height="70" rx="8" width="100"></rect>
+<path d="M8 10 H52 V37 H28 V62 H8 Z" fill="#82b68a" stroke="#426d4d" stroke-width="2"></path>
+<path d="M55 9 H91 V39 H55 Z" fill="#dfc18c" stroke="#90774e" stroke-width="2"></path>
+<path d="M32 42 H91 V62 H32 Z" fill="#a4b9db" stroke="#58779f" stroke-width="2"></path>
+</svg>
+<div>
+<h3>OR Public Land</h3>
+<p>Oregon Department of Forestry ownership overlay.</p>
+</div>
+</div>
+      Displays public land ownership information from the Oregon Department
+      of Forestry map service. Use it to compare mapped ownership areas
+      with roads, terrain, and PLSS sections. Coverage and categories depend
+      on the source data. This layer is a general reference, not a legal
+      property boundary or proof of public access.
+    </section>
+<section class="card">
+<div class="art">
+<svg aria-label="Blue lake illustration" role="img" viewbox="0 0 100 70">
+<rect fill="#dbe4d0" height="70" rx="8" width="100"></rect>
+<path d="M14 13 Q35 1 48 17 T85 16 L92 37 Q72 48 55 39 T19 47Z" fill="#42a5f5" stroke="#1769d2" stroke-width="2"></path>
+<path d="M26 24 Q40 15 51 25 T79 25" fill="none" stroke="#bfe7ff" stroke-width="2"></path>
+<path d="M10 57 Q32 49 48 58 T91 54" fill="none" stroke="#91ac7c" stroke-width="3"></path>
+</svg>
+<div>
+<h3>Lakes/Ponds ¼ Acre+</h3>
+<p>USGS mapped waterbodies.</p>
+</div>
+</div>
+      The layer displays qualifying mapped lakes and ponds (at least approximately ¼ acre) in Jackson
+      and Josephine counties. At zoom 9 and higher, waterbody polygons load for the current
+      map view; click a polygon for the attributes provided.
+    </section>
+</div>
+<h2 class="section-title">Tax lots and parcel addresses</h2>
+<div class="grid">
+<section class="card">
+<h3>OR Tax Lots</h3>
+<p>Displays tax lot boundaries from the Oregon Department of Forestry statewide map service. The overlay requests an image for the visible map area and is displayed at zoom 14 and higher.</p>
+<p>With the layer enabled, click a parcel at zoom 14 or higher to request available situs address, tax lot identifier, acreage, and source details. Parcel attributes are retrieved separately from query-enabled public services, so coverage and completeness vary.</p>
+<div class="callout">Tax lot outlines and situs addresses are reference information only. They do not establish ownership, property boundaries, access rights, or the legal location of an address.</div>
+</section>
+<section class="card">
+<h3>GPS Situs Address</h3>
+<p>When GPS is active, the <strong>Situs</strong> panel attempts to identify the parcel address at the reported GPS position. Queries are limited to avoid repeating them for very small movements over short periods.</p>
+<p>A missing address does not mean there is no parcel. GPS accuracy and the availability of the external parcel services affect the result.</p>
+</section>
+</div>
+<h2 class="section-title">Fire and weather overlays</h2>
+<div class="grid">
+<section class="card">
+<h3>OR New Fires (24Hr)</h3>
+<p>Recent incident locations across Oregon from the NIFC/IRWIN feed.</p>
+<div class="legend-row"><span class="dot" style="background:#d62828"></span>
+<strong>Red:</strong> Wildfire (WF)</div>
+<div class="legend-row"><span class="dot" style="background:#2e9d50"></span>
+<strong>Green:</strong> Prescribed fire (RX)</div>
+<div class="legend-row"><span class="dot" style="background:#f28c00"></span>
+<strong>Orange:</strong> Incident complex (CX)</div>
+<p>Click a marker for the incident name, type, discovery date/time,
+      county, and protecting agency when reported. The layer refreshes
+      periodically; feed information may be incomplete or delayed.</p>
+</section>
+<section class="card">
+<h3>US Current Fires</h3>
+<div class="legend-row">
+<span class="swatch" style="background:rgba(255,22,0,.3);border:2px solid #ff2100"></span>
+        Current fire perimeter styling
+      </div>
+<p>Shows current NIFC fire perimeters intersecting the visible map area at zoom 9 or higher, wherever the source provides coverage. Click a perimeter for its reported name,
+      county, and mapped acreage when available.</p>
+<p>The outline and fill indicate the mapped perimeter, not necessarily
+      the exact location of active flames or the current evacuation boundary.</p>
+</section>
+<section class="card">
+<h3>OR Historical Fires</h3>
+<div class="legend-row">
+<span class="swatch" style="background:rgba(50,205,50,.12);border:2px dashed #228B22"></span>
+        Historical perimeter styling
+      </div>
+<p>Displays Oregon-filtered historical fire perimeters from 2020 onward, intersecting the visible map area at zoom 9 or higher, subject to records returned by the service.</p>
+<p>Click a polygon to view available incident information, discovery
+      and perimeter dates, acreage, containment information, and coordinates.</p>
+</section>
+<section class="card">
+<h3>OR RAWS WX</h3>
+<div class="art">
+<svg aria-label="Weather station marker" role="img" viewbox="0 0 100 70">
+<rect fill="#e4e9e5" height="70" rx="8" width="100"></rect>
+<circle cx="50" cy="35" fill="#087f8c" opacity=".18" r="20"></circle>
+<rect fill="#008cff" height="20" stroke="white" stroke-width="3" width="20" x="40" y="25"></rect>
+<path d="M50 6 V17 M50 53 V64 M21 35 H32 M68 35 H79" stroke="#087f8c" stroke-width="2"></path>
+</svg>
+<p>Active RAWS weather stations throughout Oregon (the current query is statewide).</p>
+</div><div class="legend-row"><span class="raws-square"></span>RAWS weather station — blue square, white border</div>Blue square station markers with a white border include a temperature label when available. Click a station for reported temperature, humidity, wind, rainfall, elevation, observation time, and any detailed-weather link.<div class="callout">
+        Weather values depend on the station's latest returned observation.
+        Missing or stale readings may occur.
+      </div>
+</section>
+</div>
+<h2 class="section-title">GPS, recording, and GPX tools</h2>
+<div class="grid"><section class="card"><h3>GPS &amp; TRACKING</h3><p class="small-note">SCREEN MUST STAY ON TO RECORD</p><div class="control-demo"><span class="recording">GPS ON (ACTIVE)</span><span>CLEAR GPS</span><span>SAVE GPX</span><span>GPS STATS</span></div><p><strong>GPS ON:</strong> Requests browser location permission, shows your position and records the route as GPS fixes arrive. The button turns bright red while active; turn GPS off to stop updates. The map centers on the first reported position.</p><p><strong>CLEAR GPS:</strong> Clears recorded GPS track segments without switching GPS positioning off.</p><p><strong>SAVE GPX:</strong> Downloads the recorded GPS track as a GPX file. It does not stop recording or clear the current track. Save a copy before clearing browser data.</p><p><strong>GPS STATS:</strong> Expands or collapses the live GPS readout described below.</p><div class="legend-row"><span class="dot" style="background:#2583ff"></span>Current GPS position / accuracy indicator</div><div class="legend-row"><span class="swatch" style="background:#00a6ff"></span>Recorded GPS track</div><p>Use the <strong>GPS Tracks</strong> checkbox in the layer menu to hide or show the line without stopping GPS recording. Interrupted tracking may appear as separate segments.</p><div class="callout">For reliable online recording, keep the browser active and the device screen awake. Phone browsers can suspend location updates when the screen locks or the browser goes into the background. GPS requires location permission, device location services, and HTTPS. This browser-based recorder is not a substitute for a dedicated continuous-duty GPS logger.</div></section><section class="card"><h3>GPS STATS — field readout</h3><p>Tap <kbd>GPS STATS</kbd> to view the current position and track statistics. The top heading reads <strong>CURRENT POSITION (When GPS is on)</strong>.</p><ul><li><strong>DD:</strong> Decimal degrees, such as <kbd>42.436800, -123.140000</kbd>.</li><li><strong>DDM:</strong> Degrees and decimal minutes, such as <kbd>42° 26.2080' N / 123° 08.4000' W</kbd>.</li><li><strong>DMS:</strong> Degrees, minutes, and seconds.</li><li><strong>GPS fix:</strong> Reported accuracy in meters, speed in mph, and heading in degrees when the browser provides them.</li><li><strong>Recorded track:</strong> Total distance in miles and kilometers, number of points, and session elapsed time.</li></ul><p>Missing GPS values display as unavailable. Track distance is calculated from recorded positions and can vary with GPS accuracy. This panel shows current coordinates only when a position fix is available.</p></section><section class="card"><h3>OPEN GPX / CLEAR GPX</h3><p>Tap <kbd>OPEN GPX</kbd> to import one or more GPX files stored on your device. Each imported file receives a separate checkbox in the layer menu.</p><ul><li>Routes and tracks are displayed as line segments; named waypoints and start/end markers may appear.</li><li>The map zooms to the imported track extent.</li><li>Tap <kbd>CLEAR GPX</kbd> to remove imported GPX layers. This does not erase the GPX files on your device.</li><li>Imported GPX files are read locally by the browser; the import function does not upload them to the map server.</li></ul></section><section class="card"><h3>Track storage and export</h3><p>TopoTac may retain track segments in browser storage when available, but browser data is not a permanent backup. Use <kbd>SAVE GPX</kbd> to keep a separate file on your device.</p><p>Saving a GPX export does not clear the recorded line. The GPS Tracks layer checkbox controls visibility; CLEAR GPS controls deletion of the recorded track.</p><div class="callout">A GPX export contains the recorded route geometry. Do not assume it includes every live GPS field shown in GPS STATS.</div></section></div>
+<h2 class="section-title">Oregon Dog Parks</h2>
+<section class="card">
+<h3>OR Dog Parks</h3>
+<div class="legend-row"><span class="dot" style="background:#9333ea"></span><strong>Purple:</strong> Oregon dog park location</div>
+<p>Enable the final checkbox in the layer menu to display Oregon dog parks as purple point markers. Tap a marker for its name and available operator, access, and website information.</p>
+<p>The layer loads <strong>oregon_dogparks.geojson</strong> from the same folder as index.html when first enabled, and keeps it in memory while the map remains open. It does not use Overpass or require a minimum zoom.</p>
+<div class="callout">Source: OpenStreetMap contributors (ODbL). Locations and access details may be incomplete or outdated; verify rules before visiting.</div>
+</section>
+<h2 class="section-title">How map data is loaded</h2>
+<section class="card">
+<p><strong>Visible-area requests:</strong> Base maps request tiles around the current view. OR LiDAR, OR Public Land, OR TRS, and OR Tax Lots request images for the visible extent. Tax lots display at zoom 14 or higher. US Current Fires and Lakes/Ponds ¼ Acre+ query the visible area at zoom 9 or higher; their source services are not restricted to Oregon.</p>
+<p><strong>Oregon-filtered requests:</strong> OR Historical Fires queries Oregon incident records from 2020 onward, within the visible map extent at zoom 9 or higher. OR New Fires (24Hr) and OR RAWS WX retrieve statewide Oregon point data regardless of zoom.</p>
+<p><strong>On-demand requests:</strong> Parcel details are queried for clicked locations; GPS situs addresses are queried for the reported GPS position. GPX files are read locally.</p>
+<p>Remote layers generally load when enabled. The current perimeter layer refreshes periodically; historical perimeter requests are view-driven. Data availability, geographic coverage, and provider limits may affect completeness.</p>
+</section>
+<h2 class="section-title">Marked Points</h2>
+<section class="card">
+<p><strong>ADD POINT:</strong> Tap the button beside TOOLS to enter placement mode. It turns <strong>bright red with white text</strong> while active. Tap the map to create numbered orange markers; tap ADD POINT again to exit. In normal mode, tapping the map updates the coordinate readout and can inspect parcel information.</p>
+<p><strong>Marker balloon:</strong> Tap a point to see its coordinates in DDM and decimal degrees, copy its coordinates in degrees and decimal minutes with N/S and E/W (for example, 42° 26.208' N, 123° 08.400' W), rename it, or delete just that point. Drag a marker to reposition it.</p>
+<p><strong>ENTER COORDS:</strong> Type latitude and longitude in degrees and decimal minutes (the default) or decimal degrees, optionally name the point, and select PLACE POINT. West and south coordinates are negative unless using W/S direction letters.</p>
+<p><strong>CLEAR POINTS:</strong> Deletes all marked points after confirmation. The Marked Points checkbox in the layer menu only hides or shows them.</p>
+<p>Points are stored in this browser and restored when the map reopens, as long as browser storage remains available. Clearing browser data may erase them. Points are independent of GPS and imported GPX tracks.</p>
+</section><h2 class="section-title">Points and acreage measurement</h2><section class="card"><h3>MEASURE AREA / CLR MEASURE</h3><p>Open <kbd>TOOLS</kbd> and select <kbd>MEASURE AREA</kbd>. Tap the map to place the corners of an area. Once you have at least three corners, tap <kbd>FINISH MEASURE</kbd> to complete the polygon.</p><p>TopoTac displays the approximate area in <strong>acres</strong>, draws an orange outline and translucent fill, and places an acreage label on the map. Tap <kbd>CLR MEASURE</kbd> to remove the measurement without deleting marked points.</p><p>Starting a measurement exits ADD POINT mode so map taps are interpreted as polygon corners rather than new marked points.</p><div class="callout">Calculated acreage is an approximation based on the polygon you draw. It is not a surveyed boundary or a legal acreage determination.</div></section>
+<h2 class="section-title">Coordinate display</h2>
+<section class="card">
+<p>
+<strong>Click Map for Coordinates:</strong> click a point on the map
+      to display its latitude and longitude in degrees and decimal minutes.
+    </p>
+<p>
+      Example format: <kbd>42° 26.208'   -123° 08.400'</kbd>
+</p>
+<p>
+      Negative longitude values indicate west. The coordinate display
+      is intended as a convenient location reference; confirm coordinates
+      and boundaries against authoritative data when precision matters.
+    </p>
+</section>
+<div class="actions">
+<a class="button primary" href="https://bluefincnc.github.io/bluefincnc/">
+      ← Return to TOPOTAC
+    </a>
+<a class="button" href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">
+      Back to Top ↑
+    </a>
+</div>
+</main>
+<footer>
+<p>
+    TOPOTAC · Tactical Mapping System Guide
+  </p>
+<p>
+    Map layers rely on external data services. Availability, accuracy,
+    coverage, and update timing are controlled by their respective providers.
+  </p>
+<a href="https://bluefincnc.github.io/bluefincnc/">Open Map</a>
+</footer>
+</body>
+</html>
