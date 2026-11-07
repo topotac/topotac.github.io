@@ -1276,7 +1276,7 @@ html, body {
  * Existing online map overlays, services, and LiDAR opacity are unchanged.
  * ====================================================================== */
 :root {--tt-black:#171717;--tt-orange:#ff861c;--tt-white:#fff;}
-#toolsToggle,#addPointButton {
+#toolsToggle,#addPointButton,#drawLineButton {
   position:absolute!important;top:9px!important;bottom:auto!important;
   z-index:2200!important;min-height:42px!important;box-sizing:border-box!important;
   background:var(--tt-black)!important;color:var(--tt-white)!important;
@@ -1286,6 +1286,13 @@ html, body {
 }
 #toolsToggle {left:9px!important;}
 #addPointButton {left:105px!important;}
+#drawLineButton {left:calc(105px + 108px)!important;}
+#drawLineButton[aria-pressed="true"] {background:#e00000!important;box-shadow:0 0 0 3px rgba(224,0,0,.3)!important;}
+#lineDrawPanel {position:absolute;top:59px;left:105px;z-index:2200;background:#171717;color:white;border:2px solid #ff861c;border-radius:7px;padding:9px;font:12px Arial;box-shadow:0 2px 7px #0005;max-width:calc(100vw - 125px);box-sizing:border-box;}
+#lineDrawPanel[hidden] {display:none!important;}
+#lineDrawPanel button {background:#171717;color:white;border:1px solid #ff861c;border-radius:5px;padding:7px 9px;font:bold 11px Arial;margin:3px 2px 0 0;}
+#lineDrawPanel .line-hint {font-size:11px;color:#ffbf83;}
+@media(max-width:420px){#drawLineButton {left:211px!important;padding:8px 6px!important;font-size:11px!important;}#lineDrawPanel {left:9px;max-width:calc(100vw - 18px);}}
 /* ADD POINT recording-style active indicator: one authoritative rule. */
 #addPointButton[aria-pressed="true"] {
   background:#e00000!important;
@@ -1456,6 +1463,16 @@ html, body {
 
 
 <button id="addPointButton" class="point-button" type="button" aria-pressed="false">ADD POINT</button>
+<button id="drawLineButton" class="point-button" type="button" aria-pressed="false">DRAW LINE</button>
+<div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tip: Tap a finished line to export GPX or delete it.</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button></div>
+<div id="lineSaveDialog" hidden role="dialog" aria-modal="true" aria-labelledby="lineSaveTitle" style="position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box">
+  <form id="lineSaveForm" style="background:#fff;color:#171717;border-radius:10px;padding:18px;width:min(340px,100%);box-sizing:border-box;box-shadow:0 8px 32px #0005;display:grid;gap:10px">
+    <strong id="lineSaveTitle">Save line</strong>
+    <label for="lineNameInput">Line name</label><input id="lineNameInput" maxlength="80" required style="padding:9px;font-size:16px;width:100%;box-sizing:border-box" />
+    <label for="lineColorSelect">Line color</label><select id="lineColorSelect" style="padding:9px;font-size:16px;width:100%"><option>Orange</option><option>Red</option><option>Blue</option><option>Black</option></select>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button id="lineSaveCancel" type="button" style="padding:9px 14px">CANCEL</button><button type="submit" style="padding:9px 14px">SAVE LINE</button></div>
+  </form>
+</div>
 <button id="clearPointsButton" class="point-button" type="button">CLEAR POINTS</button>
 <button id="enterCoordsButton" class="point-button" type="button">ENTER COORDS</button>
 <button id="measureAreaButton" type="button" aria-pressed="false">MEASURE AREA</button>
@@ -1505,6 +1522,8 @@ html, body {
  <div class="legend-entry"><i class="legend-dot" style="background:#2583ff"></i>GPS location</div>
  <div class="legend-entry"><i class="legend-line" style="background:#00a6ff;height:5px"></i>Recorded GPS track</div>
  <div class="legend-entry"><i class="legend-dot" style="background:#ff861c;color:#111;font-weight:bold;font-style:normal;text-align:center;line-height:17px">1</i>Marked point (numbered)</div>
+ <div class="legend-entry"><i class="legend-line" style="height:4px;background:#ff861c"></i>Saved drawn line (orange, red, blue or black)</div>
+ <div class="legend-note">Tap a finished drawn line to view its length, export GPX, or delete it. Drawn lines are saved in this browser.</div>
  <div class="legend-entry"><i class="legend-dot" style="background:#16803c"></i>GPX start</div>
  <div class="legend-entry"><i class="legend-dot" style="background:#d62828"></i>GPX end</div>
  <div class="legend-note">Imported GPX line colors may vary by track.</div>
@@ -1516,8 +1535,11 @@ html, body {
  <div class="legend-entry"><i class="legend-area" style="background:#99004c"></i>Very unhealthy (201–300)</div>
  <div class="legend-entry"><i class="legend-area" style="background:#4c0026"></i>Hazardous (301–500)</div>
  <div class="legend-note">EPA AirNow estimated hourly PM2.5 AQI regions. Not a live smoke or on-scene exposure measurement.</div>
+ <div class="legend-section">TAXLOT BOUNDARIES</div>
+ <div class="legend-entry"><i class="legend-line" style="height:3px;background:#ff8c00"></i>Josephine &amp; Jackson County (orange)</div>
+ <div class="legend-entry"><i class="legend-line" style="height:3px;background:#111"></i>Oregon statewide (black)</div>
+ <div class="legend-note">County colors may revert to their GIS server defaults if custom styling is unavailable. Statewide taxlots can be enabled as a backup.</div>
  <div class="legend-section">OTHER FEATURES</div>
- <div class="legend-entry"><i class="legend-dot" style="background:#9333ea"></i>Dog park</div>
  <div class="legend-entry"><i class="legend-dot" style="background:#008CFF;border:2px solid white;border-radius:0;box-shadow:0 0 0 1px #777"></i>RAWS weather station</div>
  <div class="legend-entry"><i class="legend-area water"></i>USGS waterbody</div>
  <div class="legend-note">Basemaps, LiDAR hillshade, PLSS and taxlot overlays use service-rendered cartography; their appearance may change with zoom or source.</div>`;
@@ -1540,6 +1562,8 @@ html, body {
  links.append(guide,legendButton);drawer.append(links);
  // Keep ADD POINT visible so its active state cannot be hidden in the drawer.
  document.body.append(document.getElementById('addPointButton'));
+ document.body.append(document.getElementById('drawLineButton'));
+ document.body.append(document.getElementById('lineDrawPanel'));
  // close: close logic.
  function close(){drawer.hidden=true;toggle.setAttribute('aria-expanded','false')}
  toggle.addEventListener('click',e=>{e.stopPropagation();closeLegend();drawer.hidden=!drawer.hidden;toggle.setAttribute('aria-expanded',String(!drawer.hidden))});
@@ -1642,56 +1666,58 @@ html, body {
     }
   );
 
-  // Statewide ODF tax lot display, rendered only for the visible map extent.
+  // County parcel outlines plus statewide coverage everywhere (optional backup).
   const taxlotService = "https://gis.odf.oregon.gov/ags1/rest/services/WebMercator/TaxlotsDisplay/MapServer";
-  const taxlots = L.imageOverlay("", [[42, -124], [43, -122]], {opacity: 0.9, interactive: false});
-  let taxlotRequest = 0;
-  let taxlotMetadataPromise = null;
-  let taxlotLayers = [];
+  const taxlots = L.imageOverlay("", [[42,-124],[43,-122]], {opacity:0.9,interactive:false});
+  const jacksonTaxlots = L.imageOverlay("", [[42,-124],[43,-122]], {opacity:0.9,interactive:false});
+  const josephineTaxlots = L.imageOverlay("", [[42,-124],[43,-122]], {opacity:0.9,interactive:false});
+  const countyMapServices = new Map([
+    [jacksonTaxlots,"https://jcportal.jacksoncountyor.gov/server/rest/services/Property/Taxlots/MapServer"],
+    [josephineTaxlots,"https://gis.co.josephine.or.us/arcgis/rest/services/Assessor/Assessor_Taxlots/MapServer"]
+  ]);
+  const parcelOverlayRequests = new Map();
   let situsRequest = 0;
   let lastSitusPoint = null;
   let lastSitusTime = 0;
   const situsDisplay = document.getElementById("situsAddress");
+  const taxlotOverlays = [josephineTaxlots, jacksonTaxlots, taxlots];
+  // Test server-side orange line styling on Jackson; fall back to native imagery on failure.
+  const jacksonTestRenderer = JSON.stringify([{id:2,source:{type:"mapLayer",mapLayerId:2},drawingInfo:{renderer:{type:"simple",symbol:{type:"esriSFS",style:"esriSFSNull",outline:{type:"esriSLS",style:"esriSLSSolid",color:[255,140,0,255],width:1.2}}}}}]);
 
-  // loadTaxlotMetadata: load taxlot metadata logic.
-  function loadTaxlotMetadata() {
-    if (!taxlotMetadataPromise) {
-      taxlotMetadataPromise = fetch(taxlotService + "?f=pjson")
-        .then(r => { if (!r.ok) throw Error("Taxlot metadata HTTP " + r.status); return r.json(); })
-        .then(data => {
-          if (data.error) throw Error(data.error.message || "Taxlot metadata error");
-          taxlotLayers = (data.layers || []).filter(l => l.type === "Feature Layer" ||
-            (l.subLayerIds == null && l.type !== "Group Layer"));
-          return data;
-        }).catch(err => { taxlotMetadataPromise = null; throw err; });
+  // Request only one image for the current viewport and selected overlay.
+  function updateTaxlots() {
+    for (const layer of taxlotOverlays) {
+      const request = (parcelOverlayRequests.get(layer)||0)+1;
+      parcelOverlayRequests.set(layer,request);
+      if (!map.hasLayer(layer) || map.getZoom()<14) { layer.setOpacity(0); continue; }
+      const bounds=map.getBounds(), size=map.getSize();
+      const sw=L.CRS.EPSG3857.project(bounds.getSouthWest());
+      const ne=L.CRS.EPSG3857.project(bounds.getNorthEast());
+      const params={bbox:[sw.x,sw.y,ne.x,ne.y].join(","),bboxSR:"3857",imageSR:"3857",
+        size:Math.round(size.x)+","+Math.round(size.y),format:"png32",transparent:"true",f:"image"};
+      if(layer===taxlots) {
+        params.layers="show:"+Array.from({length:36},(_,i)=>i).join(",");
+      } else {
+        // Josephine MapServer has one parcel layer; Jackson uses Taxlots layer 2.
+        params.layers=layer===jacksonTaxlots?"show:2":"show:0";
+      }
+      const baseUrl=(countyMapServices.get(layer)||taxlotService)+"/export";
+      const fallbackUrl=makeExportUrl(baseUrl,params);
+      if(layer===jacksonTaxlots) params.dynamicLayers=jacksonTestRenderer;
+      const url=makeExportUrl(baseUrl,params);
+      const img=new Image();
+      img.onload=()=>{if(parcelOverlayRequests.get(layer)!==request||!map.hasLayer(layer))return;
+        layer.setBounds(bounds);layer.setUrl(url);layer.setOpacity(.9);};
+      img.onerror=()=>{
+        if(layer===jacksonTaxlots && url!==fallbackUrl){
+          const backup=new Image();
+          backup.onload=()=>{if(parcelOverlayRequests.get(layer)!==request||!map.hasLayer(layer))return;layer.setBounds(bounds);layer.setUrl(fallbackUrl);layer.setOpacity(.9);};
+          backup.onerror=()=>console.warn("Jackson parcel image unavailable (styled and default)");
+          backup.src=fallbackUrl;
+        } else console.warn("Parcel boundary image failed",url);
+      };
+      img.src=url;
     }
-    return taxlotMetadataPromise;
-  }
-
-  // Requests taxlot imagery for the visible map bounds at zoom 14+.
-  async function updateTaxlots() {
-    if (!map.hasLayer(taxlots)) return;
-    const request = ++taxlotRequest;
-    if (map.getZoom() < 14) { taxlots.setOpacity(0); return; }
-    taxlots.setOpacity(0.9);
-    const size = map.getSize();
-    const bounds = map.getBounds();
-    const sw = L.CRS.EPSG3857.project(bounds.getSouthWest());
-    const ne = L.CRS.EPSG3857.project(bounds.getNorthEast());
-    const params = {
-      bbox: [sw.x, sw.y, ne.x, ne.y].join(","), bboxSR: "3857", imageSR: "3857",
-      size: Math.round(size.x) + "," + Math.round(size.y), format: "png32",
-      transparent: "true", f: "image"
-    };
-    const url = makeExportUrl(taxlotService + "/export", params);
-    const img = new Image();
-    img.onload = () => {
-      if (request !== taxlotRequest || !map.hasLayer(taxlots)) return;
-      taxlots.setBounds(bounds);
-      taxlots.setUrl(url);
-    };
-    img.onerror = () => console.warn("Tax lot overlay could not load");
-    img.src = url;
   }
 
   // ArcGIS REST JSONP fallback for services that do not allow browser CORS.
@@ -1742,96 +1768,128 @@ html, body {
     }
   }
 
-  // Query-enabled sources; keep the ODF image overlay for statewide boundaries.
-  const parcelSources = [
-    {name:"Oregon Water Resources", url:"https://gis.wrd.state.or.us/server/rest/services/tax/Tax_Lots_Public_View_WGS84/FeatureServer/2/query"},
-    {name:"Jackson County", url:"https://jcportal.jacksoncountyor.gov/server/rest/services/Property/Taxlots/FeatureServer/2/query"},
-    {name:"Josephine County", url:"https://gis.co.josephine.or.us/arcgis/rest/services/Assessor/Assessor_Taxlots/FeatureServer/0/query"}
-  ];
-  // taxlotField: taxlot field logic.
-  function taxlotField(attrs, pattern) {
-    const key = Object.keys(attrs).find(k => pattern.test(k));
-    const value = key ? attrs[key] : null;
-    return value == null || String(value).trim() === "" || /^null$/i.test(String(value)) ? "" : String(value).trim();
+  // Load the two county boundaries once; use point-in-polygon to select exactly one parcel service.
+  const parcelSources={
+    Jackson:{name:"Jackson County",url:"https://jcportal.jacksoncountyor.gov/server/rest/services/Property/Taxlots/FeatureServer/2/query",layer:jacksonTaxlots},
+    Josephine:{name:"Josephine County",url:"https://gis.co.josephine.or.us/arcgis/rest/services/Assessor/Assessor_Taxlots/FeatureServer/0/query",layer:josephineTaxlots},
+    Oregon:{name:"Oregon statewide",url:"https://gis.odf.oregon.gov/ags1/rest/services/WebMercator/TaxlotsDisplay/MapServer",layer:taxlots}
+  };
+  const countyBoundaryUrl="https://gis.wrd.state.or.us/server/rest/services/adm/Counties_WGS84/FeatureServer/0/query";
+  let countyBoundariesPromise=null;
+  function countyBoundaries() {
+    if(!countyBoundariesPromise) countyBoundariesPromise=taxlotRest(countyBoundaryUrl,{
+      where:"county_name IN ('Jackson','Josephine')",outFields:"county_name",returnGeometry:"true",
+      outSR:"4326",geometryPrecision:"5",f:"json"
+    }).then(d=>{
+      const features=d.features||[];
+      if(features.length!==2) throw Error("County boundary lookup incomplete");
+      return features;
+    }).catch(e=>{countyBoundariesPromise=null;throw e;});
+    return countyBoundariesPromise;
   }
-  // parcelDetails: parcel details logic.
-  function parcelDetails(a) {
-    const street = taxlotField(a, /^(site_address|SITEADDNAM|SITUS|SITUS_ADDRESS|SitusAddrsFull|SitusAddrs|SITUSADDR|STREETADDRESS)$/i);
-    const cityzip = taxlotField(a, /^(site_citystatezip|SitusCityStateZip)$/i);
-    const city = taxlotField(a, /^(SITEADDCTY|SITUS_CITY|SitusCity)$/i);
-    const zip = taxlotField(a, /^(SITEZIP|SITUS_ZIP|SitusZip1)$/i);
-    const lot = taxlotField(a, /^(maptaxlot|map_taxlot|ortaxlot|taxlot|taxlot_id|MAPNUMBER|MAPNUM|ACCOUNT|ACCOUNTNO|ACCT)$/i);
-    const acres = taxlotField(a, /^(taxlot_acre|ACRES|GISACRES|ACREAGE)$/i);
-    const address = [street, cityzip || [city,zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-    return {address,lot,acres};
-  }
-  // A point query avoids downloading statewide parcel geometry and works independently of map view.
-  // Queries address-capable parcel services for one latitude/longitude.
-  async function queryParcelAt(lat,lng) {
-    const params = {
-      where: "1=1", geometry: JSON.stringify({x:lng,y:lat,spatialReference:{wkid:4326}}),
-      geometryType: "esriGeometryPoint", inSR:"4326", spatialRel:"esriSpatialRelIntersects",
-      outFields:"*", returnGeometry:"false", resultRecordCount:"3", f:"json"
-    };
-    let lastError = null;
-    let foundWithoutAddress = null;
-    for (const source of parcelSources) {
-      try {
-        const data = await taxlotRest(source.url,params);
-        const features = Array.isArray(data.features) ? data.features : [];
-        if (features.length) {
-          const matches = features.map(f=>({source:source.name, details:parcelDetails(f.attributes||{})}));
-          const withAddress = matches.find(m=>m.details.address);
-          if (withAddress) return withAddress;
-          if (!foundWithoutAddress) foundWithoutAddress = matches[0];
-        }
-      } catch (err) {
-        lastError = err;
-        console.warn(source.name + " parcel query failed:",err);
-      }
+  // Standard ray-casting test for ArcGIS polygon rings; handles holes via even/odd parity.
+  function insideRing(x,y,ring) {
+    let inside=false;
+    for(let i=0,j=ring.length-1;i<ring.length;j=i++) {
+      const a=ring[i],b=ring[j];
+      if(((a[1]>y)!==(b[1]>y))&&(x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]))inside=!inside;
     }
-    if (foundWithoutAddress) return foundWithoutAddress;
-    if (lastError) throw Error("No parcel returned; one or more services failed. " + lastError.message);
-    return null;
+    return inside;
   }
-  let parcelClickSequence = 0;
-  // identifyClickedParcel: identify clicked parcel logic.
+  async function parcelSourceAt(lat,lng) {
+    const features=await countyBoundaries();
+    for(const f of features) {
+      const rings=(f.geometry&&f.geometry.rings)||[];
+      if(rings.some(r=>insideRing(lng,lat,r)))return parcelSources[f.attributes.county_name];
+    }
+    return parcelSources.Oregon;
+  }
+  function field(a,...names) {
+    for(const n of names) {
+      const k=Object.keys(a).find(key=>key.toLowerCase()===n.toLowerCase());
+      if(k&&a[k]!=null&&String(a[k]).trim()!==""&&String(a[k]).toLowerCase()!=="null")return String(a[k]).trim();
+    }
+    return "";
+  }
+  function parcelDetails(a,county) {
+    const street=field(a,...(county==="Jackson"?["SITEADD"]:county==="Josephine"?["SITUS"]:["SITEADDNAM","SITUS","SITEADD"]));
+    const city=field(a,"SITUS_CITY","SITEADDCTY"),zip=field(a,"SITUS_ZIP","SITEZIP");
+    const address=[street,[city,zip].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+    const owner=field(a,"FEEOWNER","NAME","OWNERLINE1");
+    const mailStreet=field(a,"ADDRESS1","ADDR1","MAILADD1","ADDRESS");
+    const mailStreet2=field(a,"ADDRESS2","ADDR2","MAILADD2");
+    const mailCity=field(a,"CITY","MAILCITY"),mailState=field(a,"STATE","MAILSTATE"),mailZip=field(a,"ZIPCODE","ZIP","MAILZIP");
+    const mailing=[mailStreet,mailStreet2,[mailCity,mailState,mailZip].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+    return {address,owner,mailing,lot:field(a,"MAPLOT","TM_MAPLOT","MapNum","MAPNUMBER","MAPNUM","ORTaxlot","TAXLOT"),
+      account:field(a,"ACCOUNT"),acres:field(a,"ACREAGE","GIS_AREA","LEGAL_ACRE"),
+      propertyClass:field(a,"PROPCLASS","PROP_CLASS"),yearBuilt:field(a,"YEARBLT")};
+  }
+  async function queryParcelAt(lat,lng,selectedSource) {
+    const source=selectedSource||await parcelSourceAt(lat,lng);
+    const params={where:"1=1",geometry:JSON.stringify({x:lng,y:lat,spatialReference:{wkid:4326}}),
+      geometryType:"esriGeometryPoint",inSR:"4326",spatialRel:"esriSpatialRelIntersects",
+      outFields:"*",returnGeometry:"false",resultRecordCount:"3",f:"json"};
+    // Statewide service is available in every county as an optional backup.
+    if(source===parcelSources.Oregon) {
+      const ids=Array.from({length:36},(_,i)=>i);
+      // ArcGIS identify handles the county selection server-side in one request.
+      const point=L.CRS.EPSG3857.project(L.latLng(lat,lng));
+      const data=await taxlotRest(source.url+"/identify",{
+        geometry:JSON.stringify({x:lng,y:lat,spatialReference:{wkid:4326}}),geometryType:"esriGeometryPoint",
+        sr:"4326",layers:"all:"+ids.join(","),tolerance:"0",mapExtent:[point.x-100,point.y-100,point.x+100,point.y+100].join(","),
+        imageDisplay:"500,500,96",returnGeometry:"false",f:"json"
+      });
+      const hit=(data.results||[])[0];
+      return hit?{source:source.name,details:parcelDetails(hit.attributes||{},"Oregon")}:null;
+    }
+    const data=await taxlotRest(source.url,params);
+    const hit=(data.features||[])[0];
+    return hit?{source:source.name,details:parcelDetails(hit.attributes||{},source===parcelSources.Jackson?"Jackson":"Josephine")}:null;
+  }
+  let parcelClickSequence=0;
   async function identifyClickedParcel(latlng) {
-    if (!map.hasLayer(taxlots) || map.getZoom() < 14) return;
-    const sequence = ++parcelClickSequence;
-    const popup = L.popup().setLatLng(latlng).setContent("Looking up tax lot…").openOn(map);
+    if(map.getZoom()<14)return;
+    const sequence=++parcelClickSequence;
+    const popup=L.popup().setLatLng(latlng).setContent("Checking parcel layer…").openOn(map);
     try {
-      const match = await queryParcelAt(latlng.lat,latlng.lng);
-      if (sequence !== parcelClickSequence || !map.hasLayer(taxlots)) return;
-      if (!match) { popup.setContent("No queryable tax lot found here. The statewide boundaries may cover areas not available in the address services."); return; }
-      const d = match.details;
-      popup.setContent("<div style='min-width:190px;line-height:1.5'>"+
-        "<strong>Oregon Tax Lot</strong><br>"+
-        "<strong>Situs:</strong> "+escapeHtml(d.address || "Not reported")+"<br>"+
-        "<strong>Tax lot:</strong> "+escapeHtml(d.lot || "Not reported")+
-        (d.acres ? "<br><strong>Acres:</strong> "+escapeHtml(d.acres) : "")+
-        "<br><small>Source: "+escapeHtml(match.source)+"</small></div>");
-    } catch(err) {
-      if (sequence === parcelClickSequence) popup.setContent("Tax lot lookup failed: "+escapeHtml(err.message || String(err)));
-    }
+      const preferred=await parcelSourceAt(latlng.lat,latlng.lng);
+      if(sequence!==parcelClickSequence)return;
+      const source=map.hasLayer(preferred.layer)?preferred:(map.hasLayer(taxlots)?parcelSources.Oregon:null);
+      if(!source){popup.setContent("Enable the county taxlot layer or OR State Taxlots to identify parcels here.");return;}
+      popup.setContent("Looking up tax lot…");
+      let match;
+      try { match=await queryParcelAt(latlng.lat,latlng.lng,source); }
+      catch(err) {
+        if(source!==parcelSources.Oregon && map.hasLayer(taxlots)) match=await queryParcelAt(latlng.lat,latlng.lng,parcelSources.Oregon);
+        else throw err;
+      }
+      if(sequence!==parcelClickSequence||!map.hasLayer(source.layer))return;
+      if(!match){popup.setContent("No parcel information reported at this location.");return;}
+      const d=match.details;
+      const rows=[["Situs",d.address],["Owner",d.owner],["Mailing address",d.mailing],["Map / Taxlot",d.lot],
+        ["Account",d.account],["Acres",d.acres],["Property class",d.propertyClass],["Year built",d.yearBuilt]];
+      popup.setContent("<div style='min-width:205px;max-width:290px;line-height:1.5'><strong>"+escapeHtml(match.source)+" Parcel</strong><br>"+
+        rows.filter(r=>r[1]).map(r=>"<strong>"+escapeHtml(r[0])+":</strong> "+escapeHtml(r[1])).join("<br>")+
+        "<br><small>County assessor reference data; not a legal survey.</small></div>");
+    }catch(err){if(sequence===parcelClickSequence)popup.setContent("Parcel lookup unavailable: "+escapeHtml(err.message||String(err)));}
   }
-  // Refreshes the situs readout when GPS moves enough or the cache expires.
+  // GPS situs is intentionally independent of parcel outline checkbox state.
   async function updateGpsSitus(lat,lng,force) {
-    const point = L.latLng(lat,lng);
-    const now = Date.now();
-    if (!force && lastSitusPoint && point.distanceTo(lastSitusPoint) < 25 && now-lastSitusTime < 30000) return;
-    lastSitusPoint = point;
-    lastSitusTime = now;
-    const request = ++situsRequest;
-    situsDisplay.textContent = "Situs: Looking up parcel…";
+    const point=L.latLng(lat,lng),now=Date.now();
+    if(!force&&lastSitusPoint&&point.distanceTo(lastSitusPoint)<25&&now-lastSitusTime<30000)return;
+    lastSitusPoint=point;lastSitusTime=now;
+    const request=++situsRequest;
+    situsDisplay.textContent="Situs: Looking up parcel…";
     try {
-      const match = await queryParcelAt(lat,lng);
-      if (request !== situsRequest) return;
-      situsDisplay.textContent = match && match.details.address ? "Situs: "+match.details.address : "Situs: No parcel address reported at GPS location";
-    } catch(err) {
-      if (request === situsRequest) situsDisplay.textContent = "Situs: Lookup unavailable (see console)";
-      console.warn("GPS situs lookup:",err);
-    }
+      let match;
+      try { match=await queryParcelAt(lat,lng); }
+      catch(err) {
+        // If the county service fails, use statewide without needing its outline checkbox.
+        match=await queryParcelAt(lat,lng,parcelSources.Oregon);
+      }
+      if(request!==situsRequest)return;
+      situsDisplay.textContent=match&&match.details.address?"Situs: "+match.details.address:"Situs: No parcel address reported at GPS location";
+    }catch(err){if(request===situsRequest)situsDisplay.textContent="Situs: Lookup unavailable";console.warn("GPS situs:",err);}
   }
 
   let hillshadeRequest = 0;
@@ -3202,58 +3260,6 @@ function historicalPerimeterStyle() {
 
   const markedPointsLayer = L.layerGroup().addTo(map);
 
-  // Oregon dog parks: static GeoJSON hosted beside index.html.
-  // Load once, on first checkbox activation; no Overpass requests.
-  const oregonDogParksLayer = L.layerGroup();
-  let oregonDogParksPromise = null;
-  // dogParkEscape: dog park escape logic.
-  function dogParkEscape(value) {
-    return String(value).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[ch]);
-  }
-  // loadOregonDogParks: load oregon dog parks logic.
-  function loadOregonDogParks() {
-    if (oregonDogParksPromise) return oregonDogParksPromise;
-    oregonDogParksPromise = fetch("oregon_dogparks.geojson")
-      .then(response => {
-        if (!response.ok) throw new Error("GeoJSON HTTP " + response.status);
-        return response.json();
-      })
-      .then(data => {
-        if (data.type !== "FeatureCollection" || !Array.isArray(data.features)) {
-          throw new Error("Invalid dog park GeoJSON");
-        }
-        const parks = L.geoJSON(data, {
-          pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-            radius: 7, color: "#ffffff", weight: 2,
-            fillColor: "#9333ea", fillOpacity: 0.95
-          }),
-          onEachFeature: (feature, layer) => {
-            const p = feature.properties || {};
-            const name = dogParkEscape(p.name || "Unnamed Dog Park");
-            let popup = "<strong>" + name + "</strong><br>Oregon Dog Park";
-            if (p.operator) popup += "<br>Operator: " + dogParkEscape(p.operator);
-            if (p.access) popup += "<br>Access: " + dogParkEscape(p.access);
-            if (p.dog) popup += "<br>Dog access: " + dogParkEscape(p.dog);
-            if (p.website && /^https?:\/\//i.test(p.website)) {
-              const url = dogParkEscape(p.website);
-              popup += '<br><a href="' + url + '" target="_blank" rel="noopener noreferrer">Park website</a>';
-            }
-            layer.bindPopup(popup);
-          }
-        });
-        parks.addTo(oregonDogParksLayer);
-        console.info("OR Dog Parks loaded:", data.features.length);
-      })
-      .catch(error => {
-        oregonDogParksPromise = null; // allow retry on next enable
-        console.error("OR Dog Parks GeoJSON failed to load:", error);
-        if (map.hasLayer(oregonDogParksLayer)) {
-          alert("OR Dog Parks could not load. Check that oregon_dogparks.geojson is beside index.html.");
-        }
-      });
-    return oregonDogParksPromise;
-  }
-
   // =========================================================
   // US AIR QUALITY — EPA AIRNOW HOURLY PM2.5 AQI CONTOURS
   // Off by default. Request only visible polygons; refresh at most hourly.
@@ -3321,18 +3327,24 @@ function historicalPerimeterStyle() {
   // LAYER MENU
   // =========================================================
 
+  // Saved drawn lines have their own visibility checkbox.
+  const drawnLineLayer = L.featureGroup().addTo(map);
+
   const layerControl = L.control.layers(
     {
-      "Esri Street Map": streetMap,
-      "OpenTopoMap": topoMap,
-      "Esri Aerial Imagery": aerialMap
+      "Street Map": streetMap,
+      "Topo Map": topoMap,
+      "Aerial Imagery": aerialMap
     },
     {
-      "GPS Tracks": gpsTrackLayer,
+      "GPS Track Lines": gpsTrackLayer,
       "Marked Points": markedPointsLayer,
+      "Drawn Lines": drawnLineLayer,
       "OR LiDAR": hillshade,
       "OR TRS": plss,
-      "OR Tax Lots": taxlots,
+      "Josephine Co Taxlots": josephineTaxlots,
+      "Jackson Co Taxlots": jacksonTaxlots,
+      "OR State Taxlots": taxlots,
       "OR Public Land": publicLand,
       "Lakes/Ponds ¼ Acre+": usgsWaterbodyLayer,
       "OR New Fires (24Hr)": nifcFireLayer,
@@ -3340,7 +3352,7 @@ function historicalPerimeterStyle() {
       "OR Historical Fires": historicalFirePerimeterLayer,
       "OR RAWS WX": rawsLayer,
       "US Air Quality (AQI)": airQualityLayer,
-      "OR Dog Parks": oregonDogParksLayer
+
     },
     {
       collapsed: true,
@@ -3566,13 +3578,12 @@ clearGpxButton.addEventListener("click", function () {
   L.DomEvent.disableClickPropagation(gpxStatus);
 
   map.on("overlayadd", function (event) {
-    if (event.layer === oregonDogParksLayer) loadOregonDogParks();
     if (event.layer === airQualityLayer) updateAirQuality(true);
 
     if (event.layer === hillshade) updateHillshade();
     if (event.layer === publicLand) updatePublicLand();
     if (event.layer === plss) updatePLSS();
-    if (event.layer === taxlots) updateTaxlots();
+    if (taxlotOverlays.includes(event.layer)) updateTaxlots();
     if (event.layer === nifcFireLayer) updateNifcFires();
     if (event.layer === firePerimeterLayer) updateFirePerimeters();
 
@@ -3613,7 +3624,7 @@ clearGpxButton.addEventListener("click", function () {
       historicalAbortController = null;
       historicalLastViewKey = "";
     }
-    if (event.layer === taxlots) { taxlotRequest++; parcelClickSequence++; }
+    if (taxlotOverlays.includes(event.layer)) { parcelOverlayRequests.set(event.layer,(parcelOverlayRequests.get(event.layer)||0)+1); parcelClickSequence++; }
     if (event.layer === publicLand) {
       publicLandRequest++;
     }
@@ -3688,7 +3699,7 @@ clearGpxButton.addEventListener("click", function () {
     coordinatesDisplay.textContent =
       toDDM(event.latlng.lat) + "  " +
       toDDM(event.latlng.lng);
-    if (measureActive) return;
+    if (measureActive || lineDrawingActive) return;
     if (pointPlacementActive) {
       addMarkedPoint(event.latlng.lat, event.latlng.lng);
     } else {
@@ -3776,7 +3787,7 @@ clearGpxButton.addEventListener("click", function () {
     addPointButton.textContent=active?"✓ ADD POINT":"ADD POINT";
     map.getContainer().style.cursor=active?"crosshair":"";
   }
-  addPointButton.addEventListener("click",()=>{if(measureActive)stopMeasure();setPointMode(!pointPlacementActive);});
+  addPointButton.addEventListener("click",()=>{if(lineDrawingActive)cancelLineDrawing();if(measureActive)stopMeasure();setPointMode(!pointPlacementActive);});
   clearPointsButton.addEventListener("click",()=>{
     if (!markedPoints.length) return;
     const confirmed=confirm("Delete all "+markedPoints.length+" marked points?");
@@ -3863,6 +3874,113 @@ clearGpxButton.addEventListener("click", function () {
 
 
   // =========================================================
+  // USER DRAWN LINES — tap vertices; saved locally; GPX export
+  // No external drawing library or GIS server calls required.
+  // =========================================================
+  const lineStorageKey = "topotac.drawnLines.v1";
+  const drawLineButton = document.getElementById("drawLineButton");
+  const lineDrawPanel = document.getElementById("lineDrawPanel");
+  const lineDrawHint = document.getElementById("lineDrawHint");
+  const lineUndoButton = document.getElementById("lineUndoButton");
+  const lineFinishButton = document.getElementById("lineFinishButton");
+  const lineCancelButton = document.getElementById("lineCancelButton");
+  const draftLineLayer = L.layerGroup().addTo(map);
+  const lineColors = {Orange:"#ff861c",Red:"#e12626",Blue:"#1877f2",Black:"#171717"};
+  let drawnLines = [], nextDrawnLineId = 1, lineDrawingActive = false, draftVertices = [];
+  function saveDrawnLines() {
+    try {localStorage.setItem(lineStorageKey,JSON.stringify({lines:drawnLines,nextId:nextDrawnLineId}));}
+    catch(err) {console.warn("Could not save drawn lines:",err);alert("Browser storage is unavailable. Export your line as GPX before closing TopoTac.");}
+  }
+  function lineLengthMeters(vertices) {
+    let meters=0;
+    for(let i=1;i<vertices.length;i++)meters+=map.distance(vertices[i-1],vertices[i]);
+    return meters;
+  }
+  function lineLengthLabel(vertices) {
+    const meters=lineLengthMeters(vertices);
+    return meters>=1609.344?(meters/1609.344).toFixed(2)+" mi":(meters*3.28084).toFixed(0)+" ft";
+  }
+  function exportDrawnLineGpx(line) {
+    const safeXml=t=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");
+    const xml='<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="TopoTac Online" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>'+safeXml(line.name)+'</name><trkseg>'+line.vertices.map(v=>'<trkpt lat="'+v.lat.toFixed(7)+'" lon="'+v.lng.toFixed(7)+'"/>').join('')+'</trkseg></trk></gpx>';
+    const url=URL.createObjectURL(new Blob([xml],{type:"application/gpx+xml"}));
+    const a=document.createElement("a");a.href=url;a.download="TopoTac_Line_"+line.id+".gpx";document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),10000);
+  }
+  function renderDrawnLine(line) {
+    const poly=L.polyline(line.vertices,{color:line.color,weight:5,opacity:0.95}).addTo(drawnLineLayer);
+    poly.bindPopup(()=>{
+      const wrap=document.createElement("div");
+      const title=document.createElement("strong");title.textContent=line.name;wrap.append(title);
+      const info=document.createElement("div");info.textContent=lineLengthLabel(line.vertices)+" · "+line.colorName;wrap.append(info);
+      const exportBtn=document.createElement("button");exportBtn.type="button";exportBtn.textContent="EXPORT GPX";exportBtn.style.marginRight="8px";
+      exportBtn.addEventListener("click",()=>exportDrawnLineGpx(line));wrap.append(exportBtn);
+      const deleteBtn=document.createElement("button");deleteBtn.type="button";deleteBtn.textContent="DELETE LINE";
+      deleteBtn.addEventListener("click",()=>{
+        if(!confirm('Delete line "'+line.name+'"?'))return;
+        blockDialogClickThrough();drawnLines=drawnLines.filter(x=>x.id!==line.id);
+        drawnLineLayer.removeLayer(poly);saveDrawnLines();map.closePopup();
+      });wrap.append(deleteBtn);return wrap;
+    });
+    poly.on("click",()=>{if(lineDrawingActive)map.closePopup();});
+  }
+  try {
+    const stored=JSON.parse(localStorage.getItem(lineStorageKey)||"null");
+    if(stored&&Array.isArray(stored.lines)){
+      drawnLines=stored.lines.filter(l=>Number.isSafeInteger(l.id)&&l.id>0&&Array.isArray(l.vertices)&&l.vertices.length>=2&&l.vertices.length<=20000&&l.vertices.every(v=>Number.isFinite(v.lat)&&Number.isFinite(v.lng)&&Math.abs(v.lat)<=90&&Math.abs(v.lng)<=180)).map(l=>({id:l.id,name:String(l.name||"Line").slice(0,80),colorName:lineColors[l.colorName]?l.colorName:"Orange",color:lineColors[l.colorName]||lineColors.Orange,vertices:l.vertices.map(v=>({lat:v.lat,lng:v.lng}))}));
+      nextDrawnLineId=Math.max(1,Number.isSafeInteger(stored.nextId)?stored.nextId:1,...drawnLines.map(l=>l.id+1));
+      drawnLines.forEach(renderDrawnLine);
+    }
+  } catch(err) {console.warn("Could not restore drawn lines:",err);}
+  function refreshDraftLine() {
+    draftLineLayer.clearLayers();
+    if(draftVertices.length>1)L.polyline(draftVertices,{color:"#ff861c",weight:4,dashArray:"7,5",interactive:false}).addTo(draftLineLayer);
+    draftVertices.forEach(v=>L.circleMarker(v,{radius:4,color:"white",weight:1,fillColor:"#ff861c",fillOpacity:1,interactive:false}).addTo(draftLineLayer));
+    lineDrawHint.textContent=draftVertices.length?draftVertices.length+" vertices · "+lineLengthLabel(draftVertices):"Tap map to place vertices";
+    lineUndoButton.disabled=draftVertices.length===0;
+    lineFinishButton.disabled=draftVertices.length<2;
+  }
+  function cancelLineDrawing() {
+    lineDrawingActive=false;draftVertices=[];draftLineLayer.clearLayers();lineDrawPanel.hidden=true;
+    drawLineButton.setAttribute("aria-pressed","false");drawLineButton.textContent="DRAW LINE";
+    map.getContainer().style.cursor="";
+  }
+  drawLineButton.addEventListener("click",()=>{
+    if(lineDrawingActive){cancelLineDrawing();return;}
+    if(measureActive)stopMeasure();setPointMode(false);
+    lineDrawingActive=true;draftVertices=[];lineDrawPanel.hidden=false;
+    drawLineButton.setAttribute("aria-pressed","true");drawLineButton.textContent="✓ DRAW LINE";
+    map.getContainer().style.cursor="crosshair";refreshDraftLine();
+  });
+  lineUndoButton.addEventListener("click",()=>{draftVertices.pop();refreshDraftLine();});
+  lineCancelButton.addEventListener("click",cancelLineDrawing);
+  const lineSaveDialog=document.getElementById("lineSaveDialog");
+  const lineSaveForm=document.getElementById("lineSaveForm");
+  const lineNameInput=document.getElementById("lineNameInput");
+  const lineColorSelect=document.getElementById("lineColorSelect");
+  function closeLineSaveDialog(){lineSaveDialog.hidden=true;lineSaveDialog.style.display="none";blockDialogClickThrough();}
+  lineFinishButton.addEventListener("click",()=>{
+    if(draftVertices.length<2)return;
+    lineNameInput.value="Line "+nextDrawnLineId;
+    lineColorSelect.value="Orange";
+    lineSaveDialog.hidden=false;lineSaveDialog.style.display="flex";
+    lineNameInput.focus();lineNameInput.select();
+  });
+  document.getElementById("lineSaveCancel").addEventListener("click",closeLineSaveDialog);
+  lineSaveForm.addEventListener("submit",e=>{
+    e.preventDefault();
+    if(draftVertices.length<2){closeLineSaveDialog();return;}
+    const name=lineNameInput.value.trim().slice(0,80)||"Line "+nextDrawnLineId;
+    const colorName=lineColors[lineColorSelect.value]?lineColorSelect.value:"Orange";
+    const line={id:nextDrawnLineId++,name,colorName,color:lineColors[colorName],vertices:draftVertices.map(v=>({lat:v.lat,lng:v.lng}))};
+    drawnLines.push(line);renderDrawnLine(line);saveDrawnLines();closeLineSaveDialog();cancelLineDrawing();
+  });
+  L.DomEvent.disableClickPropagation(lineSaveDialog);
+  L.DomEvent.disableScrollPropagation(lineSaveDialog);
+  map.on("click",e=>{if(!lineDrawingActive||Date.now()<suppressPointClicksUntil)return;draftVertices.push({lat:e.latlng.lat,lng:e.latlng.lng});refreshDraftLine();});
+  [drawLineButton,lineDrawPanel,lineUndoButton,lineFinishButton,lineCancelButton].forEach(el=>{L.DomEvent.disableClickPropagation(el);L.DomEvent.disableScrollPropagation(el);});
+
+  // =========================================================
   // AREA MEASUREMENT — POLYGON CORNERS AND ACRES
   // Tap MEASURE AREA, tap polygon corners, then FINISH MEASURE.
   // CLEAR MEASURE removes only the measurement, never marked points.
@@ -3909,7 +4027,7 @@ clearGpxButton.addEventListener("click", function () {
       }).addTo(measureLayer);
       showMeasureStatus("Area: "+measureText());stopMeasure();return;
     }
-    clearMeasure();setPointMode(false);measureActive=true;
+    clearMeasure();if(lineDrawingActive)cancelLineDrawing();setPointMode(false);measureActive=true;
     measureAreaButton.textContent="FINISH MEASURE";
     measureAreaButton.setAttribute("aria-pressed","true");
     map.getContainer().style.cursor="crosshair";
