@@ -217,24 +217,27 @@ footer a { margin-right: 14px; }
 </div>
 </header>
 <main>
-<p class="intro">Use the layer menu in the upper-right to control map overlays and base maps; see the <a href="#layer-order">current layer order</a> below. Tap TOOLS at the upper-left to open the tool drawer; tap TOOLS again to close it. ADD POINT stays beside TOOLS for quick access. The zoom buttons are at the lower-right.</p><h2 class="section-title" id="tools">Tools drawer and controls</h2><div class="grid"><section class="card"><h3>TOOLS drawer</h3><p>Tap <kbd>☰ TOOLS</kbd> to open the drawer, and tap the same button again to close it. The drawer stays open when you use its controls or interact with the map.</p><p>The drawer groups controls under <strong>GPS &amp; TRACKING</strong>, <strong>GPX TRACKS</strong>, <strong>POINTS &amp; MEASURE</strong>, and <strong>DISPLAY</strong>. MAP GUIDE and LEGEND are also accessible there.</p><p>Use the upper-right layer checkboxes to show or hide individual overlays, including GPS tracks and imported GPX files.</p></section><section class="card"><h3>Button colors and map controls</h3><p>TopoTac uses a black, white, and orange interface. The <strong>GPS ON</strong> button turns bright red with white text while GPS tracking is active. <strong>ADD POINT</strong> also turns bright red while point-placement mode is active.</p><div class="control-demo"><span class="recording">GPS ON (ACTIVE)</span><span class="recording">ADD POINT (ACTIVE)</span><span>SAVE GPX</span><span>GPS STATS</span></div><p>Tap a map location to read its coordinates at the lower-left; the situs address display sits just above it. Use the + and − zoom controls at the lower-right.</p></section></div>
+<p class="intro">Use the layer menu in the upper-right to control map overlays and base maps; see the <a href="#layer-order">current layer order</a> below. Tap TOOLS at the upper-left to open the tool drawer; tap TOOLS again to close it. ADD POINT and DRAW LINE stay beside TOOLS for quick access. The zoom buttons are at the lower-right.</p><h2 class="section-title" id="tools">Tools drawer and controls</h2><div class="grid"><section class="card"><h3>TOOLS drawer</h3><p>Tap <kbd>☰ TOOLS</kbd> to open the drawer, and tap the same button again to close it. The drawer stays open when you use its controls or interact with the map.</p><p>The drawer groups controls under <strong>GPS &amp; TRACKING</strong>, <strong>GPX TRACKS</strong>, <strong>POINTS &amp; MEASURE</strong>, and <strong>DISPLAY</strong>. MAP GUIDE and LEGEND are also accessible there.</p><p>Use the upper-right layer checkboxes to show or hide individual overlays, including GPS tracks and imported GPX files.</p></section><section class="card"><h3>Button colors and map controls</h3><p>TopoTac uses a black, white, and orange interface. The <strong>GPS ON</strong> button turns bright red with white text while GPS tracking is active. <strong>ADD POINT</strong> also turns bright red while point-placement mode is active. <strong>DRAW LINE</strong> turns bright red while line drawing is active.</p><div class="control-demo"><span class="recording">GPS ON (ACTIVE)</span><span class="recording">ADD POINT (ACTIVE)</span><span>SAVE GPX</span><span>GPS STATS</span></div><p>Tap a map location to read its coordinates at the lower-left; the situs address display sits just above it. Use the + and − zoom controls at the lower-right.</p></section></div>
 
 <h2 class="section-title" id="layer-order">Layer menu reference — current order</h2>
 <section class="card">
-<p>The upper-right layer menu lists three base maps first (Esri Street Map, OpenTopoMap, Esri Aerial Imagery). Below them, overlay checkboxes appear in this order:</p>
+<p>The upper-right layer menu lists three base maps first (Street Map, Topo Map, Aerial Imagery). Below them, overlay checkboxes appear in this order:</p>
 <ol class="layer-order">
-<li><strong>GPS Tracks</strong><span class="layer-description"> — Your own GPS recorded tracks.</span></li>
+<li><strong>GPS Track Lines</strong><span class="layer-description"> — Your own GPS recorded tracks.</span></li>
 <li><strong>Marked Points</strong><span class="layer-description"> — Points you place on the map.</span></li>
+<li><strong>Drawn Lines</strong><span class="layer-description"> — Show or hide saved lines without deleting them.</span></li>
 <li><strong>OR LiDAR</strong><span class="layer-description"> — Oregon terrain hillshade.</span></li>
 <li><strong>OR TRS</strong><span class="layer-description"> — Township, range, and section boundaries.</span></li>
-<li><strong>OR Tax Lots</strong><span class="layer-description"> — Oregon parcel boundaries.</span></li>
+<li><strong>Josephine Co Taxlots</strong><span class="layer-description"> — Josephine County parcel boundaries.</span></li>
+<li><strong>Jackson Co Taxlots</strong><span class="layer-description"> — Jackson County parcel boundaries (orange styling).</span></li>
+<li><strong>OR State Taxlots</strong><span class="layer-description"> — Statewide parcels, including both counties, available as backup.</span></li>
 <li><strong>OR Public Land</strong><span class="layer-description"> — Mapped public land ownership.</span></li>
 <li><strong>Lakes/Ponds ¼ Acre+</strong><span class="layer-description"> — Mapped lakes and ponds.</span></li>
 <li><strong>OR New Fires (24Hr)</strong><span class="layer-description"> — Recently reported Oregon fires.</span></li>
 <li><strong>US Current Fires</strong><span class="layer-description"> — Current mapped fire perimeters.</span></li>
 <li><strong>OR Historical Fires</strong><span class="layer-description"> — Past Oregon fire perimeters.</span></li>
 <li><strong>OR RAWS WX</strong><span class="layer-description"> — Oregon remote weather stations.</span></li>
-<li><strong>OR Dog Parks</strong><span class="layer-description"> — Mapped Oregon dog parks.</span></li>
+
 </ol>
 <p>Choose one base map at a time; check or uncheck overlays independently. Imported GPX files add their own named entries when opened, so those entries may appear in addition to this default list. Long filenames may be shortened visually in the menu.</p>
 </section>
@@ -250,7 +253,7 @@ footer a { margin-right: 14px; }
 <path d="M0 16 L100 55" fill="none" stroke="#c7d4df" stroke-width="5"></path>
 </svg>
 <div>
-<h3>Esri Street Map</h3>
+<h3>Street Map</h3>
 <p>Roads and place references.</p>
 </div>
 </div>
@@ -268,7 +271,7 @@ footer a { margin-right: 14px; }
 <path d="M37 39 L48 16 60 39" fill="#f1f0dc"></path>
 </svg>
 <div>
-<h3>OpenTopoMap</h3>
+<h3>Topo Map</h3>
 <p>Terrain and topographic context.</p>
 </div>
 </div>
@@ -287,7 +290,7 @@ footer a { margin-right: 14px; }
 <path d="M68 45 L81 34 93 47 84 62Z" fill="#8a9e67"></path>
 </svg>
 <div>
-<h3>Esri Aerial Imagery</h3>
+<h3>Aerial Imagery</h3>
 <p>Satellite and aerial-style imagery.</p>
 </div>
 </div>
@@ -385,19 +388,12 @@ footer a { margin-right: 14px; }
     </section>
 </div>
 <h2 class="section-title">Tax lots and parcel addresses</h2>
-<div class="grid">
-<section class="card">
-<h3>OR Tax Lots</h3>
-<p>Displays tax lot boundaries from the Oregon Department of Forestry statewide map service. The overlay requests an image for the visible map area and is displayed at zoom 14 and higher.</p>
-<p>With the layer enabled, click a parcel at zoom 14 or higher to request available situs address, tax lot identifier, acreage, and source details. Parcel attributes are retrieved separately from query-enabled public services, so coverage and completeness vary.</p>
-<div class="callout">Tax lot outlines and situs addresses are reference information only. They do not establish ownership, property boundaries, access rights, or the legal location of an address.</div>
-</section>
-<section class="card">
-<h3>GPS Situs Address</h3>
-<p>When GPS is active, the <strong>Situs</strong> panel attempts to identify the parcel address at the reported GPS position. Queries are limited to avoid repeating them for very small movements over short periods.</p>
-<p>A missing address does not mean there is no parcel. GPS accuracy and the availability of the external parcel services affect the result.</p>
-</section>
-</div>
+<div class="grid"><section class="card"><h3>County parcel layers</h3>
+<p>Josephine Co Taxlots and Jackson Co Taxlots use their respective county assessor parcel services. OR State Taxlots covers all of Oregon, including both counties, and can be switched on as a backup. If both a county layer and the statewide layer are enabled, their parcel lines may overlap. Jackson county outlines are testing server-side orange styling with automatic fallback to default styling.</p>
+<p>Parcel outlines load only for the visible map area at zoom 14 or higher. Enable the corresponding layer to click a parcel for owner, situs address, mailing address, taxlot identifier, acreage and other attributes when reported by that source. No additional county source is queried to complete the popup.</p>
+</section><section class="card"><h3>GPS Situs Address</h3>
+<p>The floating Situs box identifies the parcel at the current GPS position, whether or not any parcel boundary layer is enabled. When GPS is switched off it shows <strong>Situs: GPS off</strong>; the last address is not retained.</p>
+<p>GPS situs checks are limited for small movements and short time intervals. Parcel addresses are reference information only, not a legal survey or proof of ownership or access.</p></section></div>
 <h2 class="section-title">Fire and weather overlays</h2>
 <div class="grid">
 <section class="card">
@@ -451,21 +447,22 @@ footer a { margin-right: 14px; }
 </section>
 </div>
 <h2 class="section-title">GPS, recording, and GPX tools</h2>
-<div class="grid"><section class="card"><h3>GPS &amp; TRACKING</h3><p class="small-note">SCREEN MUST STAY ON TO RECORD</p><div class="control-demo"><span class="recording">GPS ON (ACTIVE)</span><span>CLEAR GPS</span><span>SAVE GPX</span><span>GPS STATS</span></div><p><strong>GPS ON:</strong> Requests browser location permission, shows your position and records the route as GPS fixes arrive. The button turns bright red while active; turn GPS off to stop updates. The map centers on the first reported position.</p><p><strong>CLEAR GPS:</strong> Clears recorded GPS track segments without switching GPS positioning off.</p><p><strong>SAVE GPX:</strong> Downloads the recorded GPS track as a GPX file. It does not stop recording or clear the current track. Save a copy before clearing browser data.</p><p><strong>GPS STATS:</strong> Expands or collapses the live GPS readout described below.</p><div class="legend-row"><span class="dot" style="background:#2583ff"></span>Current GPS position / accuracy indicator</div><div class="legend-row"><span class="swatch" style="background:#00a6ff"></span>Recorded GPS track</div><p>Use the <strong>GPS Tracks</strong> checkbox in the layer menu to hide or show the line without stopping GPS recording. Interrupted tracking may appear as separate segments.</p><div class="callout">For reliable online recording, keep the browser active and the device screen awake. Phone browsers can suspend location updates when the screen locks or the browser goes into the background. GPS requires location permission, device location services, and HTTPS. This browser-based recorder is not a substitute for a dedicated continuous-duty GPS logger.</div></section><section class="card"><h3>GPS STATS — field readout</h3><p>Tap <kbd>GPS STATS</kbd> to view the current position and track statistics. The top heading reads <strong>CURRENT POSITION (When GPS is on)</strong>.</p><ul><li><strong>DD:</strong> Decimal degrees, such as <kbd>42.436800, -123.140000</kbd>.</li><li><strong>DDM:</strong> Degrees and decimal minutes, such as <kbd>42° 26.2080' N / 123° 08.4000' W</kbd>.</li><li><strong>DMS:</strong> Degrees, minutes, and seconds.</li><li><strong>GPS fix:</strong> Reported accuracy in meters, speed in mph, and heading in degrees when the browser provides them.</li><li><strong>Recorded track:</strong> Total distance in miles and kilometers, number of points, and session elapsed time.</li></ul><p>Missing GPS values display as unavailable. Track distance is calculated from recorded positions and can vary with GPS accuracy. This panel shows current coordinates only when a position fix is available.</p></section><section class="card"><h3>OPEN GPX / CLEAR GPX</h3><p>Tap <kbd>OPEN GPX</kbd> to import one or more GPX files stored on your device. Each imported file receives a separate checkbox in the layer menu.</p><ul><li>Routes and tracks are displayed as line segments; named waypoints and start/end markers may appear.</li><li>The map zooms to the imported track extent.</li><li>Tap <kbd>CLEAR GPX</kbd> to remove imported GPX layers. This does not erase the GPX files on your device.</li><li>Imported GPX files are read locally by the browser; the import function does not upload them to the map server.</li></ul></section><section class="card"><h3>Track storage and export</h3><p>TopoTac may retain track segments in browser storage when available, but browser data is not a permanent backup. Use <kbd>SAVE GPX</kbd> to keep a separate file on your device.</p><p>Saving a GPX export does not clear the recorded line. The GPS Tracks layer checkbox controls visibility; CLEAR GPS controls deletion of the recorded track.</p><div class="callout">A GPX export contains the recorded route geometry. Do not assume it includes every live GPS field shown in GPS STATS.</div></section></div>
-<h2 class="section-title">Oregon Dog Parks</h2>
-<section class="card">
-<h3>OR Dog Parks</h3>
-<div class="legend-row"><span class="dot" style="background:#9333ea"></span><strong>Purple:</strong> Oregon dog park location</div>
-<p>Enable the final checkbox in the layer menu to display Oregon dog parks as purple point markers. Tap a marker for its name and available operator, access, and website information.</p>
-<p>The layer loads <strong>oregon_dogparks.geojson</strong> from the same folder as index.html when first enabled, and keeps it in memory while the map remains open. It does not use Overpass or require a minimum zoom.</p>
-<div class="callout">Source: OpenStreetMap contributors (ODbL). Locations and access details may be incomplete or outdated; verify rules before visiting.</div>
-</section>
+<div class="grid"><section class="card"><h3>GPS &amp; TRACKING</h3><p class="small-note">SCREEN MUST STAY ON TO RECORD</p><div class="control-demo"><span class="recording">GPS ON (ACTIVE)</span><span>CLEAR GPS</span><span>SAVE GPX</span><span>GPS STATS</span></div><p><strong>GPS ON:</strong> Requests browser location permission, shows your position and records the route as GPS fixes arrive. The button turns bright red while active; turn GPS off to stop updates. The map centers on the first reported position.</p><p><strong>CLEAR GPS:</strong> Clears recorded GPS track segments without switching GPS positioning off.</p><p><strong>SAVE GPX:</strong> Downloads the recorded GPS track as a GPX file. It does not stop recording or clear the current track. Save a copy before clearing browser data.</p><p><strong>GPS STATS:</strong> Expands or collapses the live GPS readout described below.</p><div class="legend-row"><span class="dot" style="background:#2583ff"></span>Current GPS position / accuracy indicator</div><div class="legend-row"><span class="swatch" style="background:#00a6ff"></span>Recorded GPS track</div><p>Use the <strong>GPS Track Lines</strong> checkbox in the layer menu to hide or show the line without stopping GPS recording. Interrupted tracking may appear as separate segments.</p><div class="callout">For reliable online recording, keep the browser active and the device screen awake. Phone browsers can suspend location updates when the screen locks or the browser goes into the background. GPS requires location permission, device location services, and HTTPS. This browser-based recorder is not a substitute for a dedicated continuous-duty GPS logger.</div></section><section class="card"><h3>GPS STATS — field readout</h3><p>Tap <kbd>GPS STATS</kbd> to view the current position and track statistics. The top heading reads <strong>CURRENT POSITION (When GPS is on)</strong>.</p><ul><li><strong>DD:</strong> Decimal degrees, such as <kbd>42.436800, -123.140000</kbd>.</li><li><strong>DDM:</strong> Degrees and decimal minutes, such as <kbd>42° 26.2080' N / 123° 08.4000' W</kbd>.</li><li><strong>DMS:</strong> Degrees, minutes, and seconds.</li><li><strong>GPS fix:</strong> Reported accuracy in meters, speed in mph, and heading in degrees when the browser provides them.</li><li><strong>Recorded track:</strong> Total distance in miles and kilometers, number of points, and session elapsed time.</li></ul><p>Missing GPS values display as unavailable. Track distance is calculated from recorded positions and can vary with GPS accuracy. This panel shows current coordinates only when a position fix is available.</p></section><section class="card"><h3>OPEN GPX / CLEAR GPX</h3><p>Tap <kbd>OPEN GPX</kbd> to import one or more GPX files stored on your device. Each imported file receives a separate checkbox in the layer menu.</p><ul><li>Routes and tracks are displayed as line segments; named waypoints and start/end markers may appear.</li><li>The map zooms to the imported track extent.</li><li>Tap <kbd>CLEAR GPX</kbd> to remove imported GPX layers. This does not erase the GPX files on your device.</li><li>Imported GPX files are read locally by the browser; the import function does not upload them to the map server.</li></ul></section><section class="card"><h3>Track storage and export</h3><p>TopoTac may retain track segments in browser storage when available, but browser data is not a permanent backup. Use <kbd>SAVE GPX</kbd> to keep a separate file on your device.</p><p>Saving a GPX export does not clear the recorded line. The GPS Track Lines layer checkbox controls visibility; CLEAR GPS controls deletion of the recorded track.</p><div class="callout">A GPX export contains the recorded route geometry. Do not assume it includes every live GPS field shown in GPS STATS.</div></section></div>
 <h2 class="section-title">How map data is loaded</h2>
 <section class="card">
-<p><strong>Visible-area requests:</strong> Base maps request tiles around the current view. OR LiDAR, OR Public Land, OR TRS, and OR Tax Lots request images for the visible extent. Tax lots display at zoom 14 or higher. US Current Fires and Lakes/Ponds ¼ Acre+ query the visible area at zoom 9 or higher; their source services are not restricted to Oregon.</p>
+<p><strong>Visible-area requests:</strong> Base maps request tiles around the current view. OR LiDAR, OR Public Land, OR TRS, and the three taxlot layers request images for the visible extent. Tax lots display at zoom 14 or higher. US Current Fires and Lakes/Ponds ¼ Acre+ query the visible area at zoom 9 or higher; their source services are not restricted to Oregon.</p>
 <p><strong>Oregon-filtered requests:</strong> OR Historical Fires queries Oregon incident records from 2020 onward, within the visible map extent at zoom 9 or higher. OR New Fires (24Hr) and OR RAWS WX retrieve statewide Oregon point data regardless of zoom.</p>
-<p><strong>On-demand requests:</strong> Parcel details are queried for clicked locations; GPS situs addresses are queried for the reported GPS position. GPX files are read locally.</p>
+<p><strong>On-demand requests:</strong> Parcel details are queried on map clicks at zoom 14+ when the relevant parcel layer is enabled; GPS situs addresses are queried independently of layer visibility for the reported GPS position. GPX files are read locally.</p>
 <p>Remote layers generally load when enabled. The current perimeter layer refreshes periodically; historical perimeter requests are view-driven. Data availability, geographic coverage, and provider limits may affect completeness.</p>
+</section>
+<h2 class="section-title">Draw Lines</h2>
+<section class="card">
+<p><strong>DRAW LINE:</strong> Tap the button immediately to the right of ADD POINT. Tap the map to place each vertex in order; the line connects the taps. This is tap-to-place drawing, not freehand.</p>
+<p>The temporary toolbar shows <strong>UNDO</strong> (remove the last vertex), <strong>FINISH</strong> (finish a line with at least two vertices), and <strong>CANCEL</strong> (discard the unfinished line). A tip reminds you: <strong>Tap a finished line to export GPX or delete it.</strong></p>
+<p>After FINISH, enter a line name and choose Orange, Red, Blue, or Black from the color dropdown, then tap <strong>SAVE LINE</strong>. The completed line is saved automatically in this browser and restored when you reopen TopoTac. Repeat to draw more lines.</p>
+<p>The <strong>Drawn Lines</strong> checkbox in the upper-right Layers menu shows or hides completed lines without deleting them. It is checked by default.</p>
+<p><strong>Tap any finished line</strong> to see its name and length, <strong>EXPORT GPX</strong> to download that line as a separate GPX file, or <strong>DELETE LINE</strong> to remove it. Exporting does not delete the saved line.</p>
+<div class="callout">Saved drawn lines are local to this browser and device. Clearing browser data or switching devices can lose them. Export important lines as GPX backups.</div>
 </section>
 <h2 class="section-title">Marked Points</h2>
 <section class="card">
