@@ -1689,8 +1689,58 @@ html, body {
   // Test server-side orange line styling on Jackson; fall back to native imagery on failure.
   const jacksonTestRenderer = JSON.stringify([{id:2,source:{type:"mapLayer",mapLayerId:2},drawingInfo:{renderer:{type:"simple",symbol:{type:"esriSFS",style:"esriSFSNull",outline:{type:"esriSLS",style:"esriSLSSolid",color:[255,140,0,255],width:1.2}}}}}]);
 
+  // ODF county layer IDs are alphabetical, matching the official 36-layer service.
+  // Use county boundary envelopes to select only the county layers intersecting
+  // the viewport. This avoids sending a 36-layer dynamic rendering request.
+  const odfCountyIds = new Map([
+    ["Baker",0],["Benton",1],["Clackamas",2],["Clatsop",3],["Columbia",4],
+    ["Coos",5],["Crook",6],["Curry",7],["Deschutes",8],["Douglas",9],
+    ["Gilliam",10],["Grant",11],["Harney",12],["Hood River",13],
+    ["Jackson",14],["Jefferson",15],["Josephine",16],["Klamath",17],
+    ["Lake",18],["Lane",19],["Lincoln",20],["Linn",21],
+    ["Malheur",22],["Marion",23],["Morrow",24],["Multnomah",25],
+    ["Polk",26],["Sherman",27],["Tillamook",28],["Umatilla",29],
+    ["Union",30],["Wallowa",31],["Wasco",32],["Washington",33],
+    ["Wheeler",34],["Yamhill",35]
+  ]);
+  const statewideCountyBoundaryUrl = "https://gis.wrd.state.or.us/server/rest/services/adm/Counties_WGS84/FeatureServer/0/query";
+  let statewideCountyEnvelopesPromise = null;
+  function statewideCountyEnvelopes() {
+    if (!statewideCountyEnvelopesPromise) {
+      statewideCountyEnvelopesPromise = taxlotRest(statewideCountyBoundaryUrl, {
+        where:"1=1", outFields:"county_name", returnGeometry:"true",
+        outSR:"4326", geometryPrecision:"3", maxAllowableOffset:"0.02", f:"json"
+      }).then(data => {
+        const result=[];
+        for (const feature of data.features || []) {
+          const name=String(feature.attributes?.county_name || "").trim();
+          const id=odfCountyIds.get(name);
+          if (id===undefined) continue;
+          const points=(feature.geometry?.rings || []).flat();
+          if (!points.length) continue;
+          result.push({id, west:Math.min(...points.map(p=>p[0])),
+            east:Math.max(...points.map(p=>p[0])),
+            south:Math.min(...points.map(p=>p[1])),
+            north:Math.max(...points.map(p=>p[1]))});
+        }
+        if (result.length !== 36) throw Error("Incomplete Oregon county boundary list");
+        return result;
+      }).catch(error => { statewideCountyEnvelopesPromise=null; throw error; });
+    }
+    return statewideCountyEnvelopesPromise;
+  }
+  function odfAddressLayer(id) {
+    return {id,source:{type:"mapLayer",mapLayerId:id},
+      drawingInfo:{showLabels:true,labelingInfo:[{
+        labelExpression:"[SITEADDNAM]",
+        labelPlacement:"esriServerPolygonPlacementAlwaysHorizontal",
+        symbol:{type:"esriTS",color:[255,0,0,255],
+          font:{family:"Arial",size:12},horizontalAlignment:"center",verticalAlignment:"middle"}
+      }]}};
+  }
+
   // Request only one image for the current viewport and selected overlay.
-  function updateTaxlots() {
+  async function updateTaxlots() {
     for (const layer of taxlotOverlays) {
       const request = (parcelOverlayRequests.get(layer)||0)+1;
       parcelOverlayRequests.set(layer,request);
@@ -1708,16 +1758,29 @@ html, body {
       }
       const baseUrl=(countyMapServices.get(layer)||taxlotService)+"/export";
       const fallbackUrl=makeExportUrl(baseUrl,params);
+      // At zoom 16+, label only counties overlapping the viewport.
+      // Never alter the independently configured Jackson/Josephine overlays.
+      if (layer===taxlots && map.getZoom()>=16) {
+        try {
+          const counties=await statewideCountyEnvelopes();
+          if(parcelOverlayRequests.get(layer)!==request || !map.hasLayer(layer)) continue;
+          const ids=counties.filter(c=>c.west<=bounds.getEast() && c.east>=bounds.getWest() &&
+            c.south<=bounds.getNorth() && c.north>=bounds.getSouth()).map(c=>c.id);
+          if(ids.length) params.dynamicLayers=JSON.stringify(ids.map(odfAddressLayer));
+        } catch(error) {
+          console.warn("Statewide county selection unavailable; showing parcel outlines",error);
+        }
+      }
       if(layer===jacksonTaxlots) params.dynamicLayers=jacksonTestRenderer;
       const url=makeExportUrl(baseUrl,params);
       const img=new Image();
       img.onload=()=>{if(parcelOverlayRequests.get(layer)!==request||!map.hasLayer(layer))return;
         layer.setBounds(bounds);layer.setUrl(url);layer.setOpacity(.9);};
       img.onerror=()=>{
-        if(layer===jacksonTaxlots && url!==fallbackUrl){
+        if((layer===jacksonTaxlots || layer===taxlots) && url!==fallbackUrl){
           const backup=new Image();
           backup.onload=()=>{if(parcelOverlayRequests.get(layer)!==request||!map.hasLayer(layer))return;layer.setBounds(bounds);layer.setUrl(fallbackUrl);layer.setOpacity(.9);};
-          backup.onerror=()=>console.warn("Jackson parcel image unavailable (styled and default)");
+          backup.onerror=()=>console.warn("Parcel image unavailable (labeled and default)");
           backup.src=fallbackUrl;
         } else console.warn("Parcel boundary image failed",url);
       };
@@ -1834,19 +1897,8 @@ html, body {
     const params={where:"1=1",geometry:JSON.stringify({x:lng,y:lat,spatialReference:{wkid:4326}}),
       geometryType:"esriGeometryPoint",inSR:"4326",spatialRel:"esriSpatialRelIntersects",
       outFields:"*",returnGeometry:"false",resultRecordCount:"3",f:"json"};
-    // Statewide service is available in every county as an optional backup.
-    if(source===parcelSources.Oregon) {
-      const ids=Array.from({length:36},(_,i)=>i);
-      // ArcGIS identify handles the county selection server-side in one request.
-      const point=L.CRS.EPSG3857.project(L.latLng(lat,lng));
-      const data=await taxlotRest(source.url+"/identify",{
-        geometry:JSON.stringify({x:lng,y:lat,spatialReference:{wkid:4326}}),geometryType:"esriGeometryPoint",
-        sr:"4326",layers:"all:"+ids.join(","),tolerance:"0",mapExtent:[point.x-100,point.y-100,point.x+100,point.y+100].join(","),
-        imageDisplay:"500,500,96",returnGeometry:"false",f:"json"
-      });
-      const hit=(data.results||[])[0];
-      return hit?{source:source.name,details:parcelDetails(hit.attributes||{},"Oregon")}:null;
-    }
+    // ODF supports map export/labels, but not parcel identify/query.
+    if(source===parcelSources.Oregon) return null;
     const data=await taxlotRest(source.url,params);
     const hit=(data.features||[])[0];
     return hit?{source:source.name,details:parcelDetails(hit.attributes||{},source===parcelSources.Jackson?"Jackson":"Josephine")}:null;
@@ -1859,15 +1911,14 @@ html, body {
     const preferred=await parcelSourceAt(latlng.lat,latlng.lng);
     if(sequence!==parcelClickSequence)return;
     const source=map.hasLayer(preferred.layer)?preferred:(map.hasLayer(taxlots)?parcelSources.Oregon:null);
-    if(!source)return;
+    if(!source || source===parcelSources.Oregon)return;
     const popup=L.popup().setLatLng(latlng).setContent("Looking up tax lot…").openOn(map);
     try {
       popup.setContent("Looking up tax lot…");
       let match;
       try { match=await queryParcelAt(latlng.lat,latlng.lng,source); }
       catch(err) {
-        if(source!==parcelSources.Oregon && map.hasLayer(taxlots)) match=await queryParcelAt(latlng.lat,latlng.lng,parcelSources.Oregon);
-        else throw err;
+        throw err;
       }
       if(sequence!==parcelClickSequence||!map.hasLayer(source.layer))return;
       if(!match){popup.setContent("No parcel information reported at this location.");return;}
@@ -1891,7 +1942,7 @@ html, body {
       try { match=await queryParcelAt(lat,lng); }
       catch(err) {
         // If the county service fails, use statewide without needing its outline checkbox.
-        match=await queryParcelAt(lat,lng,parcelSources.Oregon);
+        match=null; // ODF statewide has no supported attribute lookup.
       }
       if(request!==situsRequest)return;
       situsDisplay.textContent=match&&match.details.address?"Situs: "+match.details.address:"Situs: No parcel address reported at GPS location";
@@ -2844,15 +2895,26 @@ function historicalPerimeterStyle() {
           "<strong>Observation:</strong> " +
           rawsObservationTime(a.ObservedDate);
 
-        if (a.MesoWestURL) {
-          const weatherUrl = String(a.MesoWestURL);
-
-          if (/^https:\/\/[^\s"'<>]+$/i.test(weatherUrl)) {
-            popup +=
-              "<br><a href='" + escapeHtml(weatherUrl) +
-              "' target='_blank' rel='noopener noreferrer'>" +
-              "Detailed station weather</a>";
+        // NWS WRH time series uses the station's weather identifier, not
+        // the ArcGIS feature ID. Prefer WXID; use MesoWestStationID if needed.
+        // Keep the original MesoWest link when neither is usable.
+        const nwsStation = [a.WXID, a.MesoWestStationID, a.StationID]
+          .map(value => value == null ? "" : String(value).trim().toUpperCase())
+          .find(value => /^[A-Z][A-Z0-9]{2,9}$/.test(value));
+        let weatherUrl = nwsStation
+          ? "https://www.weather.gov/wrh/timeseries?site=" + encodeURIComponent(nwsStation)
+          : "";
+        if (!weatherUrl && a.MesoWestURL) {
+          const fallbackUrl = String(a.MesoWestURL);
+          if (/^https:\/\/[^\s"'<>]+$/i.test(fallbackUrl)) {
+            weatherUrl = fallbackUrl;
           }
+        }
+        if (weatherUrl) {
+          popup +=
+            "<br><a href='" + escapeHtml(weatherUrl) +
+            "' target='_blank' rel='noopener noreferrer'>" +
+            "Detailed station weather (NWS)</a>";
         }
 
         popup += "</div>";
