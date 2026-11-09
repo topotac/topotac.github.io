@@ -23,7 +23,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
-/* * TOPOTAC — PHASE 3: CONSOLIDATED CSS * Desktop is the base; smaller screens override only changed values. * Edit the appropriate device section to move readouts or buttons. * Device groups are mutually exclusive; no historical cascade patches remain. * JavaScript and HTML are unchanged. */
+/* TOPOTAC MAP STYLES — shared rules followed by responsive overrides. */
 
 /* ======================================================================
  * DESKTOP DEFAULTS & SHARED STYLES — base layout and control appearances
@@ -129,32 +129,9 @@ html, body {
   width: auto !important;
   bottom: auto !important;
 }
-#gpsButton {
-  position: absolute;
-  left: 10px;
-  bottom: 24px;
-  z-index: 1100;
-  min-width: 48px;
-  min-height: 48px;
-  padding: 10px 13px;
-  border: 0;
-  border-radius: 7px;
-  background: rgba(255,255,255,0.97);
-  box-shadow: 0 1px 6px #777;
-  color: #1f2937;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-#gpsButton:active {
-  background: #e8f1ff;
-}
-#gpsButton[aria-pressed="true"] {
-  color: #1769d2;
-  outline: 2px solid #1769d2;
-  outline-color: #f47a13;
-}
+
+
+
 #clearTrackButton {
   position: absolute;
   left: 10px;
@@ -671,16 +648,7 @@ html, body {
     content: none;
   }
 
-  #gpsButton {
-    left: 175px;
-    bottom: 8px;
-    min-width: 68px;
-    min-height: 40px;
-    padding: 6px 9px;
-    font-size: 12px;
-    width: 68px;
-    box-sizing: border-box;
-  }
+
   #clearTrackButton {
     left: 255px;
     bottom: 8px;
@@ -793,11 +761,7 @@ html, body {
     overflow-wrap: anywhere;
     font-size: 12px;
 }
-  #gpsButton {
-    left: 8px;
-    bottom: 64px;
-    min-height: 40px;
-  }
+
   #clearTrackButton {
     left: 8px;
     bottom: 12px;
@@ -913,16 +877,7 @@ html, body {
     content: none;
   }
 
-  #gpsButton {
-    left: 175px;
-    bottom: 8px;
-    min-width: 68px;
-    min-height: 40px;
-    padding: 6px 9px;
-    font-size: 12px;
-    width: 68px;
-    box-sizing: border-box;
-  }
+
   #clearTrackButton {
     left: 255px;
     bottom: 8px;
@@ -1031,11 +986,7 @@ html, body {
     box-sizing: border-box;
     right: auto !important;
   }
-  #gpsButton {
-    left: 8px;
-    bottom: 64px;
-    min-height: 40px;
-  }
+
   #clearTrackButton {
     left: 8px;
     bottom: 12px;
@@ -1146,16 +1097,7 @@ html, body {
     bottom: 8px !important;
     right: auto !important;
   }
-  #gpsButton {
-    left: 175px;
-    bottom: 8px;
-    min-width: 68px;
-    min-height: 40px;
-    padding: 6px 9px;
-    font-size: 12px;
-    width: 68px;
-    box-sizing: border-box;
-  }
+
   #clearTrackButton {
     left: 255px;
     bottom: 8px;
@@ -1317,10 +1259,7 @@ html, body {
   white-space:nowrap!important;box-sizing:border-box!important;text-align:center;
 }
 /* Bright recording indicator: the GPS ON button stays red while tracking is active. */
-#toolsDrawer #gpsButton[aria-pressed="true"] {
-  background:#e00000!important;color:#fff!important;
-  box-shadow:0 0 0 2px #fff5 inset!important;
-}
+
 #toolsDrawer #measureAreaButton[aria-pressed="true"] {background:#fff!important;}
 #toolsDrawer #gpsCoordinates {
   position:static!important;display:block!important;top:auto!important;left:auto!important;
@@ -1423,6 +1362,57 @@ html, body {
   pointer-events: none;
   box-shadow: 0 1px 5px rgba(0,0,0,.35);
 }
+
+/* Field test: single-tap GPS stacked above situs and GPS coordinates. */
+
+
+#addressSearchPanel {position:absolute;z-index:3500;top:60px;left:8px;width:min(330px,calc(100vw - 16px));background:#fff;border:2px solid #ff861c;border-radius:9px;box-shadow:0 3px 16px #555;padding:12px;box-sizing:border-box;color:#111;font:13px Arial;}
+#addressSearchPanel[hidden] {display:none!important;}
+#addressSearchForm {display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center;}
+#addressSearchInput {grid-column:1/-1;padding:10px;border:1px solid #888;border-radius:5px;font-size:14px;min-width:0;}
+#addressSearchGo {grid-column:1/-1;background:#ff861c;border:0;border-radius:5px;font-weight:bold;padding:10px;cursor:pointer;}
+#addressSearchClose {background:#eee;border:0;border-radius:5px;padding:7px 10px;cursor:pointer;}
+#addressSearchStatus {grid-column:1/-1;font-size:12px;line-height:1.4;}
+
+
+
+/* GPS BUTTON — single source of truth. Black when off, red when tracking. */
+#gpsButton {
+  position: absolute;
+  top: auto;
+  left: 9px;
+  bottom: 96px;
+  z-index: 2100;
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+  min-height: 28px;
+  padding: 5px 9px;
+  border: 1px solid #ff861c;
+  border-radius: 5px;
+  background: #171717;
+  color: #fff;
+  font: bold 11px Arial, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#gpsButton[aria-pressed="true"] {
+  background: #e00000;
+  color: #fff;
+  border-color: #e00000;
+  outline: none;
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  #gpsButton { bottom: 90px; }
+}
+
+/* Temporary address-search target; distinct from orange saved points and fire symbols. */
+.address-result-icon { background: transparent; border: 0; }
+.address-target { position:relative;display:block;width:30px;height:30px;margin:2px;border:3px solid #d500f9;border-radius:50%;background:rgba(213,0,249,.16);box-shadow:0 0 0 2px white,0 1px 6px rgba(0,0,0,.7);box-sizing:border-box; }
+.address-target::before,.address-target::after {content:"";position:absolute;background:#d500f9;pointer-events:none;}
+.address-target::before {width:3px;height:38px;left:11px;top:-7px;z-index:-1;}
+.address-target::after {height:3px;width:38px;top:11px;left:-7px;z-index:-1;}
+.address-target-center {position:absolute;inset:7px;background:#d500f9;border:2px solid white;border-radius:50%;}
 </style>
 </head>
 
@@ -1447,8 +1437,14 @@ html, body {
 
 <button id="gpsButton" type="button"
         aria-pressed="false"
-        title="Show my phone's GPS location">◎ GPS</button>
+        title="Show my phone's GPS location">GPS</button>
 
+<button id="addressSearchButton" type="button" title="Search for a street address">FIND ADDRESS</button>
+<div id="addressSearchPanel" hidden role="dialog" aria-label="Address search">
+  <form id="addressSearchForm"><strong>Find an address</strong><button type="button" id="addressSearchClose" aria-label="Close address search">✕</button>
+  <input id="addressSearchInput" type="search" placeholder="Street address, city, Oregon" autocomplete="street-address" required>
+  <button type="submit" id="addressSearchGo">GO</button><div id="addressSearchStatus" role="status"></div></form>
+</div>
 <button id="clearTrackButton" type="button"
         title="Delete the entire GPS track">CLEAR GPS</button>
 
@@ -1520,6 +1516,7 @@ html, body {
  <div class="legend-entry"><i class="legend-area historical"></i>Historical fire perimeter</div>
  <div class="legend-section">GPS & POINTS</div>
  <div class="legend-entry"><i class="legend-dot" style="background:#2583ff"></i>GPS location</div>
+ <div class="legend-entry"><i class="legend-dot" style="background:#d500f9"></i>Address search target (purple crosshair)</div>
  <div class="legend-entry"><i class="legend-line" style="background:#00a6ff;height:5px"></i>Recorded GPS track</div>
  <div class="legend-entry"><i class="legend-dot" style="background:#ff861c;color:#111;font-weight:bold;font-style:normal;text-align:center;line-height:17px">1</i>Marked point (numbered)</div>
  <div class="legend-entry"><i class="legend-line" style="height:4px;background:#ff861c"></i>Saved drawn line (orange, red, blue or black)</div>
@@ -1539,6 +1536,9 @@ html, body {
  <div class="legend-entry"><i class="legend-line" style="height:3px;background:#ff8c00"></i>Josephine &amp; Jackson County (orange)</div>
  <div class="legend-entry"><i class="legend-line" style="height:3px;background:#111"></i>Oregon statewide (black)</div>
  <div class="legend-note">County colors may revert to their GIS server defaults if custom styling is unavailable. Statewide taxlots can be enabled as a backup.</div>
+ <div class="legend-section">ODF TRANSPORTATION</div>
+ <div class="legend-entry"><i class="legend-line" style="height:4px;background:#8a552a;border-top:1px solid #fff;border-bottom:1px solid #fff"></i>ODF statewide roads and road names</div>
+ <div class="legend-note">Roads are rendered from the Oregon Department of Forestry transportation service. Road presence does not establish current condition, public access, or vehicle passability.</div>
  <div class="legend-section">OTHER FEATURES</div>
  <div class="legend-entry"><i class="legend-dot" style="background:#008CFF;border:2px solid white;border-radius:0;box-shadow:0 0 0 1px #777"></i>RAWS weather station</div>
  <div class="legend-entry"><i class="legend-area water"></i>USGS waterbody</div>
@@ -1552,15 +1552,16 @@ html, body {
  document.getElementById('map').addEventListener('click',closeLegend);
  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLegend()});
  // GPS tools are created before the drawer groups are assembled.
- const saveGpsButton=document.createElement('button');saveGpsButton.id='saveGpsButton';saveGpsButton.type='button';saveGpsButton.textContent='SAVE GPX';
+ const saveGpsButton=document.createElement('button');saveGpsButton.id='saveGpsButton';saveGpsButton.type='button';saveGpsButton.textContent='SAVE GPS';
  const gpsStatsButton=document.createElement('button');gpsStatsButton.id='gpsStatsButton';gpsStatsButton.type='button';gpsStatsButton.textContent='GPS STATS';gpsStatsButton.setAttribute('aria-expanded','false');
  const gpsStatsPanel=document.createElement('div');gpsStatsPanel.id='gpsStatsPanel';gpsStatsPanel.hidden=true;gpsStatsPanel.setAttribute('role','status');gpsStatsPanel.textContent='Waiting for GPS data';
  document.body.append(saveGpsButton,gpsStatsButton,gpsStatsPanel);
- const groups=[['GPS & TRACKING',['gpsButton','clearTrackButton','saveGpsButton','gpsStatsButton','gpsCoordinates','gpsStatsPanel']],['GPX TRACKS',['gpxImportButton','clearGpxButton']],['POINTS & MEASURE',['enterCoordsButton','measureAreaButton','clearPointsButton','clearMeasureButton','measureStatus']],['DISPLAY',['opacityControl']]];
+ const groups=[['GPS & TRACKING',['addressSearchButton','clearTrackButton','saveGpsButton','gpsStatsButton','gpsCoordinates','gpsStatsPanel']],['GPX TRACKS',['gpxImportButton','clearGpxButton']],['POINTS & MEASURE',['enterCoordsButton','measureAreaButton','clearPointsButton','clearMeasureButton','measureStatus']],['DISPLAY',['opacityControl']]];
  groups.forEach(([heading,ids])=>{const section=document.createElement('section');const label=document.createElement('div');label.className='tools-heading';label.textContent=heading;section.append(label);if(heading==='GPS & TRACKING'){const notice=document.createElement('div');notice.className='gps-screen-notice';notice.textContent='SCREEN MUST STAY ON TO RECORD';section.append(notice)}ids.forEach(id=>{const el=document.getElementById(id);if(el)section.append(el)});drawer.append(section)});
  const links=document.createElement('section');links.className='tools-links';
  links.append(guide,legendButton);drawer.append(links);
  // Keep ADD POINT visible so its active state cannot be hidden in the drawer.
+ document.body.append(document.getElementById('gpsButton'));
  document.body.append(document.getElementById('addPointButton'));
  document.body.append(document.getElementById('drawLineButton'));
  document.body.append(document.getElementById('lineDrawPanel'));
@@ -1850,12 +1851,13 @@ html, body {
   async function identifyClickedParcel(latlng) {
     if(map.getZoom()<14)return;
     const sequence=++parcelClickSequence;
-    const popup=L.popup().setLatLng(latlng).setContent("Checking parcel layer…").openOn(map);
+    if(!map.hasLayer(josephineTaxlots) && !map.hasLayer(jacksonTaxlots) && !map.hasLayer(taxlots))return;
+    const preferred=await parcelSourceAt(latlng.lat,latlng.lng);
+    if(sequence!==parcelClickSequence)return;
+    const source=map.hasLayer(preferred.layer)?preferred:(map.hasLayer(taxlots)?parcelSources.Oregon:null);
+    if(!source)return;
+    const popup=L.popup().setLatLng(latlng).setContent("Looking up tax lot…").openOn(map);
     try {
-      const preferred=await parcelSourceAt(latlng.lat,latlng.lng);
-      if(sequence!==parcelClickSequence)return;
-      const source=map.hasLayer(preferred.layer)?preferred:(map.hasLayer(taxlots)?parcelSources.Oregon:null);
-      if(!source){popup.setContent("Enable the county taxlot layer or OR State Taxlots to identify parcels here.");return;}
       popup.setContent("Looking up tax lot…");
       let match;
       try { match=await queryParcelAt(latlng.lat,latlng.lng,source); }
@@ -3327,6 +3329,111 @@ function historicalPerimeterStyle() {
   // LAYER MENU
   // =========================================================
 
+  // ODF official statewide roads and labels. The selected layer draws only at zoom 12–19.
+  map.createPane('odfRoadsTop');
+  map.getPane('odfRoadsTop').style.zIndex='650';
+  map.getPane('odfRoadsTop').style.pointerEvents='none';
+  const odfRoads = L.gridLayer({pane:'odfRoadsTop',tileSize:256,maxZoom:19,opacity:1,updateWhenIdle:true});
+  odfRoads.createTile=function(coords,done){
+    if(coords.z<12){
+      const blank=document.createElement('div');
+      blank.style.width='256px';blank.style.height='256px';
+      done(null,blank);
+      return blank;
+    }
+    const tile=document.createElement('img');tile.alt='';tile.width=256;tile.height=256;
+    const nw=map.unproject(L.point(coords.x*256,coords.y*256),coords.z);
+    const se=map.unproject(L.point((coords.x+1)*256,(coords.y+1)*256),coords.z);
+    const a=L.CRS.EPSG3857.project(nw),b=L.CRS.EPSG3857.project(se);
+    const bbox=[a.x,b.y,b.x,a.y].join(',');
+    const params=new URLSearchParams({bbox,bboxSR:'3857',imageSR:'3857',size:'256,256',format:'png32',transparent:'true',layers:'show:2,3',f:'image'});
+    tile.onload=()=>done(null,tile);tile.onerror=()=>done(new Error('ODF road tile unavailable'),tile);
+    tile.src='https://gis.odf.oregon.gov/ags1/rest/services/WebMercator/Transportation/MapServer/export?'+params;
+    return tile;
+  };
+  // Keep the layer selectable at every zoom, but never show cached road tiles below 12.
+  // Hiding the dedicated pane also covers tiles retained during Leaflet zoom animations.
+  function syncOdfRoadVisibility(){
+    map.getPane('odfRoadsTop').style.display = map.getZoom() >= 12 ? '' : 'none';
+  }
+  map.on('zoom', syncOdfRoadVisibility);
+  map.on('zoomend', syncOdfRoadVisibility);
+  syncOdfRoadVisibility();
+
+  // Search result is session-only: replace on successful searches, clear on reload.
+  map.createPane('addressResultPane');
+  map.getPane('addressResultPane').style.zIndex = '675';
+  map.getPane('addressResultPane').style.pointerEvents = 'none';
+  const addressResultIcon = L.divIcon({
+    className: 'address-result-icon',
+    html: '<span class="address-target" aria-hidden="true"><span class="address-target-center"></span></span>',
+    iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -20]
+  });
+  let addressResultMarker = null;
+
+  // Address lookup: Esri World Geocoding, nationwide US. Never silently guess between close matches.
+  const addressButton=document.getElementById('addressSearchButton');
+  const addressPanel=document.getElementById('addressSearchPanel');
+  const addressInput=document.getElementById('addressSearchInput');
+  const addressStatus=document.getElementById('addressSearchStatus');
+  const addressForm=document.getElementById('addressSearchForm');
+  const addressChoices=document.createElement('div');
+  addressChoices.style.cssText='grid-column:1/-1;display:grid;gap:6px;';
+  addressForm.appendChild(addressChoices);
+  function clearAddressChoices(){addressChoices.replaceChildren();}
+  addressButton.addEventListener('click',()=>{addressPanel.hidden=false;addressStatus.textContent='';clearAddressChoices();addressInput.focus();});
+  document.getElementById('addressSearchClose').addEventListener('click',()=>{addressPanel.hidden=true;clearAddressChoices();});
+  L.DomEvent.disableClickPropagation(addressPanel);
+  L.DomEvent.disableScrollPropagation(addressPanel);
+  function showAddressResult(hit,query){
+    const lat=hit.location.y,lon=hit.location.x;
+    const matchType=hit.attributes?.Addr_type||'Unknown';
+    const popup=document.createElement('div');
+    const title=document.createElement('strong');title.textContent='Esri address result';
+    const address=document.createElement('div');address.textContent=hit.address||query;
+    const detail=document.createElement('div');detail.textContent=`Match: ${matchType} · Score: ${Math.round(hit.score)}/100`;
+    const coords=document.createElement('div');coords.textContent=`DDM: ${toDDM(lat)}, ${toDDM(lon)}`;
+    const caution=document.createElement('small');caution.textContent='Verify location before operational use; geocoded positions are not surveyed property points.';
+    popup.append(title,address,detail,coords,caution);
+    if(addressResultMarker)map.removeLayer(addressResultMarker);
+    addressResultMarker=L.marker([lat,lon],{icon:addressResultIcon,pane:'addressResultPane',keyboard:true})
+      .bindPopup(popup).addTo(map);
+    map.setView([lat,lon],17);
+    addressResultMarker.openPopup();
+    clearAddressChoices();addressPanel.hidden=true;
+  }
+  addressForm.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const query=addressInput.value.trim();if(!query)return;
+    const go=document.getElementById('addressSearchGo');
+    go.disabled=true;clearAddressChoices();addressStatus.textContent='Searching Esri…';
+    try {
+      // Country filter only: users can search in any US state, regardless of map location.
+      const params=new URLSearchParams({
+        f:'json',singleLine:query,sourceCountry:'USA',
+        outFields:'Match_addr,Addr_type,Region,City,Score',maxLocations:'10'
+      });
+      const response=await fetch('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+params);
+      if(!response.ok)throw new Error('Esri service unavailable (HTTP '+response.status+').');
+      const data=await response.json();
+      if(data.error)throw new Error('Esri: '+(data.error.message||'Geocoding request failed'));
+      const candidates=(data.candidates||[]).filter(c=>Number.isFinite(c.location?.x)&&Number.isFinite(c.location?.y)&&c.score>=85);
+      if(!candidates.length){addressStatus.textContent='No reliable address match found. Include the house number, street, city, state and ZIP code.';return;}
+      // Close-scoring alternatives may be in different states. Let the user choose rather than guessing.
+      const close=candidates.filter(c=>c.score>=candidates[0].score-5);
+      if(close.length===1){showAddressResult(candidates[0],query);return;}
+      addressStatus.textContent='Several possible matches. Select the correct address:';
+      for(const candidate of close){
+        const option=document.createElement('button');option.type='button';
+        option.style.cssText='text-align:left;padding:8px;border:1px solid #aaa;border-radius:5px;background:#fff;color:#111;cursor:pointer;';
+        option.textContent=`${candidate.address} (${Math.round(candidate.score)}/100)`;
+        option.addEventListener('click',()=>showAddressResult(candidate,query));
+        addressChoices.appendChild(option);
+      }
+    }catch(err){addressStatus.textContent=err.message||'Search failed. Check internet connection.';}
+    finally{go.disabled=false;}
+  });
+
   // Saved drawn lines have their own visibility checkbox.
   const drawnLineLayer = L.featureGroup().addTo(map);
 
@@ -3341,6 +3448,7 @@ function historicalPerimeterStyle() {
       "Marked Points": markedPointsLayer,
       "Drawn Lines": drawnLineLayer,
       "OR LiDAR": hillshade,
+      "ODF Statewide Roads": odfRoads,
       "OR TRS": plss,
       "Josephine Co Taxlots": josephineTaxlots,
       "Jackson Co Taxlots": jacksonTaxlots,
@@ -4187,7 +4295,7 @@ clearGpxButton.addEventListener("click", function () {
     }
 
     gpsButton.setAttribute("aria-pressed", "false");
-    gpsButton.textContent = "◎ GPS";
+    gpsButton.textContent = "GPS";
     gpsButton.title = "Show my phone's GPS location";
 
     gpsCoordinatesDisplay.textContent =
