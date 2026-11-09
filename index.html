@@ -1376,6 +1376,10 @@ html, body {
 
 
 
+/* Mobile touch fix: the open TOOLS drawer must sit above the floating GPS button.
+   Otherwise taps on the drawer's lower controls can activate GPS behind it. */
+#toolsDrawer { z-index: 3200 !important; }
+
 /* GPS BUTTON — single source of truth. Black when off, red when tracking. */
 #gpsButton {
   position: absolute;
