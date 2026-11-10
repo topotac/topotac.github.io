@@ -1960,10 +1960,17 @@ html, body {
   }
 
   // Exports DOGAMI hillshade for the current map extent.
-  function updateHillshade() {
-    if (!map.hasLayer(hillshade)) return;
+function updateHillshade() {
+  if (!map.hasLayer(hillshade)) return;
 
-    const size = map.getSize();
+  // Only load LiDAR at zoom 12 or higher.
+  if (map.getZoom() < 12) {
+    ++hillshadeRequest;
+    hillshade.setUrl("");
+    return;
+  }
+
+  const size = map.getSize();
     if (size.x < 1 || size.y < 1) return;
 
     const bounds = map.getBounds();
