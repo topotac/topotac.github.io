@@ -2176,6 +2176,65 @@ function updatePublicLand() {
       .replace(/'/g, "&#39;");
   }
 
+  // Quiet source-health monitor: visible only when data is stale or unavailable.
+  const sourceHealth = {};
+  const healthBadge = document.createElement('button');
+  healthBadge.type = 'button';
+  healthBadge.id = 'topotacDataWarning';
+  healthBadge.style.cssText = 'display:none;position:absolute;bottom:145px;left:9px;z-index:2200;background:#b42318;color:white;border:2px solid white;border-radius:6px;padding:7px 9px;font:bold 11px Arial;max-width:200px;box-shadow:0 2px 7px #0007;cursor:pointer';
+  healthBadge.textContent = '⚠ DATA WARNING';
+  document.body.appendChild(healthBadge);
+  function observationMillis(value) {
+    if (value == null || value === '') return NaN;
+    if (typeof value === 'number' || /^\d+$/.test(String(value))) {
+      const n = Number(value);
+      return Number.isFinite(n) ? (n < 1e11 ? n * 1000 : n) : NaN;
+    }
+    return Date.parse(value);
+  }
+  function ageLabel(ms) {
+    if (!Number.isFinite(ms)) return 'unknown age';
+    const minutes = Math.max(0, Math.floor((Date.now() - ms) / 60000));
+    return minutes < 60 ? minutes + ' min old' : Math.floor(minutes / 60) + ' hr old';
+  }
+  function reportSource(name, ok, detail, newest) {
+    sourceHealth[name] = {ok, detail, newest, checked:Date.now()};
+    updateHealthBadge();
+  }
+  function updateHealthBadge() {
+    const now = Date.now();
+    const problems = Object.entries(sourceHealth).filter(([name, info]) =>
+      !info.ok || (now - info.checked > (name === 'RAWS' ? 35 : 15) * 60000));
+    healthBadge.style.display = problems.length ? 'block' : 'none';
+    healthBadge.textContent = '⚠ DATA WARNING (' + problems.length + ')';
+    healthBadge.title = 'Tap for data source details';
+  }
+  healthBadge.addEventListener('click', () => {
+    const details = Object.entries(sourceHealth).map(([name, info]) =>
+      name + ': ' + (info.ok ? 'OK' : 'WARNING') + '\n' + info.detail +
+      '\nLast successful check: ' + (info.ok ? new Date(info.checked).toLocaleString() : 'not confirmed') +
+      (Number.isFinite(info.newest) ? '\nNewest observation: ' + new Date(info.newest).toLocaleString() : '')).join('\n\n');
+    alert('TopoTac data sources\n\n' + (details || 'No data checked yet'));
+  });
+  setInterval(updateHealthBadge, 60000);
+  async function fetchSourceJson(url, options = {}, timeoutMs = 18000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const externalSignal = options.signal;
+    const onAbort = () => controller.abort();
+    if (externalSignal) externalSignal.addEventListener('abort', onAbort, {once:true});
+    try {
+      const response = await fetch(url, {...options, signal:controller.signal, cache:'no-store'});
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message || 'ArcGIS service error');
+      return data;
+    } finally {
+      clearTimeout(timer);
+      if (externalSignal) externalSignal.removeEventListener('abort', onAbort);
+    }
+  }
+
   // =========================================================
   // NIFC / IRWIN FIRE ACTIVITY — LAST 24 HOURS
   // =========================================================
@@ -2216,15 +2275,7 @@ function updatePublicLand() {
     });
 
     try {
-      const response = await fetch(
-        nifc24hUrl + "?" + params.toString()
-      );
-
-      if (!response.ok) {
-        throw new Error("HTTP " + response.status);
-      }
-
-      const data = await response.json();
+      const data = await fetchSourceJson(nifc24hUrl + "?" + params.toString());
 
       if (data.error) {
         throw new Error(data.error.message || "NIFC query failed");
@@ -2234,8 +2285,14 @@ function updatePublicLand() {
       const seenFireLocations = new Map();
       const features = Array.isArray(data.features) ? data.features : [];
 
+      let newestIncident = NaN;
+      let acceptedIncidents = 0;
       features.forEach(function (feature) {
         const props = feature.attributes || {};
+        const discoveryMs = observationMillis(props.FireDiscoveryDateTime);
+        if (!Number.isFinite(discoveryMs) || discoveryMs < Date.now() - 24 * 3600000 || discoveryMs > Date.now() + 5 * 60000) return;
+        newestIncident = Number.isFinite(newestIncident) ? Math.max(newestIncident, discoveryMs) : discoveryMs;
+        acceptedIncidents++;
         const geometry = feature.geometry || {};
 
         const lat = Number(
@@ -2287,7 +2344,7 @@ function updatePublicLand() {
           "<div style='min-width:180px'>" +
           "<strong>" + escapeHtml(fireName) + "</strong><br>" +
           "Type: " + escapeHtml(fireTypeLabel(type)) + "<br>" +
-          "Discovery date/time: " + escapeHtml(discoveryDate) + "<br>" +
+          "Discovery date/time: " + escapeHtml(discoveryDate) + " (" + ageLabel(discoveryMs) + ")<br>" +
           "County: " + escapeHtml(props.POOCounty) + "<br>" +
           "Protecting agency: " + escapeHtml(props.POOProtectingAgency) + "<br>" +
           "State: " + escapeHtml(props.POOState) +
@@ -2303,12 +2360,14 @@ function updatePublicLand() {
         layer.addTo(nifcFireLayer);
       });
 
+      reportSource("NIFC incidents", true, acceptedIncidents + " verified incidents in last 24 hours (" + features.length + " returned)", newestIncident);
       console.info(
         "NIFC/IRWIN Oregon incidents in last-24-hour feed:",
         features.length
       );
 
     } catch (error) {
+      reportSource("NIFC incidents", false, String(error.message || error));
       console.error("Could not refresh NIFC/IRWIN fire activity:", error);
     } finally {
       nifcRefreshInProgress = false;
@@ -2391,10 +2450,7 @@ function updatePublicLand() {
       const features = [];
       for (let offset = 0; ; offset += 1000) {
         const params = new URLSearchParams({...base, resultOffset: String(offset)});
-        const response = await fetch(perimeterQueryUrl + "?" + params, {signal: controller.signal});
-        if (!response.ok) throw Error("Current perimeter HTTP " + response.status);
-        const data = await response.json();
-        if (data.error) throw Error(data.error.message || "Current perimeter query failed");
+        const data = await fetchSourceJson(perimeterQueryUrl + "?" + params, {signal: controller.signal});
         if (sequence !== currentRequestSequence || !map.hasLayer(firePerimeterLayer) || map.getZoom() < 9) return;
         const page = Array.isArray(data.features) ? data.features : [];
         features.push(...page);
@@ -2418,9 +2474,10 @@ function updatePublicLand() {
       replacementLayer.eachLayer(layer => layer.addTo(firePerimeterLayer));
       currentLastViewKey = viewKey;
       currentLastFetch = Date.now();
+      reportSource("Current perimeters", true, features.length + " polygons in visible map extent");
       console.info("Current fire perimeters in view:", features.length);
     } catch(error) {
-      if (error.name !== "AbortError") console.error("Current perimeter query failed:", error);
+      if (error.name !== "AbortError") { reportSource("Current perimeters", false, String(error.message || error)); console.error("Current perimeter query failed:", error); }
     } finally {
       if (sequence === currentRequestSequence) currentAbortController = null;
     }
@@ -2809,15 +2866,7 @@ function historicalPerimeterStyle() {
     });
 
     try {
-      const response = await fetch(
-        rawsQueryUrl + "?" + params.toString()
-      );
-
-      if (!response.ok) {
-        throw new Error("HTTP " + response.status);
-      }
-
-      const data = await response.json();
+      const data = await fetchSourceJson(rawsQueryUrl + "?" + params.toString());
 
       if (data.error) {
         throw new Error(data.error.message || "RAWS query failed");
@@ -2825,10 +2874,16 @@ function historicalPerimeterStyle() {
 
       const replacementLayer = L.layerGroup();
       const features = Array.isArray(data.features) ? data.features : [];
+      let freshStations = 0;
+      let newestRaws = NaN;
 
       features.forEach(function (feature) {
         const a = feature.attributes || {};
         const g = feature.geometry || {};
+        const observedMs = observationMillis(a.ObservedDate);
+        const fresh = Number.isFinite(observedMs) && observedMs <= Date.now() + 5 * 60000 && Date.now() - observedMs <= 3 * 3600000;
+        if (fresh) freshStations++;
+        if (Number.isFinite(observedMs)) newestRaws = Number.isFinite(newestRaws) ? Math.max(newestRaws, observedMs) : observedMs;
 
         const lat = Number(g.y != null ? g.y : a.Latitude);
         const lng = Number(g.x != null ? g.x : a.Longitude);
@@ -2841,7 +2896,7 @@ function historicalPerimeterStyle() {
           (lat === 0 && lng === 0)
         ) return;
 
-        const tempText = rawsTemperature(a.AirTempStandPlace);
+        const tempText = fresh ? rawsTemperature(a.AirTempStandPlace) : "STALE";
 
         const marker = L.marker([lat, lng], {
           icon: L.divIcon({
@@ -2900,7 +2955,8 @@ function historicalPerimeterStyle() {
           "<strong>Elevation:</strong> " +
           rawsValue(a.Elevation, " ft") + "<br>" +
           "<strong>Observation:</strong> " +
-          rawsObservationTime(a.ObservedDate);
+          rawsObservationTime(a.ObservedDate) + " (" + ageLabel(observedMs) + ")" +
+          (fresh ? "" : "<br><strong>STALE / UNKNOWN OBSERVATION — DO NOT USE AS CURRENT</strong>");
 
         // NWS WRH time series uses the station's weather identifier, not
         // the ArcGIS feature ID. Prefer WXID; use MesoWestStationID if needed.
@@ -2936,12 +2992,14 @@ function historicalPerimeterStyle() {
         layer.addTo(rawsLayer);
       });
 
+      reportSource("RAWS", freshStations === features.length && features.length > 0, freshStations + "/" + features.length + " stations observed within 3 hours; " + (features.length - freshStations) + " stale/unknown", newestRaws);
       console.info(
         "Active Jackson/Josephine RAWS stations loaded:",
         features.length
       );
 
     } catch (error) {
+      reportSource("RAWS", false, String(error.message || error));
       console.error("Could not refresh RAWS weather stations:", error);
     } finally {
       rawsRefreshInProgress = false;
