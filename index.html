@@ -1886,7 +1886,7 @@ html, body {
 
 <button id="addPointButton" class="point-button" type="button" aria-pressed="false">ADD POINT</button>
 <button id="drawLineButton" class="point-button" type="button" aria-pressed="false">DRAW LINE</button>
-<div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tip: Tap a finished line for its Hose Lay Profile, GPX export, or deletion.</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button></div>
+<div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tip: Tap a finished line for its Hose Lay Profile, GPX export, or deletion.</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button><button id="lineDeleteAllButton" type="button" style="background:#8b1e1e;color:#fff;border-color:#ff861c">DELETE ALL LINES</button></div>
 <div id="hoseModal" hidden role="dialog" aria-modal="true" aria-labelledby="hoseTitle"><div id="hosePanel">
 <div id="hoseHeader"><h2 id="hoseTitle">HOSE LAY PROFILE</h2><button id="hoseClose" type="button" aria-label="Close hose lay profile">✕</button></div>
 <div id="hoseControls"><label for="hosePsi">Pump discharge PSI</label><input id="hosePsi" type="number" min="50" max="300" step="5" value="150"><button id="hoseCalculate" type="button">CALCULATE</button></div>
@@ -4532,10 +4532,15 @@ clearGpxButton.addEventListener("click", function () {
   const lineUndoButton = document.getElementById("lineUndoButton");
   const lineFinishButton = document.getElementById("lineFinishButton");
   const lineCancelButton = document.getElementById("lineCancelButton");
+  const lineDeleteAllButton = document.getElementById("lineDeleteAllButton");
   const draftLineLayer = L.layerGroup().addTo(map);
   const lineColors = {Orange:"#ff861c",Red:"#e12626",Blue:"#1877f2",Black:"#171717"};
   let drawnLines = [], nextDrawnLineId = 1, lineDrawingActive = false, draftVertices = [];
+  function updateDeleteAllLinesButton() {
+    lineDeleteAllButton.disabled = drawnLines.length === 0;
+  }
   function saveDrawnLines() {
+    updateDeleteAllLinesButton();
     try {
       localStorage.setItem(lineStorageKey, JSON.stringify({lines: drawnLines, nextId: nextDrawnLineId}));
     } catch (err) {
@@ -4675,6 +4680,7 @@ clearGpxButton.addEventListener("click", function () {
       drawnLines.forEach(renderDrawnLine);
     }
   } catch(err) {console.warn("Could not restore drawn lines:",err);}
+  updateDeleteAllLinesButton();
   function refreshDraftLine() {
     draftLineLayer.clearLayers();
     if(draftVertices.length>1)L.polyline(draftVertices,{color:"#ff861c",weight:4,dashArray:"7,5",interactive:false}).addTo(draftLineLayer);
@@ -4697,6 +4703,16 @@ clearGpxButton.addEventListener("click", function () {
   });
   lineUndoButton.addEventListener("click",()=>{draftVertices.pop();refreshDraftLine();});
   lineCancelButton.addEventListener("click",cancelLineDrawing);
+  lineDeleteAllButton.addEventListener("click", () => {
+    if (!drawnLines.length) return;
+    const count = drawnLines.length;
+    if (!confirm("Permanently delete all " + count + " saved drawn line" + (count === 1 ? "" : "s") + "? This cannot be undone.")) return;
+    blockDialogClickThrough();
+    drawnLines = [];
+    drawnLineLayer.clearLayers();
+    map.closePopup();
+    saveDrawnLines();
+  });
   const lineSaveDialog=document.getElementById("lineSaveDialog");
   const lineSaveForm=document.getElementById("lineSaveForm");
   const lineNameInput=document.getElementById("lineNameInput");
@@ -4725,7 +4741,7 @@ clearGpxButton.addEventListener("click", function () {
   L.DomEvent.disableClickPropagation(lineSaveDialog);
   L.DomEvent.disableScrollPropagation(lineSaveDialog);
   map.on("click",e=>{if(!lineDrawingActive||Date.now()<suppressPointClicksUntil)return;draftVertices.push({lat:e.latlng.lat,lng:e.latlng.lng});refreshDraftLine();});
-  [drawLineButton,lineDrawPanel,lineUndoButton,lineFinishButton,lineCancelButton].forEach(el=>{L.DomEvent.disableClickPropagation(el);L.DomEvent.disableScrollPropagation(el);});
+  [drawLineButton,lineDrawPanel,lineUndoButton,lineFinishButton,lineCancelButton,lineDeleteAllButton].forEach(el=>{L.DomEvent.disableClickPropagation(el);L.DomEvent.disableScrollPropagation(el);});
 
 
   // HOSE LAY — separate from saved line data; profile requests only on demand.
