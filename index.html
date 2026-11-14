@@ -3796,7 +3796,9 @@ function historicalPerimeterStyle() {
 
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) endGpsTrackSegment();
+    else requestAnimationFrame(() => map.invalidateSize({pan:false}));
   });
+  window.addEventListener("pageshow", () => requestAnimationFrame(() => map.invalidateSize({pan:false})));
   window.addEventListener("pagehide", endGpsTrackSegment);
 
   // =========================================================
@@ -4630,9 +4632,12 @@ clearGpxButton.addEventListener("click", function () {
     return dots;
   }
   function renderDrawnLine(line) {
+    // A broad, nearly transparent hit target makes saved lines easier to tap on phones.
+    // Keep it underneath the normal 5px visible line and distance dots.
+    const tapTarget=L.polyline(line.vertices,{color:line.color,weight:24,opacity:0.001});
     const poly=L.polyline(line.vertices,{color:line.color,weight:5,opacity:0.95});
-    const lineDisplay=L.layerGroup([poly,...drawnLineDistanceDots(line.vertices)]).addTo(drawnLineLayer);
-    poly.bindPopup(()=>{
+    const lineDisplay=L.layerGroup([tapTarget,poly,...drawnLineDistanceDots(line.vertices)]).addTo(drawnLineLayer);
+    const linePopup=()=>{
       const wrap=document.createElement("div");
       const title=document.createElement("strong");title.textContent=line.name;wrap.append(title);
       const info=document.createElement("div");info.textContent=lineLengthLabel(line.vertices)+" · "+line.colorName;wrap.append(info);
@@ -4656,8 +4661,10 @@ clearGpxButton.addEventListener("click", function () {
         blockDialogClickThrough();drawnLines=drawnLines.filter(x=>x.id!==line.id);
         drawnLineLayer.removeLayer(lineDisplay);saveDrawnLines();map.closePopup();
       });wrap.append(actions);return wrap;
-    });
-    poly.on("click",()=>{if(lineDrawingActive)map.closePopup();});
+    };
+    poly.bindPopup(linePopup);
+    tapTarget.bindPopup(linePopup);
+    [poly,tapTarget].forEach(layer=>layer.on("click",()=>{if(lineDrawingActive)map.closePopup();}));
   }
   try {
     const stored=JSON.parse(localStorage.getItem(lineStorageKey)||"null");
