@@ -217,7 +217,7 @@ footer a { margin-right: 14px; }
 </div>
 </header>
 <main>
-<p class="intro">Use the layer menu in the upper-right to control map overlays and base maps; see the <a href="#layer-order">current layer order</a> below. Tap TOOLS at the upper-left to open the tool drawer; tap TOOLS again to close it. ADD POINT and DRAW LINE stay beside TOOLS for quick access. Finished drawn lines also offer a <a href="#hose-lay">Hose Lay Profile</a> for estimated pump and hose pressures. The zoom buttons are at the lower-right.</p><h2 class="section-title" id="tools">Tools drawer and controls</h2><div class="grid"><section class="card"><h3>TOOLS drawer</h3><p>Tap <kbd>☰ TOOLS</kbd> to open the drawer, and tap the same button again to close it. The drawer stays open when you use its controls or interact with the map.</p><p>The drawer groups controls under <strong>GPS &amp; TRACKING</strong>, <strong>GPX TRACKS</strong>, <strong>POINTS &amp; MEASURE</strong>, and <strong>DISPLAY</strong>. MAP GUIDE and LEGEND are also accessible there.</p><p>Use the upper-right layer checkboxes to show or hide individual overlays, including GPS tracks and imported GPX files.</p></section><section class="card"><h3>Button colors and map controls</h3><p>TopoTac uses a black, white, and orange interface. The <strong>GPS ON</strong> button turns bright red with white text while GPS tracking is active. <strong>ADD POINT</strong> also turns bright red while point-placement mode is active. <strong>DRAW LINE</strong> turns bright red while line drawing is active.</p><div class="control-demo"><span class="recording">GPS ON (ACTIVE)</span><span class="recording">ADD POINT (ACTIVE)</span><span>SAVE GPX</span><span>GPS STATS</span></div><p>Tap a map location to update the coordinate readout; its position varies with screen size. The Situs box displays the parcel address at your GPS location when available. Use the + and − zoom controls at the lower-right.</p></section></div>
+<p class="intro">Use the layer menu in the upper-right to control map overlays and base maps; see the <a href="#layer-order">current layer order</a> below. Tap TOOLS at the upper-left to open the tool drawer; tap TOOLS again to close it. ADD POINT and DRAW LINE stay beside TOOLS for quick access. Finished drawn lines also offer a <a href="#hose-lay">Hose Lay Profile</a> for estimated static pressure and available flow. The zoom buttons are at the lower-right.</p><h2 class="section-title" id="tools">Tools drawer and controls</h2><div class="grid"><section class="card"><h3>TOOLS drawer</h3><p>Tap <kbd>☰ TOOLS</kbd> to open the drawer, and tap the same button again to close it. The drawer stays open when you use its controls or interact with the map.</p><p>The drawer groups controls under <strong>GPS &amp; TRACKING</strong>, <strong>GPX TRACKS</strong>, <strong>POINTS &amp; MEASURE</strong>, and <strong>DISPLAY</strong>. MAP GUIDE and LEGEND are also accessible there.</p><p>Use the upper-right layer checkboxes to show or hide individual overlays, including GPS tracks and imported GPX files.</p></section><section class="card"><h3>Button colors and map controls</h3><p>TopoTac uses a black, white, and orange interface. The <strong>GPS ON</strong> button turns bright red with white text while GPS tracking is active. <strong>ADD POINT</strong> also turns bright red while point-placement mode is active. <strong>DRAW LINE</strong> turns bright red while line drawing is active.</p><div class="control-demo"><span class="recording">GPS ON (ACTIVE)</span><span class="recording">ADD POINT (ACTIVE)</span><span>SAVE GPX</span><span>GPS STATS</span></div><p>Tap a map location to update the coordinate readout; its position varies with screen size. The Situs box displays the parcel address at your GPS location when available. Use the + and − zoom controls at the lower-right.</p></section></div>
 
 <h2 class="section-title" id="layer-order">Layer menu reference — current order</h2>
 <section class="card">
@@ -468,34 +468,27 @@ footer a { margin-right: 14px; }
 <p><strong>On-demand requests:</strong> County parcel details are queried on map clicks at zoom 14+ when the relevant county layer is enabled; the statewide taxlot layer does not provide clickable parcel-detail balloons. GPS situs addresses are queried independently of layer visibility for the reported GPS position. GPX files are read locally.</p>
 <p>Remote layers generally load when enabled. The current perimeter layer refreshes periodically; historical perimeter requests are view-driven. Data availability, geographic coverage, and provider limits may affect completeness.</p>
 </section>
-<h2 class="section-title" id="hose-lay">Hose Lay Profile — pump pressure and terrain</h2>
+<h2 class="section-title" id="hose-lay">Hose Lay Profile — static pressure and available flow</h2>
 <div class="grid">
-<section class="card">
-<h3>Open and calculate a hose lay</h3>
-<p>Use <strong>DRAW LINE</strong> to trace the proposed hose route on the map. Tap <strong>FINISH</strong>, name the line, choose its color, and <strong>SAVE LINE</strong>. Then tap the finished line and select <strong>HOSE LAY PROFILE</strong> from its popup.</p>
-<p>Enter a <strong>Pump discharge PSI</strong> between <strong>50 and 300 PSI</strong> (default <strong>150 PSI</strong>) and tap <strong>CALCULATE</strong>. The summary reports the selected pump pressure, estimated flow in GPM, and hose-lay distance in feet.</p>
-<p>TopoTac retrieves terrain elevations along the route from the <strong>USGS 3DEP elevation service</strong>. Elevations are sampled approximately every <strong>50 feet</strong>; chart pressure labels are shown every <strong>100 feet</strong> to improve readability.</p>
-<div class="callout"><strong>Internet required:</strong> The terrain profile depends on a successful USGS 3DEP request. If elevation samples are missing, TopoTac does not calculate a pressure profile.</div>
-</section>
-<section class="card">
-<h3>Reading the pressure chart</h3>
-<p><strong>Static (S):</strong> Estimated pressure along the hose when <strong>no water is flowing</strong>. It reflects pump discharge pressure and elevation gain or loss, without flowing friction loss.</p>
-<p><strong>Flowing (F):</strong> Estimated pressure along the hose <strong>while attempting to deliver the calculated GPM</strong> at the entered pump discharge PSI. This line includes elevation effects, estimated hose friction loss, and modeled wye losses.</p>
-<p><strong>Elevation:</strong> Uphill portions reduce available pressure; downhill portions increase it. Flowing pressure is generally lower than static pressure because moving water experiences friction and appliance losses.</p>
-<div class="callout"><strong>CHART SCROLLS HORIZONTALLY ↔</strong><p>The chart may extend <strong>off-screen to the right</strong>, especially for longer hose lays. Use the <strong>horizontal scrollbar at the bottom of the chart</strong> to view the full route and all pressure labels.</p></div>
-</section>
-<section class="card">
-<h3>How the estimates are modeled</h3>
-<p>The estimated GPM comes from a <strong>MARK-3 pump reference flow curve</strong> for the selected discharge PSI. Values outside the reference range (below 100 PSI or above 250 PSI) are <strong>extrapolated</strong>, so uncertainty increases.</p>
-<p>The pressure model assumes <strong>1½-inch hose</strong>, a <strong>gated wye every 100 feet</strong>, and approximate hose friction of <strong>15 PSI per 100 feet at 60 GPM</strong>, scaled with the square of the estimated flow. Wye losses are also modeled as increasing with flow squared.</p>
-<p>The profile combines pump pressure, elevation changes, hose friction, and wye losses to estimate pressure at locations along the line. These are modeled values, <strong>not actual measured hose pressures or verified nozzle flow</strong>.</p>
-</section>
-<section class="card">
-<h3>Operational limitations and pressure safety</h3>
-<p><strong>Planning tool only:</strong> Actual flow and pressure depend on hose condition and length, pump performance, nozzle demand, fittings, appliance losses, and operating conditions. The calculated GPM is an estimate, not a flowmeter reading.</p>
-<p>The 3DEP terrain data can miss smaller dips and high points between samples. Confirm critical elevation changes and hose routing on scene.</p>
-<p><strong>300 PSI is a planning alert, not a hose pressure rating.</strong> Closed valves, pump shutoff pressure, and water hammer can create higher pressures than the flowing-pressure estimate. Always follow agency procedures, equipment ratings, and verified pump/nozzle performance.</p>
-</section>
+<section class="card"><h3>Open and calculate a hose lay</h3>
+<p>Use <strong>DRAW LINE</strong> to trace a proposed hose route. Tap <strong>FINISH</strong>, name and save the line, then tap the finished line and select <strong>HOSE LAY PROFILE</strong>.</p>
+<p>Enter <strong>Pump discharge PSI</strong> from <strong>50–300 PSI</strong> (default <strong>150 PSI</strong>) and tap <strong>CALCULATE</strong>. The summary displays pump pressure, the MARK-3 reference-flow limit, and total hose distance. The reference-flow limit is <strong>not</strong> the flow expected at every wye.</p>
+<p>TopoTac requests USGS 3DEP elevations every <strong>50 feet</strong> and displays pressure and flow labels every <strong>100 feet</strong>, plus the route endpoint.</p>
+<div class="callout"><strong>Internet required:</strong> The profile depends on USGS 3DEP terrain data. If samples are missing, no pressure or flow estimates are shown.</div></section>
+<section class="card"><h3>Reading the chart</h3>
+<p><strong>S = Static pressure:</strong> For example, <strong>S-35P</strong> means an estimated 35 PSI at that location with <strong>no water flowing</strong>. Elevation gain reduces static pressure; elevation loss increases it.</p>
+<p><strong>AF = Available Flow:</strong> For example, <strong>AF-5G@30P</strong> means an estimated <strong>5 gallons per minute</strong> (G) while retaining <strong>30 PSI</strong> (P) residual pressure at that wye.</p>
+<p><strong>30 PSI is fixed in TopoTac</strong> as a planning threshold; there is no extra control. A wye with static pressure at or below 30 PSI displays <strong>AF-0G@30P</strong>. It may still pass water at a lower residual pressure, but that is outside this calculation.</p>
+<p><strong>SL = Slope:</strong> For example, <strong>SL-45%</strong> means a 45% uphill grade between two adjacent wye dots. Negative percentages indicate downhill grade. Grade is elevation change divided by hose distance.</p>
+<div class="callout"><strong>CHART SCROLLS HORIZONTALLY ↔</strong><p>Long hose lays may extend <strong>off-screen to the right</strong>. Use the <strong>horizontal scrollbar beneath the chart</strong> to see the entire route and all labels.</p></div></section>
+<section class="card"><h3>How available flow is estimated</h3>
+<p>Each wye is modeled <strong>independently, assuming every other outlet is closed</strong>. TopoTac determines the flow that would use the difference between static pressure and the fixed 30 PSI residual target through modeled hose friction and wye losses.</p>
+<p>The model assumes <strong>1½-inch supply hose</strong>, a <strong>gated wye every 100 feet</strong>, friction of approximately <strong>15 PSI per 100 feet at 60 GPM</strong>, and <strong>0.46 PSI loss per wye at 50 GPM</strong>. Losses scale with the square of flow.</p>
+<p>The estimated flow is capped using the <strong>MARK-3 reference flow at the entered pump PSI</strong>. Reference values below 100 PSI and above 250 PSI are extrapolated. The entered pump pressure is treated as constant: <strong>this is not a complete pump-curve operating-point solution</strong>.</p>
+<p><strong>Do not add the AF values together.</strong> Multiple open wyes share upstream hose and increase friction loss, reducing the available flow at each outlet.</p></section>
+<section class="card"><h3>Operational limitations and pressure safety</h3>
+<p>AF is a <strong>hydraulic planning estimate, not a measured or guaranteed flow</strong>. Actual pump performance, hose diameter and condition, nozzle settings, water supply, appliance losses, and multiple operating outlets can change results.</p>
+<p>3DEP sampling may miss smaller terrain dips and high points. <strong>300 PSI is a planning alert, not a hose rating.</strong> Closed valves, pump shutoff conditions, and water hammer may produce higher pressures. Follow agency procedures and equipment ratings.</p></section>
 </div>
 <h2 class="section-title">Draw Lines</h2>
 <section class="card">
