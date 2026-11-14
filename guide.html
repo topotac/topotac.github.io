@@ -217,7 +217,7 @@ footer a { margin-right: 14px; }
 </div>
 </header>
 <main>
-<p class="intro">Use the layer menu in the upper-right to control map overlays and base maps; see the <a href="#layer-order">current layer order</a> below. Tap TOOLS at the upper-left to open the tool drawer; tap TOOLS again to close it. ADD POINT and DRAW LINE stay beside TOOLS for quick access. The zoom buttons are at the lower-right.</p><h2 class="section-title" id="tools">Tools drawer and controls</h2><div class="grid"><section class="card"><h3>TOOLS drawer</h3><p>Tap <kbd>☰ TOOLS</kbd> to open the drawer, and tap the same button again to close it. The drawer stays open when you use its controls or interact with the map.</p><p>The drawer groups controls under <strong>GPS &amp; TRACKING</strong>, <strong>GPX TRACKS</strong>, <strong>POINTS &amp; MEASURE</strong>, and <strong>DISPLAY</strong>. MAP GUIDE and LEGEND are also accessible there.</p><p>Use the upper-right layer checkboxes to show or hide individual overlays, including GPS tracks and imported GPX files.</p></section><section class="card"><h3>Button colors and map controls</h3><p>TopoTac uses a black, white, and orange interface. The <strong>GPS ON</strong> button turns bright red with white text while GPS tracking is active. <strong>ADD POINT</strong> also turns bright red while point-placement mode is active. <strong>DRAW LINE</strong> turns bright red while line drawing is active.</p><div class="control-demo"><span class="recording">GPS ON (ACTIVE)</span><span class="recording">ADD POINT (ACTIVE)</span><span>SAVE GPX</span><span>GPS STATS</span></div><p>Tap a map location to update the coordinate readout; its position varies with screen size. The Situs box displays the parcel address at your GPS location when available. Use the + and − zoom controls at the lower-right.</p></section></div>
+<p class="intro">Use the layer menu in the upper-right to control map overlays and base maps; see the <a href="#layer-order">current layer order</a> below. Tap TOOLS at the upper-left to open the tool drawer; tap TOOLS again to close it. ADD POINT and DRAW LINE stay beside TOOLS for quick access. Finished drawn lines also offer a <a href="#hose-lay">Hose Lay Profile</a> for estimated pump and hose pressures. The zoom buttons are at the lower-right.</p><h2 class="section-title" id="tools">Tools drawer and controls</h2><div class="grid"><section class="card"><h3>TOOLS drawer</h3><p>Tap <kbd>☰ TOOLS</kbd> to open the drawer, and tap the same button again to close it. The drawer stays open when you use its controls or interact with the map.</p><p>The drawer groups controls under <strong>GPS &amp; TRACKING</strong>, <strong>GPX TRACKS</strong>, <strong>POINTS &amp; MEASURE</strong>, and <strong>DISPLAY</strong>. MAP GUIDE and LEGEND are also accessible there.</p><p>Use the upper-right layer checkboxes to show or hide individual overlays, including GPS tracks and imported GPX files.</p></section><section class="card"><h3>Button colors and map controls</h3><p>TopoTac uses a black, white, and orange interface. The <strong>GPS ON</strong> button turns bright red with white text while GPS tracking is active. <strong>ADD POINT</strong> also turns bright red while point-placement mode is active. <strong>DRAW LINE</strong> turns bright red while line drawing is active.</p><div class="control-demo"><span class="recording">GPS ON (ACTIVE)</span><span class="recording">ADD POINT (ACTIVE)</span><span>SAVE GPX</span><span>GPS STATS</span></div><p>Tap a map location to update the coordinate readout; its position varies with screen size. The Situs box displays the parcel address at your GPS location when available. Use the + and − zoom controls at the lower-right.</p></section></div>
 
 <h2 class="section-title" id="layer-order">Layer menu reference — current order</h2>
 <section class="card">
@@ -468,13 +468,42 @@ footer a { margin-right: 14px; }
 <p><strong>On-demand requests:</strong> County parcel details are queried on map clicks at zoom 14+ when the relevant county layer is enabled; the statewide taxlot layer does not provide clickable parcel-detail balloons. GPS situs addresses are queried independently of layer visibility for the reported GPS position. GPX files are read locally.</p>
 <p>Remote layers generally load when enabled. The current perimeter layer refreshes periodically; historical perimeter requests are view-driven. Data availability, geographic coverage, and provider limits may affect completeness.</p>
 </section>
+<h2 class="section-title" id="hose-lay">Hose Lay Profile — pump pressure and terrain</h2>
+<div class="grid">
+<section class="card">
+<h3>Open and calculate a hose lay</h3>
+<p>Use <strong>DRAW LINE</strong> to trace the proposed hose route on the map. Tap <strong>FINISH</strong>, name the line, choose its color, and <strong>SAVE LINE</strong>. Then tap the finished line and select <strong>HOSE LAY PROFILE</strong> from its popup.</p>
+<p>Enter a <strong>Pump discharge PSI</strong> between <strong>50 and 300 PSI</strong> (default <strong>150 PSI</strong>) and tap <strong>CALCULATE</strong>. The summary reports the selected pump pressure, estimated flow in GPM, and hose-lay distance in feet.</p>
+<p>TopoTac retrieves terrain elevations along the route from the <strong>USGS 3DEP elevation service</strong>. Elevations are sampled approximately every <strong>50 feet</strong>; chart pressure labels are shown every <strong>100 feet</strong> to improve readability.</p>
+<div class="callout"><strong>Internet required:</strong> The terrain profile depends on a successful USGS 3DEP request. If elevation samples are missing, TopoTac does not calculate a pressure profile.</div>
+</section>
+<section class="card">
+<h3>Reading the pressure chart</h3>
+<p><strong>Static (S):</strong> Estimated pressure along the hose when <strong>no water is flowing</strong>. It reflects pump discharge pressure and elevation gain or loss, without flowing friction loss.</p>
+<p><strong>Flowing (F):</strong> Estimated pressure along the hose <strong>while attempting to deliver the calculated GPM</strong> at the entered pump discharge PSI. This line includes elevation effects, estimated hose friction loss, and modeled wye losses.</p>
+<p><strong>Elevation:</strong> Uphill portions reduce available pressure; downhill portions increase it. Flowing pressure is generally lower than static pressure because moving water experiences friction and appliance losses.</p>
+<div class="callout"><strong>CHART SCROLLS HORIZONTALLY ↔</strong><p>The chart may extend <strong>off-screen to the right</strong>, especially for longer hose lays. Use the <strong>horizontal scrollbar at the bottom of the chart</strong> to view the full route and all pressure labels.</p></div>
+</section>
+<section class="card">
+<h3>How the estimates are modeled</h3>
+<p>The estimated GPM comes from a <strong>MARK-3 pump reference flow curve</strong> for the selected discharge PSI. Values outside the reference range (below 100 PSI or above 250 PSI) are <strong>extrapolated</strong>, so uncertainty increases.</p>
+<p>The pressure model assumes <strong>1½-inch hose</strong>, a <strong>gated wye every 100 feet</strong>, and approximate hose friction of <strong>15 PSI per 100 feet at 60 GPM</strong>, scaled with the square of the estimated flow. Wye losses are also modeled as increasing with flow squared.</p>
+<p>The profile combines pump pressure, elevation changes, hose friction, and wye losses to estimate pressure at locations along the line. These are modeled values, <strong>not actual measured hose pressures or verified nozzle flow</strong>.</p>
+</section>
+<section class="card">
+<h3>Operational limitations and pressure safety</h3>
+<p><strong>Planning tool only:</strong> Actual flow and pressure depend on hose condition and length, pump performance, nozzle demand, fittings, appliance losses, and operating conditions. The calculated GPM is an estimate, not a flowmeter reading.</p>
+<p>The 3DEP terrain data can miss smaller dips and high points between samples. Confirm critical elevation changes and hose routing on scene.</p>
+<p><strong>300 PSI is a planning alert, not a hose pressure rating.</strong> Closed valves, pump shutoff pressure, and water hammer can create higher pressures than the flowing-pressure estimate. Always follow agency procedures, equipment ratings, and verified pump/nozzle performance.</p>
+</section>
+</div>
 <h2 class="section-title">Draw Lines</h2>
 <section class="card">
 <p><strong>DRAW LINE:</strong> Tap the button immediately to the right of ADD POINT. Tap the map to place each vertex in order; the line connects the taps. This is tap-to-place drawing, not freehand.</p>
-<p>The temporary toolbar shows <strong>UNDO</strong> (remove the last vertex), <strong>FINISH</strong> (finish a line with at least two vertices), and <strong>CANCEL</strong> (discard the unfinished line). A tip reminds you: <strong>Tap a finished line to export GPX or delete it.</strong></p>
-<p>After FINISH, enter a line name and choose Orange, Red, Blue, or Black from the color dropdown, then tap <strong>SAVE LINE</strong>. The completed line is saved automatically in this browser and restored when you reopen TopoTac. Repeat to draw more lines.</p>
+<p>The temporary toolbar shows <strong>UNDO</strong> (remove the last vertex), <strong>FINISH</strong> (finish a line with at least two vertices), and <strong>CANCEL</strong> (discard the unfinished line). A tip reminds you: <strong>Tap a finished line for its Hose Lay Profile, GPX export, or deletion.</strong></p>
+<p>After FINISH, enter a line name and choose Orange, Red, Blue, or Black from the color dropdown, then tap <strong>SAVE LINE</strong>. The completed line is saved automatically in this browser and restored when you reopen TopoTac. Repeat to draw more lines. See the <a href="#hose-lay">Hose Lay Profile guide</a> for pressure calculations and chart interpretation.</p>
 <p>The <strong>Drawn Lines</strong> checkbox in the upper-right Layers menu shows or hides completed lines without deleting them. It is checked by default.</p>
-<p><strong>Tap any finished line</strong> to see its name and length, <strong>EXPORT GPX</strong> to download that line as a separate GPX file, or <strong>DELETE LINE</strong> to remove it. Exporting does not delete the saved line.</p>
+<p><strong>Tap any finished line</strong> to see its name and length, <strong>HOSE LAY PROFILE</strong> for terrain and pressure estimates, <strong>EXPORT GPX</strong> to download that line as a separate GPX file, or <strong>DELETE LINE</strong> to remove it. Exporting does not delete the saved line.</p>
 <div class="callout">Saved drawn lines are local to this browser and device. Clearing browser data or switching devices can lose them. Export important lines as GPX backups.</div>
 </section>
 <h2 class="section-title">Marked Points</h2>
