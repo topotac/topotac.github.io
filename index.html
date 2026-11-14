@@ -43,11 +43,6 @@ html, body {
   height: 100%;
   background: #e5e5e5;
 }
-.leaflet-top.leaflet-right {
-  top: 10px;
-  right: 8px;
-  z-index: 2000;
-}
 .leaflet-control-layers {
   max-width: min(230px, calc(100vw - 28px));
   max-height: 48vh;
@@ -127,7 +122,6 @@ html, body {
   font-size: 13px;
   overflow-wrap: anywhere;
   width: auto !important;
-  bottom: auto !important;
 }
 
 
@@ -230,8 +224,6 @@ html, body {
 .usgs-waterbody {
   color: #1769d2;
   weight: 1.5;
-  fillcolor: #42a5f5;
-  fillopacity: 0.55;
 }
 .fire-label {
   background: rgba(255, 255, 255, 0.9);
@@ -251,12 +243,11 @@ html, body {
   padding: 8px 12px;
   background: #171717;
   color: #fff;
-  border: 1px solid white;
+  border: 1px solid #ff861c;
   border-radius: 5px;
   text-decoration: none;
   font-size: 12px;
   font-weight: bold;
-  border-color: #ff861c;
 }
 #mapGuideButton:hover {
   background: #df6900;
@@ -278,7 +269,6 @@ html, body {
 }
 #addPointButton {
   bottom: 14px !important;
-  left: 10px !important;
   position: absolute !important;
   top: auto !important;
   z-index: 2100 !important;
@@ -343,7 +333,6 @@ html, body {
 #toolsToggle {
   position: absolute;
   top: 8px !important;
-  left: 8px !important;
   z-index: 2100;
   background: #171717;
   color: white;
@@ -358,17 +347,8 @@ html, body {
 }
 #toolsDrawer {
   position: absolute;
-  top: 64px;
-  left: 10px;
-  z-index: 2100;
-  width: min(285px,calc(100vw - 24px));
-  max-height: calc(100dvh - 80px);
   overflow-y: auto;
-  background: rgba(255,255,255,.98);
-  border: 1px solid #ff861c;
   border-radius: 9px;
-  padding: 12px;
-  box-sizing: border-box;
   box-shadow: 0 3px 16px #555;
 }
 #toolsDrawer[hidden] {
@@ -395,10 +375,6 @@ html, body {
   vertical-align: middle;
 }
 #toolsDrawer #opacityControl {
-  position: static !important;
-  width: 100% !important;
-  box-shadow: none;
-  padding: 4px !important;
   margin: 0 !important;
 }
 #toolsDrawer #mapGuideButton {
@@ -1217,24 +1193,82 @@ html, body {
  * Final responsive layout rules are grouped here for easy maintenance.
  * Existing online map overlays, services, and LiDAR opacity are unchanged.
  * ====================================================================== */
-:root {--tt-black:#171717;--tt-orange:#ff861c;--tt-white:#fff;}
-#toolsToggle,#addPointButton,#drawLineButton {
-  position:absolute!important;top:9px!important;bottom:auto!important;
-  z-index:2200!important;min-height:42px!important;box-sizing:border-box!important;
-  background:var(--tt-black)!important;color:var(--tt-white)!important;
-  border:2px solid var(--tt-orange)!important;border-radius:7px!important;
-  padding:8px 10px!important;font:bold 12px Arial!important;
-  width:auto!important;box-shadow:0 2px 7px #0005!important;
+:root {
+  --tt-black: #171717;
+  --tt-orange: #ff861c;
+  --tt-white: #fff;
 }
-#toolsToggle {left:9px!important;}
-#addPointButton {left:105px!important;}
-#drawLineButton {left:calc(105px + 108px)!important;}
-#drawLineButton[aria-pressed="true"] {background:#e00000!important;box-shadow:0 0 0 3px rgba(224,0,0,.3)!important;}
-#lineDrawPanel {position:absolute;top:59px;left:105px;z-index:2200;background:#171717;color:white;border:2px solid #ff861c;border-radius:7px;padding:9px;font:12px Arial;box-shadow:0 2px 7px #0005;max-width:calc(100vw - 125px);box-sizing:border-box;}
-#lineDrawPanel[hidden] {display:none!important;}
-#lineDrawPanel button {background:#171717;color:white;border:1px solid #ff861c;border-radius:5px;padding:7px 9px;font:bold 11px Arial;margin:3px 2px 0 0;}
-#lineDrawPanel .line-hint {font-size:11px;color:#ffbf83;}
-@media(max-width:420px){#drawLineButton {left:211px!important;padding:8px 6px!important;font-size:11px!important;}#lineDrawPanel {left:9px;max-width:calc(100vw - 18px);}}
+#toolsToggle,#addPointButton,#drawLineButton {
+  position:absolute!important;
+  top:9px!important;
+  bottom:auto!important;
+  z-index:2200!important;
+  min-height:42px!important;
+  box-sizing:border-box!important;
+  background:var(--tt-black)!important;
+  color:var(--tt-white)!important;
+  border:2px solid var(--tt-orange)!important;
+  border-radius:7px!important;
+  padding:8px 10px!important;
+  font:bold 12px Arial!important;
+  width:auto!important;
+  box-shadow:0 2px 7px #0005!important;
+}
+#toolsToggle {
+  left: 9px !important;
+}
+#addPointButton {
+  left: 105px !important;
+}
+#drawLineButton {
+  left: calc(105px + 108px) !important;
+}
+#drawLineButton[aria-pressed="true"] {
+  background: #e00000 !important;
+  box-shadow: 0 0 0 3px rgba(224,0,0,.3) !important;
+}
+#lineDrawPanel {
+  position: absolute;
+  top: 59px;
+  left: 105px;
+  z-index: 2200;
+  background: #171717;
+  color: white;
+  border: 2px solid #ff861c;
+  border-radius: 7px;
+  padding: 9px;
+  font: 12px Arial;
+  box-shadow: 0 2px 7px #0005;
+  max-width: calc(100vw - 125px);
+  box-sizing: border-box;
+}
+#lineDrawPanel[hidden] {
+  display: none !important;
+}
+#lineDrawPanel button {
+  background: #171717;
+  color: white;
+  border: 1px solid #ff861c;
+  border-radius: 5px;
+  padding: 7px 9px;
+  font: bold 11px Arial;
+  margin: 3px 2px 0 0;
+}
+#lineDrawPanel .line-hint {
+  font-size: 11px;
+  color: #ffbf83;
+}
+@media (max-width:420px) {
+  #drawLineButton {
+    left: 211px !important;
+    padding: 8px 6px !important;
+    font-size: 11px !important;
+  }
+  #lineDrawPanel {
+    left: 9px;
+    max-width: calc(100vw - 18px);
+  }
+}
 /* Indicate active point-placement mode. */
 #addPointButton[aria-pressed="true"] {
   background:#e00000!important;
@@ -1242,69 +1276,206 @@ html, body {
   box-shadow:0 0 0 3px rgba(224,0,0,.3)!important;
 }
 #toolsDrawer {
-  top:59px!important;left:9px!important;width:min(238px,calc(100vw - 18px))!important;
-  max-height:calc(100dvh - 68px)!important;background:var(--tt-black)!important;
-  color:var(--tt-white)!important;border:2px solid var(--tt-orange)!important;
-  padding:10px!important;box-sizing:border-box!important;
+  top: 59px !important;
+  left: 9px !important;
+  width: min(238px,calc(100vw - 18px)) !important;
+  max-height: calc(100dvh - 68px) !important;
+  background: var(--tt-black) !important;
+  color: var(--tt-white) !important;
+  border: 2px solid var(--tt-orange) !important;
+  padding: 10px !important;
+  box-sizing: border-box !important;
 }
-#toolsDrawer .tools-heading {color:var(--tt-orange)!important;border-bottom:1px solid #555!important;}
-#toolsDrawer section:not(.tools-links) {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:10px;}
-#toolsDrawer .tools-heading,#toolsDrawer #gpsCoordinates,#toolsDrawer #gpsStatsPanel,#toolsDrawer #measureStatus,#toolsDrawer #opacityControl {grid-column:1/-1;}
-#toolsDrawer .tools-heading {margin:8px 0 2px!important;}
+#toolsDrawer .tools-heading {
+  color: var(--tt-orange) !important;
+  border-bottom: 1px solid #555 !important;
+}
+#toolsDrawer section:not(.tools-links) {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+#toolsDrawer .tools-heading,#toolsDrawer #gpsCoordinates,#toolsDrawer #gpsStatsPanel,#toolsDrawer #measureStatus,#toolsDrawer #opacityControl {
+  grid-column: 1/-1;
+}
+#toolsDrawer .tools-heading {
+  margin:8px 0 2px!important;
+}
 #toolsDrawer button:not(#toolsToggle),#toolsDrawer .tools-links a {
-  position:static!important;width:100%!important;min-width:0!important;
-  min-height:42px!important;margin:0!important;padding:7px 3px!important;
-  font:bold 11px Arial!important;background:var(--tt-orange)!important;
-  color:#111!important;border:0!important;border-radius:4px!important;
-  white-space:nowrap!important;box-sizing:border-box!important;text-align:center;
+  position: static !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  margin: 0 !important;
+  padding: 7px 3px !important;
+  font: bold 11px Arial !important;
+  background: var(--tt-orange) !important;
+  color: #111 !important;
+  border: 0 !important;
+  border-radius: 4px !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+  text-align: center;
 }
 /* Bright recording indicator: the GPS ON button stays red while tracking is active. */
 
-#toolsDrawer #measureAreaButton[aria-pressed="true"] {background:#fff!important;}
+#toolsDrawer #measureAreaButton[aria-pressed="true"] {
+  background: #fff !important;
+}
 #toolsDrawer #gpsCoordinates {
-  position:static!important;display:block!important;top:auto!important;left:auto!important;
-  right:auto!important;bottom:auto!important;width:100%!important;max-width:none!important;
-  padding:7px 5px!important;background:#292929!important;color:#fff!important;
-  border:1px solid #555!important;border-radius:5px!important;box-shadow:none!important;
-  font:11px/1.5 Arial!important;overflow-wrap:anywhere!important;min-height:0!important;
+  position: static !important;
+  display: block !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  padding: 7px 5px !important;
+  background: #292929 !important;
+  color: #fff !important;
+  border: 1px solid #555 !important;
+  border-radius: 5px !important;
+  box-shadow: none !important;
+  font: 11px/1.5 Arial !important;
+  overflow-wrap: anywhere !important;
+  min-height: 0 !important;
 }
-#toolsDrawer #gpsCoordinates .gps-lat,#toolsDrawer #gpsCoordinates .gps-lng {display:block!important;}
-#toolsDrawer #gpsCoordinates .gps-lat::after {content:none!important;}
-#toolsDrawer #measureStatus {font:11px Arial;color:#ffbf83;overflow-wrap:anywhere;}
+#toolsDrawer #gpsCoordinates .gps-lat,#toolsDrawer #gpsCoordinates .gps-lng {
+  display: block !important;
+}
+#toolsDrawer #gpsCoordinates .gps-lat::after {
+  content: none !important;
+}
+#toolsDrawer #measureStatus {
+  font: 11px Arial;
+  color: #ffbf83;
+  overflow-wrap: anywhere;
+}
 #toolsDrawer #opacityControl {
-  position:static!important;top:auto!important;left:auto!important;bottom:auto!important;
-  width:100%!important;max-width:none!important;padding:7px!important;
-  background:#292929!important;color:#fff!important;box-shadow:none!important;
-  border:1px solid #555!important;border-radius:5px!important;
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  padding: 7px !important;
+  background: #292929 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  border: 1px solid #555 !important;
+  border-radius: 5px !important;
 }
-#toolsDrawer #opacityControl input {accent-color:var(--tt-orange);}
-#toolsDrawer .tools-links {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px!important;border-top:1px solid #555!important;}
-#toolsDrawer .tools-links #mapGuideButton,#toolsDrawer .tools-links #legendToggle {width:100%!important;height:42px!important;}
+#toolsDrawer #opacityControl input {
+  accent-color: var(--tt-orange);
+}
+#toolsDrawer .tools-links {
+  display: grid !important;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 6px !important;
+  border-top: 1px solid #555 !important;
+}
+#toolsDrawer .tools-links #mapGuideButton,#toolsDrawer .tools-links #legendToggle {
+  width: 100% !important;
+  height: 42px !important;
+}
 #coordinates,#situsAddress {
-  position:absolute!important;left:9px!important;right:auto!important;top:auto!important;
-  width:fit-content!important;max-width:min(300px,calc(100vw - 95px))!important;
-  box-sizing:border-box!important;background:var(--tt-black)!important;color:#fff!important;
-  border:2px solid var(--tt-orange)!important;border-radius:6px!important;
-  box-shadow:0 2px 7px #0005!important;padding:8px 10px!important;
-  font:11px/1.4 Arial!important;overflow-wrap:anywhere!important;
+  position: absolute !important;
+  left: 9px !important;
+  right: auto !important;
+  top: auto !important;
+  width: fit-content !important;
+  max-width: min(300px,calc(100vw - 95px)) !important;
+  box-sizing: border-box !important;
+  background: var(--tt-black) !important;
+  color: #fff !important;
+  border: 2px solid var(--tt-orange) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 7px #0005 !important;
+  padding: 8px 10px !important;
+  font: 11px/1.4 Arial !important;
+  overflow-wrap: anywhere !important;
 }
-#coordinates {bottom:10px!important;}
-#situsAddress {bottom:54px!important;}
-.leaflet-control-zoom {border:2px solid var(--tt-orange)!important;border-radius:7px!important;overflow:hidden;box-shadow:0 2px 7px #0005!important;}
-.leaflet-control-zoom a {width:42px!important;height:42px!important;line-height:42px!important;font-size:25px!important;color:#171717!important;}
-.leaflet-bottom.leaflet-right {bottom:8px!important;right:8px!important;}
-.measure-acres-label {background:#171717ed;color:#fff;border:1px solid #ff861c;border-radius:5px;padding:5px 7px;font:bold 12px Arial;white-space:nowrap;}
-@media(max-width:600px) {#toolsDrawer {width:min(210px,calc(100vw - 18px))!important;}#coordinates,#situsAddress {max-width:calc(100vw - 100px)!important;font-size:10px!important;}}
-@media(max-height:500px) and (orientation:landscape) {#toolsDrawer {max-height:calc(100dvh - 65px)!important;}#coordinates {bottom:8px!important;}#situsAddress {bottom:48px!important;}}
+#coordinates {
+  bottom:10px!important;
+}
+#situsAddress {
+  bottom:54px!important;
+}
+.leaflet-control-zoom {
+  border: 2px solid var(--tt-orange) !important;
+  border-radius: 7px !important;
+  overflow: hidden;
+  box-shadow: 0 2px 7px #0005 !important;
+}
+.leaflet-control-zoom a {
+  width: 42px !important;
+  height: 42px !important;
+  line-height: 42px !important;
+  font-size: 25px !important;
+  color: #171717 !important;
+}
+.leaflet-bottom.leaflet-right {
+  bottom: 8px !important;
+  right: 8px !important;
+}
+.measure-acres-label {
+  background: #171717ed;
+  color: #fff;
+  border: 1px solid #ff861c;
+  border-radius: 5px;
+  padding: 5px 7px;
+  font: bold 12px Arial;
+  white-space: nowrap;
+}
+@media(max-width:600px) {#toolsDrawer {width:min(210px,calc(100vw - 18px))!important;}#coordinates,#situsAddress {
+                                                                                        max-width: calc(100vw - 100px) !important;
+                                                                                        font-size: 10px !important;
+                                                                                      }}
+@media (max-height:500px) and (orientation:landscape) {
+  #toolsDrawer {
+    max-height: calc(100dvh - 65px) !important;
+  }
+  #coordinates {
+    bottom: 8px !important;
+  }
+  #situsAddress {
+    bottom: 48px !important;
+  }
+}
 
 
 /* GPS STATS — collapsible field readout in the two-column GPS tool group. */
-#toolsDrawer #gpsStatsPanel {font:11px/1.55 Arial;background:#292929;color:#fff;border:1px solid #555;border-radius:5px;padding:9px;overflow-wrap:anywhere;}
-#toolsDrawer #gpsStatsPanel[hidden] {display:none!important;}
-#toolsDrawer #gpsStatsPanel strong {color:#ffad62;}
-#toolsDrawer #gpsStatsButton[aria-expanded="true"] {background:#fff!important;}
+#toolsDrawer #gpsStatsPanel {
+  font: 11px/1.55 Arial;
+  background: #292929;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 5px;
+  padding: 9px;
+  overflow-wrap: anywhere;
+}
+#toolsDrawer #gpsStatsPanel[hidden] {
+  display:none!important;
+}
+#toolsDrawer #gpsStatsPanel strong {
+  color:#ffad62;
+}
+#toolsDrawer #gpsStatsButton[aria-expanded="true"] {
+  background: #fff !important;
+}
 /* GPS recording warning: compact single line below the GPS heading. */
-#toolsDrawer .gps-screen-notice {grid-column:1/-1;color:#ffb66f;font-size:10px;font-weight:bold;white-space:nowrap;text-align:center;letter-spacing:-0.15px;margin:3px 0 6px;}
+#toolsDrawer .gps-screen-notice {
+  grid-column: 1/-1;
+  color: #ffb66f;
+  font-size: 10px;
+  font-weight: bold;
+  white-space: nowrap;
+  text-align: center;
+  letter-spacing: -0.15px;
+  margin: 3px 0 6px;
+}
 
 /* LAYER MENU — fixed corner alignment, bounded GPX filenames, and topmost stacking.
    Keep this in one place so imported track names cannot cover ADD POINT. */
@@ -1365,19 +1536,67 @@ html, body {
 
 
 
-#addressSearchPanel {position:absolute;z-index:3500;top:60px;left:8px;width:min(330px,calc(100vw - 16px));background:#fff;border:2px solid #ff861c;border-radius:9px;box-shadow:0 3px 16px #555;padding:12px;box-sizing:border-box;color:#111;font:13px Arial;}
-#addressSearchPanel[hidden] {display:none!important;}
-#addressSearchForm {display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center;}
-#addressSearchInput {grid-column:1/-1;padding:10px;border:1px solid #888;border-radius:5px;font-size:14px;min-width:0;}
-#addressSearchGo {grid-column:1/-1;background:#ff861c;border:0;border-radius:5px;font-weight:bold;padding:10px;cursor:pointer;}
-#addressSearchClose {background:#eee;border:0;border-radius:5px;padding:7px 10px;cursor:pointer;}
-#addressSearchStatus {grid-column:1/-1;font-size:12px;line-height:1.4;}
+#addressSearchPanel {
+  position: absolute;
+  z-index: 3500;
+  top: 60px;
+  left: 8px;
+  width: min(330px,calc(100vw - 16px));
+  background: #fff;
+  border: 2px solid #ff861c;
+  border-radius: 9px;
+  box-shadow: 0 3px 16px #555;
+  padding: 12px;
+  box-sizing: border-box;
+  color: #111;
+  font: 13px Arial;
+}
+#addressSearchPanel[hidden] {
+  display:none!important;
+}
+#addressSearchForm {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 9px;
+  align-items: center;
+}
+#addressSearchInput {
+  grid-column: 1/-1;
+  padding: 10px;
+  border: 1px solid #888;
+  border-radius: 5px;
+  font-size: 14px;
+  min-width: 0;
+}
+#addressSearchGo {
+  grid-column: 1/-1;
+  background: #ff861c;
+  border: 0;
+  border-radius: 5px;
+  font-weight: bold;
+  padding: 10px;
+  cursor: pointer;
+}
+#addressSearchClose {
+  background: #eee;
+  border: 0;
+  border-radius: 5px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+#addressSearchStatus {
+  grid-column: 1/-1;
+  font-size: 12px;
+  line-height: 1.4;
+}
 
 
 
 /* Mobile touch fix: the open TOOLS drawer must sit above the floating GPS button.
    Otherwise taps on the drawer's lower controls can activate GPS behind it. */
-#toolsDrawer { z-index: 3200 !important; }
+#toolsDrawer {
+  z-index: 3200 !important;
+}
 
 /* GPS BUTTON — single source of truth. Black when off, red when tracking. */
 #gpsButton {
@@ -1406,29 +1625,185 @@ html, body {
   outline: none;
 }
 @media (max-height: 500px) and (orientation: landscape) {
-  #gpsButton { bottom: 90px; }
+  #gpsButton {
+    bottom: 90px;
+  }
 }
 
 /* Address-search target; distinct from saved points and fire symbols. */
-.address-result-icon { background: transparent; border: 0; }
-.address-target { position:relative;display:block;width:30px;height:30px;margin:2px;border:3px solid #d500f9;border-radius:50%;background:rgba(213,0,249,.16);box-shadow:0 0 0 2px white,0 1px 6px rgba(0,0,0,.7);box-sizing:border-box; }
-.address-target::before,.address-target::after {content:"";position:absolute;background:#d500f9;pointer-events:none;}
-.address-target::before {width:3px;height:38px;left:11px;top:-7px;z-index:-1;}
-.address-target::after {height:3px;width:38px;top:11px;left:-7px;z-index:-1;}
-.address-target-center {position:absolute;inset:7px;background:#d500f9;border:2px solid white;border-radius:50%;}
+.address-result-icon {
+  background: transparent;
+  border: 0;
+}
+.address-target {
+  position: relative;
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 2px;
+  border: 3px solid #d500f9;
+  border-radius: 50%;
+  background: rgba(213,0,249,.16);
+  box-shadow: 0 0 0 2px white,0 1px 6px rgba(0,0,0,.7);
+  box-sizing: border-box;
+}
+.address-target::before,.address-target::after {
+  content: "";
+  position: absolute;
+  background: #d500f9;
+  pointer-events: none;
+}
+.address-target::before {
+  width: 3px;
+  height: 38px;
+  left: 11px;
+  top: -7px;
+  z-index: -1;
+}
+.address-target::after {
+  height: 3px;
+  width: 38px;
+  top: 11px;
+  left: -7px;
+  z-index: -1;
+}
+.address-target-center {
+  position: absolute;
+  inset: 7px;
+  background: #d500f9;
+  border: 2px solid white;
+  border-radius: 50%;
+}
 
 
 /* Finished-line popup: consistent controls, with no standout hose button. */
-.drawn-line-popup-actions{display:flex;flex-direction:column;gap:6px;margin-top:9px;align-items:stretch;width:100%}
-.leaflet-popup-content .drawn-line-popup-button{display:inline-flex;align-items:center;justify-content:center;min-height:38px;width:100%;box-sizing:border-box;margin:0;padding:6px 3px;background:#f1f1f1;color:#171717;border:1px solid #999;border-radius:4px;font:600 12px Arial,sans-serif;cursor:pointer;white-space:nowrap;text-align:center;line-height:1.2}
+.drawn-line-popup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 9px;
+  align-items: stretch;
+  width: 100%;
+}
+.leaflet-popup-content .drawn-line-popup-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 6px 3px;
+  background: #f1f1f1;
+  color: #171717;
+  border: 1px solid #999;
+  border-radius: 4px;
+  font: 600 12px Arial,sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1.2;
+}
 .leaflet-popup-content .drawn-line-popup-button:active{background:#ddd}
 
 /* HOSE LAY PROFILE — elevation and pump-pressure planning interface. */
-#hoseModal[hidden]{display:none!important}#hoseModal{position:fixed;inset:0;z-index:25000;background:#000b;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
-#hosePanel{background:#fff;color:#171717;width:min(1250px,100%);max-height:calc(100dvh - 24px);overflow:auto;border:3px solid #ff861c;border-radius:10px;padding:16px;box-sizing:border-box;font:14px Arial}
-#hoseHeader{display:flex;justify-content:space-between;align-items:center;gap:12px}#hoseHeader h2{margin:0;font-size:20px}#hoseClose{font-size:24px;border:0;background:#eee;border-radius:5px;cursor:pointer;min-width:42px;min-height:42px}
-#hoseControls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}#hoseControls input{width:95px;padding:8px;font-size:16px}#hoseControls button{padding:9px;background:#ff861c;border:0;border-radius:5px;font-weight:bold}
-#hoseScrollTip{display:flex;align-items:flex-start;gap:9px;background:#fff2e5;border:2px solid #ff861c;border-radius:7px;padding:11px 12px;font:13px/1.45 Arial;color:#171717;margin:12px 0}#hoseScrollTip strong{display:block;margin-bottom:3px}#hosePressureHelp{background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:10px 12px;margin:10px 0;font:12px/1.5 Arial}#hosePressureHelp p{margin:4px 0}#hosePressureHelp strong{color:#171717}#hoseScroll{overflow-x:auto;border:1px solid #ddd;border-radius:6px}#hoseGraph{display:block;min-height:340px}#hoseWarning{color:#ad1616;font-weight:bold;margin:10px 0}#hoseStatus{margin:8px 0;color:#444}#hoseNote{font-size:12px;color:#555;line-height:1.5}
+#hoseModal[hidden]{display:none!important}#hoseModal {
+                                            position: fixed;
+                                            inset: 0;
+                                            z-index: 25000;
+                                            background: #000b;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            padding: 12px;
+                                            box-sizing: border-box;
+                                          }
+#hosePanel {
+  background: #fff;
+  color: #171717;
+  width: min(1250px,100%);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  border: 3px solid #ff861c;
+  border-radius: 10px;
+  padding: 16px;
+  box-sizing: border-box;
+  font: 14px Arial;
+}
+#hoseHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}#hoseHeader h2 {
+                                                                                     margin: 0;
+                                                                                     font-size: 20px;
+                                                                                   }#hoseClose {
+                                                                                                                            font-size: 24px;
+                                                                                                                            border: 0;
+                                                                                                                            background: #eee;
+                                                                                                                            border-radius: 5px;
+                                                                                                                            cursor: pointer;
+                                                                                                                            min-width: 42px;
+                                                                                                                            min-height: 42px;
+                                                                                                                          }
+#hoseControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}#hoseControls input {
+                                                                                      width: 95px;
+                                                                                      padding: 8px;
+                                                                                      font-size: 16px;
+                                                                                    }#hoseControls button {
+                                                                                                                                                padding: 9px;
+                                                                                                                                                background: #ff861c;
+                                                                                                                                                border: 0;
+                                                                                                                                                border-radius: 5px;
+                                                                                                                                                font-weight: bold;
+                                                                                                                                              }
+#hoseScrollTip {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  background: #fff2e5;
+  border: 2px solid #ff861c;
+  border-radius: 7px;
+  padding: 11px 12px;
+  font: 13px/1.45 Arial;
+  color: #171717;
+  margin: 12px 0;
+}#hoseScrollTip strong {
+                                                                                                                                                                                              display: block;
+                                                                                                                                                                                              margin-bottom: 3px;
+                                                                                                                                                                                            }#hosePressureHelp {
+                                                                                                                                                                                                                                                    background: #f5f5f5;
+                                                                                                                                                                                                                                                    border: 1px solid #ddd;
+                                                                                                                                                                                                                                                    border-radius: 6px;
+                                                                                                                                                                                                                                                    padding: 10px 12px;
+                                                                                                                                                                                                                                                    margin: 10px 0;
+                                                                                                                                                                                                                                                    font: 12px/1.5 Arial;
+                                                                                                                                                                                                                                                  }#hosePressureHelp p{margin:4px 0}#hosePressureHelp strong{color:#171717}#hoseScroll {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                             overflow-x: auto;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                             border: 1px solid #ddd;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                             border-radius: 6px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                           }#hoseGraph {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 display: block;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 min-height: 340px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               }#hoseWarning {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           color: #ad1616;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           font-weight: bold;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           margin: 10px 0;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         }#hoseStatus {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     margin: 8px 0;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     color: #444;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   }#hoseNote {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         font-size: 12px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         color: #555;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         line-height: 1.5;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       }
 </style>
 </head>
 
