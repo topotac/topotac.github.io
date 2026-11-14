@@ -4586,8 +4586,44 @@ clearGpxButton.addEventListener("click", function () {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
+  // Distance dots follow cumulative line distance, including bends.
+  // They are visual only: clicks still reach the saved line and its popup.
+  function drawnLineDistanceDots(vertices) {
+    const spacingMeters = 30.48; // exactly 100 feet
+    const dots = [];
+    let traveled = 0;
+    let nextDot = spacingMeters;
+    let dotNumber = 1;
+    for (let i = 1; i < vertices.length; i++) {
+      const start = L.latLng(vertices[i - 1]);
+      const end = L.latLng(vertices[i]);
+      const segmentMeters = map.distance(start, end);
+      if (segmentMeters <= 0) continue;
+      while (nextDot < traveled + segmentMeters - 0.001) {
+        const fraction = (nextDot - traveled) / segmentMeters;
+        const position = L.latLng(
+          start.lat + (end.lat - start.lat) * fraction,
+          start.lng + (end.lng - start.lng) * fraction
+        );
+        const major = dotNumber % 5 === 0;
+        dots.push(L.circleMarker(position, {
+          radius: major ? 4 : 2.5,
+          color: "#171717",
+          weight: 1,
+          fillColor: "#ffffff",
+          fillOpacity: 1,
+          interactive: false
+        }));
+        dotNumber++;
+        nextDot = dotNumber * spacingMeters;
+      }
+      traveled += segmentMeters;
+    }
+    return dots;
+  }
   function renderDrawnLine(line) {
-    const poly=L.polyline(line.vertices,{color:line.color,weight:5,opacity:0.95}).addTo(drawnLineLayer);
+    const poly=L.polyline(line.vertices,{color:line.color,weight:5,opacity:0.95});
+    const lineDisplay=L.layerGroup([poly,...drawnLineDistanceDots(line.vertices)]).addTo(drawnLineLayer);
     poly.bindPopup(()=>{
       const wrap=document.createElement("div");
       const title=document.createElement("strong");title.textContent=line.name;wrap.append(title);
@@ -4610,7 +4646,7 @@ clearGpxButton.addEventListener("click", function () {
       deleteBtn.addEventListener("click",()=>{
         if(!confirm('Delete line "'+line.name+'"?'))return;
         blockDialogClickThrough();drawnLines=drawnLines.filter(x=>x.id!==line.id);
-        drawnLineLayer.removeLayer(poly);saveDrawnLines();map.closePopup();
+        drawnLineLayer.removeLayer(lineDisplay);saveDrawnLines();map.closePopup();
       });wrap.append(actions);return wrap;
     });
     poly.on("click",()=>{if(lineDrawingActive)map.closePopup();});
