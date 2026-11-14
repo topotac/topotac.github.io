@@ -1238,8 +1238,12 @@ html, body {
   padding: 9px;
   font: 12px Arial;
   box-shadow: 0 2px 7px #0005;
+  width: 310px;
   max-width: calc(100vw - 125px);
   box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
 }
 #lineDrawPanel[hidden] {
   display: none !important;
@@ -1251,11 +1255,21 @@ html, body {
   border-radius: 5px;
   padding: 7px 9px;
   font: bold 11px Arial;
-  margin: 3px 2px 0 0;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  box-sizing: border-box;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 #lineDrawPanel .line-hint {
+  grid-column: 1 / -1;
   font-size: 11px;
+  line-height: 1.4;
   color: #ffbf83;
+  text-align: center;
 }
 @media (max-width:420px) {
   #drawLineButton {
@@ -1886,7 +1900,7 @@ html, body {
 
 <button id="addPointButton" class="point-button" type="button" aria-pressed="false">ADD POINT</button>
 <button id="drawLineButton" class="point-button" type="button" aria-pressed="false">DRAW LINE</button>
-<div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tip: Tap a finished line for its Hose Lay Profile, GPX export, or deletion.</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button><button id="lineDeleteAllButton" type="button" style="background:#8b1e1e;color:#fff;border-color:#ff861c">DELETE ALL LINES</button></div>
+<div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tap a saved line for Hoselay Calcs, GPX Save, or Delete</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button><button id="lineDeleteAllButton" type="button" style="background:#8b1e1e;color:#fff;border-color:#ff861c">DELETE ALL LINES</button></div>
 <div id="hoseModal" hidden role="dialog" aria-modal="true" aria-labelledby="hoseTitle"><div id="hosePanel">
 <div id="hoseHeader"><h2 id="hoseTitle">HOSE LAY PROFILE</h2><button id="hoseClose" type="button" aria-label="Close hose lay profile">✕</button></div>
 <div id="hoseControls"><label for="hosePsi">Pump discharge PSI</label><input id="hosePsi" type="number" min="50" max="300" step="5" value="150"><button id="hoseCalculate" type="button">CALCULATE</button></div>
