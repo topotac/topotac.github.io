@@ -309,7 +309,7 @@ html, body {
   position: absolute !important;
   left: 10px !important;
   bottom: auto !important;
-  z-index: 2300;
+  z-index: 5000;
   background: #fff;
   padding: 12px;
   border-radius: 8px;
@@ -317,8 +317,8 @@ html, body {
   width: min(285px,calc(100vw - 25px));
   font-size: 13px;
   box-sizing: border-box;
-  top: 70px !important;
-  max-height: calc(100dvh - 90px);
+  top: 60px !important;
+  max-height: calc(100dvh - 72px);
   overflow-y: auto;
 }
 #pointEntryPanel[hidden] {
@@ -1235,7 +1235,7 @@ html, body {
 #lineDrawPanel button {background:#171717;color:white;border:1px solid #ff861c;border-radius:5px;padding:7px 9px;font:bold 11px Arial;margin:3px 2px 0 0;}
 #lineDrawPanel .line-hint {font-size:11px;color:#ffbf83;}
 @media(max-width:420px){#drawLineButton {left:211px!important;padding:8px 6px!important;font-size:11px!important;}#lineDrawPanel {left:9px;max-width:calc(100vw - 18px);}}
-/* ADD POINT recording-style active indicator: one authoritative rule. */
+/* Indicate active point-placement mode. */
 #addPointButton[aria-pressed="true"] {
   background:#e00000!important;
   color:#fff!important;
@@ -1363,7 +1363,6 @@ html, body {
   box-shadow: 0 1px 5px rgba(0,0,0,.35);
 }
 
-/* Field test: single-tap GPS stacked above situs and GPS coordinates. */
 
 
 #addressSearchPanel {position:absolute;z-index:3500;top:60px;left:8px;width:min(330px,calc(100vw - 16px));background:#fff;border:2px solid #ff861c;border-radius:9px;box-shadow:0 3px 16px #555;padding:12px;box-sizing:border-box;color:#111;font:13px Arial;}
@@ -1410,13 +1409,26 @@ html, body {
   #gpsButton { bottom: 90px; }
 }
 
-/* Temporary address-search target; distinct from orange saved points and fire symbols. */
+/* Address-search target; distinct from saved points and fire symbols. */
 .address-result-icon { background: transparent; border: 0; }
 .address-target { position:relative;display:block;width:30px;height:30px;margin:2px;border:3px solid #d500f9;border-radius:50%;background:rgba(213,0,249,.16);box-shadow:0 0 0 2px white,0 1px 6px rgba(0,0,0,.7);box-sizing:border-box; }
 .address-target::before,.address-target::after {content:"";position:absolute;background:#d500f9;pointer-events:none;}
 .address-target::before {width:3px;height:38px;left:11px;top:-7px;z-index:-1;}
 .address-target::after {height:3px;width:38px;top:11px;left:-7px;z-index:-1;}
 .address-target-center {position:absolute;inset:7px;background:#d500f9;border:2px solid white;border-radius:50%;}
+
+
+/* Finished-line popup: consistent controls, with no standout hose button. */
+.drawn-line-popup-actions{display:flex;flex-direction:column;gap:6px;margin-top:9px;align-items:stretch;width:100%}
+.leaflet-popup-content .drawn-line-popup-button{display:inline-flex;align-items:center;justify-content:center;min-height:38px;width:100%;box-sizing:border-box;margin:0;padding:6px 3px;background:#f1f1f1;color:#171717;border:1px solid #999;border-radius:4px;font:600 12px Arial,sans-serif;cursor:pointer;white-space:nowrap;text-align:center;line-height:1.2}
+.leaflet-popup-content .drawn-line-popup-button:active{background:#ddd}
+
+/* HOSE LAY PROFILE — elevation and pump-pressure planning interface. */
+#hoseModal[hidden]{display:none!important}#hoseModal{position:fixed;inset:0;z-index:25000;background:#000b;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
+#hosePanel{background:#fff;color:#171717;width:min(1250px,100%);max-height:calc(100dvh - 24px);overflow:auto;border:3px solid #ff861c;border-radius:10px;padding:16px;box-sizing:border-box;font:14px Arial}
+#hoseHeader{display:flex;justify-content:space-between;align-items:center;gap:12px}#hoseHeader h2{margin:0;font-size:20px}#hoseClose{font-size:24px;border:0;background:#eee;border-radius:5px;cursor:pointer;min-width:42px;min-height:42px}
+#hoseControls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}#hoseControls input{width:95px;padding:8px;font-size:16px}#hoseControls button{padding:9px;background:#ff861c;border:0;border-radius:5px;font-weight:bold}
+#hoseScrollTip{font-size:12px;color:#555;margin:8px 0}#hoseScroll{overflow-x:auto;border:1px solid #ddd;border-radius:6px}#hoseGraph{display:block;min-height:340px}#hoseWarning{color:#ad1616;font-weight:bold;margin:10px 0}#hoseStatus{margin:8px 0;color:#444}#hoseNote{font-size:12px;color:#555;line-height:1.5}
 </style>
 </head>
 
@@ -1464,7 +1476,13 @@ html, body {
 
 <button id="addPointButton" class="point-button" type="button" aria-pressed="false">ADD POINT</button>
 <button id="drawLineButton" class="point-button" type="button" aria-pressed="false">DRAW LINE</button>
-<div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tip: Tap a finished line to export GPX or delete it.</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button></div>
+<div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tip: Tap a finished line for its Hose Lay Profile, GPX export, or deletion.</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button></div>
+<div id="hoseModal" hidden role="dialog" aria-modal="true" aria-labelledby="hoseTitle"><div id="hosePanel">
+<div id="hoseHeader"><h2 id="hoseTitle">HOSE LAY PROFILE</h2><button id="hoseClose" type="button" aria-label="Close hose lay profile">✕</button></div>
+<div id="hoseControls"><label for="hosePsi">Pump discharge PSI</label><input id="hosePsi" type="number" min="50" max="300" step="5" value="150"><button id="hoseCalculate" type="button">CALCULATE</button></div>
+<div id="hoseSummary"></div><p id="hoseScrollTip">Tip: Use the horizontal scrollbar at the bottom of the chart to view the entire hose lay.</p><div id="hoseStatus" role="status"></div><div id="hoseWarning" role="alert"></div><div id="hoseScroll"><svg id="hoseGraph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Elevation profile with static and flowing pressures"></svg></div>
+<p id="hoseNote">Planning estimate only. MARK-3 reference flow; 1½-inch hose and a gated wye per 100 ft. Elevation comes from USGS 3DEP raster; elevations are sampled every 50 ft, but smaller terrain low spots can still be missed. Actual flow, hose friction, nozzle demand, appliance losses and pump shutoff pressure may differ. Flows below 100 or above 250 PSI are extrapolated beyond MARK-3 reference points. 300 PSI is a planning alert, not a hose rating. Closed valves and water hammer can produce higher pressures.</p>
+</div></div>
 <div id="lineSaveDialog" hidden role="dialog" aria-modal="true" aria-labelledby="lineSaveTitle" style="position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box">
   <form id="lineSaveForm" style="background:#fff;color:#171717;border-radius:10px;padding:18px;width:min(340px,100%);box-sizing:border-box;box-shadow:0 8px 32px #0005;display:grid;gap:10px">
     <strong id="lineSaveTitle">Save line</strong>
@@ -1524,7 +1542,7 @@ html, body {
  <div class="legend-entry"><i class="legend-line" style="background:#00a6ff;height:5px"></i>Recorded GPS track</div>
  <div class="legend-entry"><i class="legend-dot" style="background:#ff861c;color:#111;font-weight:bold;font-style:normal;text-align:center;line-height:17px">1</i>Marked point (numbered)</div>
  <div class="legend-entry"><i class="legend-line" style="height:4px;background:#ff861c"></i>Saved drawn line (orange, red, blue or black)</div>
- <div class="legend-note">Tap a finished drawn line to view its length, export GPX, or delete it. Drawn lines are saved in this browser.</div>
+ <div class="legend-note">Tap a finished drawn line to view its length, open the Hose Lay Profile, export GPX, or delete it. Drawn lines are saved in this browser.</div>
  <div class="legend-entry"><i class="legend-dot" style="background:#16803c"></i>GPX start</div>
  <div class="legend-entry"><i class="legend-dot" style="background:#d62828"></i>GPX end</div>
  <div class="legend-note">Imported GPX line colors may vary by track.</div>
@@ -1548,7 +1566,6 @@ html, body {
  <div class="legend-entry"><i class="legend-area water"></i>USGS waterbody</div>
  <div class="legend-note">Basemaps, LiDAR hillshade, PLSS and taxlot overlays use service-rendered cartography; their appearance may change with zoom or source.</div>`;
  document.body.append(legend);
- // closeLegend: close legend logic.
  function closeLegend(){legend.hidden=true;legendButton.setAttribute('aria-expanded','false')}
  legendButton.addEventListener('click',e=>{e.stopPropagation();close();legend.hidden=!legend.hidden;legendButton.setAttribute('aria-expanded',String(!legend.hidden))});
  legend.querySelector('#legendClose').addEventListener('click',closeLegend);
@@ -1569,7 +1586,6 @@ html, body {
  document.body.append(document.getElementById('addPointButton'));
  document.body.append(document.getElementById('drawLineButton'));
  document.body.append(document.getElementById('lineDrawPanel'));
- // close: close logic.
  function close(){drawer.hidden=true;toggle.setAttribute('aria-expanded','false')}
  toggle.addEventListener('click',e=>{e.stopPropagation();closeLegend();drawer.hidden=!drawer.hidden;toggle.setAttribute('aria-expanded',String(!drawer.hidden))});
  drawer.addEventListener('click',e=>e.stopPropagation()); // Only TOOLS toggles the drawer closed.
@@ -1789,14 +1805,12 @@ html, body {
   }
 
   // ArcGIS REST JSONP fallback for services that do not allow browser CORS.
-  // arcgisJsonp: arcgis jsonp logic.
   function arcgisJsonp(url, params) {
     return new Promise((resolve, reject) => {
       const callback = "__odfTaxlotCallback" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
       const script = document.createElement("script");
       let finished = false;
       const timer = setTimeout(() => finish(new Error("Service timed out")), 12000);
-      // finish: finish logic.
       function finish(error, result) {
         if (finished) return;
         finished = true;
@@ -1814,8 +1828,6 @@ html, body {
       document.head.appendChild(script);
     });
   }
-
-  // taxlotRest: taxlot rest logic.
   async function taxlotRest(url, params) {
     const query = new URLSearchParams(params);
     try {
@@ -1953,8 +1965,6 @@ html, body {
   let plssRequest = 0;
   let publicLandRequest = 0;
   let refreshTimer = null;
-
-  // makeExportUrl: make export url logic.
   function makeExportUrl(serviceUrl, params) {
     return serviceUrl + "?" + new URLSearchParams(params).toString();
   }
@@ -2165,8 +2175,6 @@ function updatePublicLand() {
   // =========================================================
   // SHARED HTML ESCAPING
   // =========================================================
-
-  // escapeHtml: escape html logic.
   function escapeHtml(value) {
     return String(value == null || value === "" ? "Not reported" : value)
       .replace(/&/g, "&amp;")
@@ -2176,14 +2184,8 @@ function updatePublicLand() {
       .replace(/'/g, "&#39;");
   }
 
-  // Quiet source-health monitor: visible only when data is stale or unavailable.
+  // Source-health bookkeeping remains internal; no generic DATA WARNING button.
   const sourceHealth = {};
-  const healthBadge = document.createElement('button');
-  healthBadge.type = 'button';
-  healthBadge.id = 'topotacDataWarning';
-  healthBadge.style.cssText = 'display:none;position:absolute;bottom:145px;left:9px;z-index:2200;background:#b42318;color:white;border:2px solid white;border-radius:6px;padding:7px 9px;font:bold 11px Arial;max-width:200px;box-shadow:0 2px 7px #0007;cursor:pointer';
-  healthBadge.textContent = '⚠ DATA WARNING';
-  document.body.appendChild(healthBadge);
   function observationMillis(value) {
     if (value == null || value === '') return NaN;
     if (typeof value === 'number' || /^\d+$/.test(String(value))) {
@@ -2202,21 +2204,9 @@ function updatePublicLand() {
     updateHealthBadge();
   }
   function updateHealthBadge() {
-    const now = Date.now();
-    const problems = Object.entries(sourceHealth).filter(([name, info]) =>
-      !info.ok || (now - info.checked > (name === 'RAWS' ? 35 : 15) * 60000));
-    healthBadge.style.display = problems.length ? 'block' : 'none';
-    healthBadge.textContent = '⚠ DATA WARNING (' + problems.length + ')';
-    healthBadge.title = 'Tap for data source details';
+    // Intentionally no visible global warning. Individual layers (such as RAWS)
+    // display their own stale or unavailable status in context.
   }
-  healthBadge.addEventListener('click', () => {
-    const details = Object.entries(sourceHealth).map(([name, info]) =>
-      name + ': ' + (info.ok ? 'OK' : 'WARNING') + '\n' + info.detail +
-      '\nLast successful check: ' + (info.ok ? new Date(info.checked).toLocaleString() : 'not confirmed') +
-      (Number.isFinite(info.newest) ? '\nNewest observation: ' + new Date(info.newest).toLocaleString() : '')).join('\n\n');
-    alert('TopoTac data sources\n\n' + (details || 'No data checked yet'));
-  });
-  setInterval(updateHealthBadge, 60000);
   async function fetchSourceJson(url, options = {}, timeoutMs = 18000) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -2244,16 +2234,12 @@ function updatePublicLand() {
 
   const nifcFireLayer = L.layerGroup().addTo(map);
   let nifcRefreshInProgress = false;
-
-  // fireTypeLabel: fire type label logic.
   function fireTypeLabel(code) {
     if (code === "WF") return "Wildfire";
     if (code === "RX") return "Prescribed fire";
     if (code === "CX") return "Incident complex";
     return code || "Fire activity";
   }
-
-  // fireMarkerColor: fire marker color logic.
   function fireMarkerColor(code) {
     if (code === "RX") return "#2e9d50";
     if (code === "CX") return "#f28c00";
@@ -2392,8 +2378,6 @@ function updatePublicLand() {
   let currentRefreshTimer = null;
   let currentLastFetch = 0;
   let perimeterFillOpacity = 0.10;
-
-  // perimeterStyle: perimeter style logic.
   function perimeterStyle() {
     return {
       color: "#ff2100",
@@ -2406,8 +2390,6 @@ function updatePublicLand() {
       lineJoin: "round"
     };
   }
-
-  // formatAcres: format acres logic.
   function formatAcres(value) {
     const acres = Number(value);
 
@@ -2417,8 +2399,6 @@ function updatePublicLand() {
         }) + " acres"
       : "Not reported";
   }
-
-  // updateFirePerimeters: update fire perimeters logic.
   async function updateFirePerimeters(force = false) {
     if (!map.hasLayer(firePerimeterLayer)) return;
     if (map.getZoom() < 9) {
@@ -2482,8 +2462,6 @@ function updatePublicLand() {
       if (sequence === currentRequestSequence) currentAbortController = null;
     }
   }
-
-  // scheduleCurrentPerimeterRefresh: schedule current perimeter refresh logic.
   function scheduleCurrentPerimeterRefresh() {
     if (!map.hasLayer(firePerimeterLayer)) return;
     clearTimeout(currentRefreshTimer);
@@ -2507,8 +2485,6 @@ function updatePublicLand() {
   let historicalAbortController = null;
   let historicalLastViewKey = "";
   let historicalRefreshTimer = null;
-
-  // formatHistoricalDate: format historical date logic.
   function formatHistoricalDate(value) {
     if (value == null || value === "") return "Not reported";
 
@@ -2528,8 +2504,6 @@ function updatePublicLand() {
       day: "numeric"
     }));
   }
-
-  // formatHistoricalDateTime: format historical date time logic.
   function formatHistoricalDateTime(value) {
     if (value == null || value === "") return "Not reported";
 
@@ -2545,8 +2519,6 @@ function updatePublicLand() {
 
     return escapeHtml(date.toLocaleString());
   }
-
-  // formatHistoricalCoordinate: format historical coordinate logic.
   function formatHistoricalCoordinate(value) {
     const number = Number(value);
 
@@ -2559,16 +2531,12 @@ function updatePublicLand() {
 
     return sign + degrees + "° " + minutes + "'";
   }
-
-  // historicalFireType: historical fire type logic.
   function historicalFireType(code) {
     if (code === "WF") return "Wildfire";
     if (code === "RX") return "Prescribed fire";
     if (code === "CX") return "Incident complex";
     return code || "Not reported";
   }
-
-// historicalPerimeterStyle: historical perimeter style logic.
 function historicalPerimeterStyle() {
   return {
     color: "#000000",
@@ -2581,8 +2549,6 @@ function historicalPerimeterStyle() {
     lineJoin: "round"
   };
 }
-
-  // updateHistoricalFirePerimeters: update historical fire perimeters logic.
   async function updateHistoricalFirePerimeters(force = false) {
     if (!map.hasLayer(historicalFirePerimeterLayer)) return;
     if (map.getZoom() < 9) {
@@ -2746,8 +2712,6 @@ function historicalPerimeterStyle() {
       if (sequence === historicalRequestSequence) historicalAbortController = null;
     }
   }
-
-  // scheduleHistoricalPerimeterRefresh: schedule historical perimeter refresh logic.
   function scheduleHistoricalPerimeterRefresh() {
     if (!map.hasLayer(historicalFirePerimeterLayer)) return;
     clearTimeout(historicalRefreshTimer);
@@ -2764,8 +2728,6 @@ function historicalPerimeterStyle() {
 
   const rawsLayer = L.layerGroup().addTo(map);
   let rawsRefreshInProgress = false;
-
-  // rawsValue: raws value logic.
   function rawsValue(value, suffix) {
     if (
       value == null ||
@@ -2777,8 +2739,6 @@ function historicalPerimeterStyle() {
 
     return escapeHtml(String(value).trim()) + (suffix || "");
   }
-
-  // rawsTemperature: raws temperature logic.
   function rawsTemperature(value) {
     if (
       value == null ||
@@ -2796,8 +2756,6 @@ function historicalPerimeterStyle() {
 
     return escapeHtml(temperature) + "F";
   }
-
-  // rawsWindDirection: raws wind direction logic.
   function rawsWindDirection(value) {
     if (
       value == null ||
@@ -2824,8 +2782,6 @@ function historicalPerimeterStyle() {
 
     return compass + " (" + degrees + "°)";
   }
-
-  // rawsObservationTime: raws observation time logic.
   function rawsObservationTime(value) {
     if (value == null || value === "") return "Not reported";
 
@@ -2845,8 +2801,6 @@ function historicalPerimeterStyle() {
 
     return escapeHtml(date.toLocaleString());
   }
-
-  // updateRawsStations: update raws stations logic.
   async function updateRawsStations() {
     if (rawsRefreshInProgress || !map.hasLayer(rawsLayer)) return;
 
@@ -3037,8 +2991,6 @@ function historicalPerimeterStyle() {
   let waterbodyRefreshTimer = null;
   let waterbodyLastViewKey = "";
   let waterbodyAbortController = null;
-
-  // formatWaterbodyAcres: format waterbody acres logic.
   function formatWaterbodyAcres(areaSqKm) {
     const squareKm = Number(areaSqKm);
 
@@ -3052,8 +3004,6 @@ function historicalPerimeterStyle() {
       maximumFractionDigits: 2
     }) + " acres";
   }
-
-  // formatWaterbodyDate: format waterbody date logic.
   function formatWaterbodyDate(value) {
     if (value == null || value === "") return "Not reported";
 
@@ -3071,8 +3021,6 @@ function historicalPerimeterStyle() {
       day: "numeric"
     }));
   }
-
-  // waterbodyPopup: waterbody popup logic.
   function waterbodyPopup(attributes) {
     const name =
       attributes.gnisidlabel ||
@@ -3099,8 +3047,6 @@ function historicalPerimeterStyle() {
       "</div>"
     );
   }
-
-  // addWaterbodyFeature: add waterbody feature logic.
   function addWaterbodyFeature(feature, targetLayer) {
     const attributes = feature.attributes || {};
     const geometry = feature.geometry || {};
@@ -3127,8 +3073,6 @@ function historicalPerimeterStyle() {
     polygon.bindPopup(waterbodyPopup(attributes));
     polygon.addTo(targetLayer);
   }
-
-  // currentWaterbodyViewKey: current waterbody view key logic.
   function currentWaterbodyViewKey() {
     const bounds = map.getBounds();
 
@@ -3141,8 +3085,6 @@ function historicalPerimeterStyle() {
       map.getZoom()
     ].join(",");
   }
-
-  // updateWaterbodiesInView: update waterbodies in view logic.
   async function updateWaterbodiesInView() {
     if (!map.hasLayer(usgsWaterbodyLayer)) return;
     if (map.getZoom() < 9) {
@@ -3201,8 +3143,6 @@ function historicalPerimeterStyle() {
       if (sequence === waterbodyRefreshSequence) waterbodyAbortController = null;
     }
   }
-
-  // scheduleWaterbodyRefresh: schedule waterbody refresh logic.
   function scheduleWaterbodyRefresh() {
     if (!map.hasLayer(usgsWaterbodyLayer)) return;
 
@@ -3241,8 +3181,6 @@ function historicalPerimeterStyle() {
   let gpsWriteQueue = Promise.resolve();
   let gpsTrackGeneration = 0;
   const GPS_GAP_MS = 60000;
-
-  // warnGpsStorage: warn gps storage logic.
   function warnGpsStorage(err) {
     console.warn("GPS track local storage unavailable:", err);
     if (!gpsStorageWarningShown) {
@@ -3254,8 +3192,6 @@ function historicalPerimeterStyle() {
       document.body.appendChild(note);
     }
   }
-
-  // openGpsDb: open gps db logic.
   function openGpsDb() {
     if (!window.indexedDB) { warnGpsStorage("IndexedDB unsupported"); return Promise.resolve(null); }
     return new Promise(resolve => {
@@ -3271,8 +3207,6 @@ function historicalPerimeterStyle() {
       request.onblocked = () => { warnGpsStorage("Database upgrade blocked"); resolve(null); };
     });
   }
-
-  // gpsDbOperation: gps db operation logic.
   function gpsDbOperation(mode, action) {
     return new Promise((resolve, reject) => {
       if (!gpsDbReady || !gpsDb) { resolve(null); return; }
@@ -3300,8 +3234,6 @@ function historicalPerimeterStyle() {
       }
     } catch(err) { warnGpsStorage(err); }
   });
-
-  // saveGpsSegment: save gps segment logic.
   function saveGpsSegment() {
     if (!gpsSegmentId || !gpsTrackPoints.length) return;
     const record = {id:gpsSegmentId, points:gpsTrackPoints.map(p => [p.lat,p.lng])};
@@ -3316,8 +3248,6 @@ function historicalPerimeterStyle() {
   // Each GPS session gets its own polyline.
   let gpsTrackLine = null;
   let gpsTrackPoints = [];
-
-  // recordGpsTrackPoint: record gps track point logic.
   function recordGpsTrackPoint(location) {
     // Create a new line when a session starts or restarts.
     const fixTime = Date.now();
@@ -3348,7 +3278,6 @@ function historicalPerimeterStyle() {
   }
 
   // End the current segment without deleting its line.
-  // endGpsTrackSegment: end gps track segment logic.
   function endGpsTrackSegment() {
     gpsTrackLine = null;
     gpsTrackPoints = [];
@@ -3624,20 +3553,14 @@ function historicalPerimeterStyle() {
     "#7b2cbf", "#0077b6", "#d97706", "#008148",
     "#c1121f", "#5a189a", "#0f766e", "#c026d3"
   ];
-
-  // showGpxStatus: show gpx status logic.
   function showGpxStatus(message, show) {
     gpxStatus.textContent = message;
     gpxStatus.style.display = show === false ? "none" : "block";
   }
-
-  // gpxText: gpx text logic.
   function gpxText(node, tagName) {
     const child = node.getElementsByTagName(tagName)[0];
     return child ? child.textContent.trim() : "";
   }
-
-  // gpxPointFromNode: gpx point from node logic.
   function gpxPointFromNode(node) {
     const lat = Number(node.getAttribute("lat"));
     const lon = Number(node.getAttribute("lon"));
@@ -3647,8 +3570,6 @@ function historicalPerimeterStyle() {
     }
     return L.latLng(lat, lon);
   }
-
-  // gpxDistanceMeters: gpx distance meters logic.
   function gpxDistanceMeters(points) {
     let distance = 0;
     for (let i = 1; i < points.length; i++) {
@@ -3656,15 +3577,11 @@ function historicalPerimeterStyle() {
     }
     return distance;
   }
-
-  // formatGpxDistance: format gpx distance logic.
   function formatGpxDistance(meters) {
     const miles = meters / 1609.344;
     if (miles < 0.1) return Math.round(meters) + " m";
     return miles.toFixed(2) + " mi";
   }
-
-  // makeGpxEndpointIcon: make gpx endpoint icon logic.
   function makeGpxEndpointIcon(kind) {
     return L.divIcon({
       className: "",
@@ -3673,8 +3590,6 @@ function historicalPerimeterStyle() {
       iconAnchor: [8, 8]
     });
   }
-
-  // addGpxFile: add gpx file logic.
   async function addGpxFile(file) {
     const text = await file.text();
     const parser = new DOMParser();
@@ -3914,8 +3829,6 @@ clearGpxButton.addEventListener("click", function () {
   // COORDINATES — DEGREES AND DECIMAL MINUTES ONLY
   // Negative values indicate south or west.
   // =========================================================
-
-  // toDDM: to ddm logic.
   function toDDM(value) {
     const sign = value < 0 ? "-" : "";
     const absolute = Math.abs(value);
@@ -3962,30 +3875,24 @@ clearGpxButton.addEventListener("click", function () {
   const pointEntryError = document.getElementById("pointEntryError");
   let pointPlacementActive = false;
   let suppressPointClicksUntil = 0;
-  // blockDialogClickThrough: block dialog click through logic.
   function blockDialogClickThrough() { suppressPointClicksUntil = Date.now() + 650; }
   let markedPoints = [];
   let nextPointId = 1;
   const pointMarkers = new Map();
-
-  // saveMarkedPoints: save marked points logic.
   function saveMarkedPoints() {
     try { localStorage.setItem(pointStorageKey, JSON.stringify({points:markedPoints,nextId:nextPointId})); }
     catch (err) { console.warn("Marked points could not be saved:", err); }
   }
-  // pointPopup: point popup logic.
   function pointPopup(p) {
     const name = p.name ? "<strong>"+escapeHtml(p.name)+"</strong><br>" : "";
     return '<div style="min-width:190px;line-height:1.6">'+name+
       '<strong>Point '+p.id+'</strong><br>'+
       toDDM(Math.abs(p.lat))+(p.lat>=0?' N':' S')+', '+toDDM(Math.abs(p.lng))+(p.lng>=0?' E':' W')+'<br>'+
-      p.lat.toFixed(6)+', '+p.lng.toFixed(6)+'<br>'+
       '<button type="button" data-point-action="copy" data-point-id="'+p.id+'">COPY</button> '+
       '<button type="button" data-point-action="rename" data-point-id="'+p.id+'">RENAME</button> '+
       '<button type="button" data-point-action="delete" data-point-id="'+p.id+'">DELETE POINT</button>'+
       '<br><small>Drag marker to move</small></div>';
   }
-  // renderMarkedPoint: render marked point logic.
   function renderMarkedPoint(p) {
     const icon = L.divIcon({className:"",html:'<div class="marked-point-pin">'+p.id+'</div>',iconSize:[26,26],iconAnchor:[13,13]});
     const marker = L.marker([p.lat,p.lng],{icon,draggable:true,bubblingMouseEvents:false});
@@ -4000,7 +3907,6 @@ clearGpxButton.addEventListener("click", function () {
     markedPointsLayer.addLayer(marker);
     return marker;
   }
-  // addMarkedPoint: add marked point logic.
   function addMarkedPoint(lat,lng,name="") {
     if (!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180) return;
     const p={id:nextPointId++,lat,lng,name};
@@ -4019,7 +3925,6 @@ clearGpxButton.addEventListener("click", function () {
       markedPoints.forEach(renderMarkedPoint);
     }
   } catch(err) {console.warn("Could not restore marked points:",err);}
-  // setPointMode: set point mode logic.
   function setPointMode(active) {
     pointPlacementActive=active;
     addPointButton.setAttribute("aria-pressed",String(active));
@@ -4035,13 +3940,22 @@ clearGpxButton.addEventListener("click", function () {
     markedPoints=[];pointMarkers.clear();markedPointsLayer.clearLayers();
     nextPointId=1;saveMarkedPoints();
   });
-  enterCoordsButton.addEventListener("click",()=>{pointEntryPanel.hidden=!pointEntryPanel.hidden;pointEntryError.textContent="";});
+  enterCoordsButton.addEventListener("click", () => {
+    const opening = pointEntryPanel.hidden;
+    pointEntryPanel.hidden = !opening;
+    pointEntryError.textContent = "";
+    if (opening) {
+      // The coordinate editor is a separate panel, not part of the Tools drawer.
+      document.getElementById("toolsDrawer").hidden = true;
+      document.getElementById("toolsToggle").setAttribute("aria-expanded", "false");
+      pointLat.focus();
+    }
+  });
   document.getElementById("closePointEntry").addEventListener("click",()=>pointEntryPanel.hidden=true);
   pointFormat.addEventListener("change",()=>{
     pointLat.placeholder=pointFormat.value==="dd"?"42.4368":"42° 26.208' N";
     pointLng.placeholder=pointFormat.value==="dd"?"-123.1400":"123° 08.400' W";
   });
-  // parsePointCoordinate: parse point coordinate logic.
   function parsePointCoordinate(input,format,latitude) {
     const s=input.trim().toUpperCase().replace(/[−–]/g,"-");
     if (latitude && /[EW]/.test(s)) return NaN;
@@ -4153,14 +4067,26 @@ clearGpxButton.addEventListener("click", function () {
       const wrap=document.createElement("div");
       const title=document.createElement("strong");title.textContent=line.name;wrap.append(title);
       const info=document.createElement("div");info.textContent=lineLengthLabel(line.vertices)+" · "+line.colorName;wrap.append(info);
-      const exportBtn=document.createElement("button");exportBtn.type="button";exportBtn.textContent="EXPORT GPX";exportBtn.style.marginRight="8px";
-      exportBtn.addEventListener("click",()=>exportDrawnLineGpx(line));wrap.append(exportBtn);
-      const deleteBtn=document.createElement("button");deleteBtn.type="button";deleteBtn.textContent="DELETE LINE";
+      const actions=document.createElement("div");
+      actions.className="drawn-line-popup-actions";
+      const makeAction=(label)=>{
+        const btn=document.createElement("button");
+        btn.type="button";
+        btn.className="drawn-line-popup-button";
+        btn.textContent=label;
+        actions.appendChild(btn);
+        return btn;
+      };
+      const exportBtn=makeAction("EXPORT GPX");
+      exportBtn.addEventListener("click",()=>exportDrawnLineGpx(line));
+      const hoseBtn=makeAction("HOSE LAY PROFILE");
+      hoseBtn.addEventListener("click",()=>{map.closePopup();openHoseProfile(line);});
+      const deleteBtn=makeAction("DELETE LINE");
       deleteBtn.addEventListener("click",()=>{
         if(!confirm('Delete line "'+line.name+'"?'))return;
         blockDialogClickThrough();drawnLines=drawnLines.filter(x=>x.id!==line.id);
         drawnLineLayer.removeLayer(poly);saveDrawnLines();map.closePopup();
-      });wrap.append(deleteBtn);return wrap;
+      });wrap.append(actions);return wrap;
     });
     poly.on("click",()=>{if(lineDrawingActive)map.closePopup();});
   }
@@ -4219,6 +4145,121 @@ clearGpxButton.addEventListener("click", function () {
   L.DomEvent.disableScrollPropagation(lineSaveDialog);
   map.on("click",e=>{if(!lineDrawingActive||Date.now()<suppressPointClicksUntil)return;draftVertices.push({lat:e.latlng.lat,lng:e.latlng.lng});refreshDraftLine();});
   [drawLineButton,lineDrawPanel,lineUndoButton,lineFinishButton,lineCancelButton].forEach(el=>{L.DomEvent.disableClickPropagation(el);L.DomEvent.disableScrollPropagation(el);});
+
+
+  // HOSE LAY — separate from saved line data; profile requests only on demand.
+  const hoseModal=document.getElementById("hoseModal"),hosePsi=document.getElementById("hosePsi");
+  let hoseSelectedLine=null,hoseRequestId=0;
+  function closeHoseProfile(){hoseRequestId++;hoseModal.hidden=true;}
+  document.getElementById("hoseClose").addEventListener("click",closeHoseProfile);
+  hoseModal.addEventListener("click",e=>{if(e.target===hoseModal)closeHoseProfile();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!hoseModal.hidden)closeHoseProfile();});
+  document.getElementById("hoseCalculate").addEventListener("click",()=>{if(hoseSelectedLine)calculateHoseProfile(hoseSelectedLine);});
+  L.DomEvent.disableClickPropagation(hoseModal);L.DomEvent.disableScrollPropagation(hoseModal);
+  function openHoseProfile(line){hoseSelectedLine=line;hoseModal.hidden=false;calculateHoseProfile(line);}
+  // MARK-3 reference points. Interpolate within the reference range and linearly
+  // extrapolate using the nearest two points outside it. Planning estimates only.
+  function mark3Flow(psi){
+    const pts=[[100,78],[150,65],[250,38]];
+    const i=psi<=pts[0][0]?1:psi>=pts[pts.length-1][0]?pts.length-1:pts.findIndex(p=>psi<=p[0]);
+    const a=pts[i-1],b=pts[i];
+    return Math.max(0,a[1]+(psi-a[0])*(b[1]-a[1])/(b[0]-a[0]));
+  }
+  function sampleHosePath(vertices,stepFt){const lengths=[0];for(let i=1;i<vertices.length;i++)lengths.push(lengths[i-1]+map.distance(vertices[i-1],vertices[i])*3.280839895);
+    const total=lengths[lengths.length-1],dists=[0];for(let d=stepFt;d<total;d+=stepFt)dists.push(d);dists.push(total);
+    const stations=dists.map(d=>{let i=1;while(i<lengths.length-1&&lengths[i]<d)i++;const len=lengths[i]-lengths[i-1];const t=len?(d-lengths[i-1])/len:0;
+      return {ft:d,lat:vertices[i-1].lat+(vertices[i].lat-vertices[i-1].lat)*t,lng:vertices[i-1].lng+(vertices[i].lng-vertices[i-1].lng)*t};});return {stations,total};}
+  // Batch USGS 3DEP ImageServer raster samples in one request per 150 points.
+  // The source raster is meters; convert to international feet.
+  const hoseElevationCache=new Map();
+  async function loadHoseElevations(stations,token,status){
+    const uncached=[];
+    stations.forEach((p,i)=>{const key=p.lat.toFixed(6)+","+p.lng.toFixed(6);p._elevKey=key;
+      if(hoseElevationCache.has(key))p.elevation=hoseElevationCache.get(key);
+      else uncached.push({p,i});});
+    for(let start=0;start<uncached.length;start+=150){
+      const group=uncached.slice(start,start+150);
+      status.textContent=`Requesting terrain elevations in batches (${Math.min(start+group.length,uncached.length)} of ${uncached.length})…`;
+      const geometry={points:group.map(({p})=>[p.lng,p.lat]),spatialReference:{wkid:4326}};
+      const body=new URLSearchParams({f:"json",geometryType:"esriGeometryMultipoint",geometry:JSON.stringify(geometry),returnFirstValueOnly:"true",interpolation:"RSP_BilinearInterpolation"});
+      let data,lastError;
+      for(let attempt=0;attempt<2;attempt++){
+        const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+        try{
+          const r=await fetch("https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/getSamples",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body.toString(),signal:controller.signal});
+          if(!r.ok)throw Error("3DEP HTTP "+r.status);
+          data=await r.json();if(data.error)throw Error(data.error.message||"3DEP service error");
+          if(!Array.isArray(data.samples))throw Error("3DEP returned no samples");
+          break;
+        }catch(err){lastError=err;}finally{clearTimeout(timer);}
+      }
+      if(!data)throw Error("3DEP batch request failed: "+(lastError?.message||"unknown error"));
+      if(token!==hoseRequestId)return false;
+      // ArcGIS samples include the sampled location. Match by coordinates rather than
+      // trusting array ordering, since no-data locations can be omitted by the service.
+      const unused=data.samples.map(sample=>({sample,used:false}));
+      for(const {p} of group){
+        let best=null,bestD=Infinity;
+        for(const item of unused){if(item.used)continue;
+          const xy=item.sample.location;const x=Number(xy?.x),y=Number(xy?.y);
+          if(!Number.isFinite(x)||!Number.isFinite(y))continue;
+          const d=Math.pow((x-p.lng)*Math.cos(p.lat*Math.PI/180),2)+Math.pow(y-p.lat,2);
+          if(d<bestD){bestD=d;best=item;}
+        }
+        if(!best||bestD>1e-8)continue;
+        best.used=true;
+        const meters=Number(best.sample.value);
+        if(best.sample.value===null||best.sample.value===undefined||!Number.isFinite(meters)||meters<=-10000)continue;
+        p.elevation=meters*3.280839895;
+        hoseElevationCache.set(p._elevKey,p.elevation);
+      }
+    }
+    const missing=stations.filter(p=>!Number.isFinite(p.elevation));
+    if(missing.length)throw Error(`${missing.length} of ${stations.length} 3DEP raster samples unavailable; no pressures calculated`);
+    status.textContent=`Loaded ${stations.length} terrain elevations`;
+    return true;
+  }
+  function svgEl(tag,attrs,text){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);for(const [k,v] of Object.entries(attrs||{}))el.setAttribute(k,String(v));if(text!==undefined)el.textContent=text;return el;}
+  function drawHoseChart(stations,total){const svg=document.getElementById("hoseGraph");svg.replaceChildren();
+    const width=Math.max(720,Math.ceil(total/100)*76+110),height=425,left=75,right=35,top=76,bottom=70,plotW=width-left-right,plotH=height-top-bottom;
+    svg.setAttribute("width",width);svg.setAttribute("height",height);svg.setAttribute("viewBox",`0 0 ${width} ${height}`);
+    const min=Math.min(0,...stations.map(p=>p.rel)),max=Math.max(0,...stations.map(p=>p.rel)),span=Math.max(40,max-min),lo=Math.floor((min-span*.14)/20)*20,hi=Math.ceil((max+span*.14)/20)*20;
+    const x=d=>left+d/total*plotW,y=e=>top+(hi-e)/(hi-lo)*plotH;
+    for(let j=0;j<=5;j++){const val=lo+(hi-lo)*j/5,yy=y(val);svg.append(svgEl("line",{x1:left,y1:yy,x2:width-right,y2:yy,stroke:"#ddd"}));svg.append(svgEl("text",{x:left-9,y:yy+4,"text-anchor":"end","font-size":12,fill:"#444"},Math.round(val)+" ft"));}
+    svg.append(svgEl("polyline",{points:stations.map(p=>x(p.ft)+","+y(p.rel)).join(" "),fill:"none",stroke:"#ad6018","stroke-width":3}));
+    // Keep the exact endpoint label; suppress the preceding 100-ft label when they would overlap.
+    const lastHundred=Math.floor((total-0.000001)/100)*100;
+    const hideNearEndpoint=total-lastHundred<50 && lastHundred>0;
+    const labels=stations.filter((p,i)=>i===0||i===stations.length-1||(Math.abs(p.ft/100-Math.round(p.ft/100))<.00001 && !(hideNearEndpoint && Math.abs(p.ft-lastHundred)<0.001)));
+    for(const p of labels){const xx=x(p.ft),yy=y(p.rel),alert=p.staticPsi>=300||p.flowPsi>=300,color=alert?"#c00":"#222";
+      svg.append(svgEl("circle",{cx:xx,cy:yy,r:4,fill:alert?"#c00":"#ff861c",stroke:"white","stroke-width":1}));
+      const ty=Math.max(34,yy-24);svg.append(svgEl("line",{x1:xx,y1:ty+4,x2:xx,y2:yy-5,stroke:"#999","stroke-dasharray":"2 3"}));
+      svg.append(svgEl("text",{x:xx,y:ty-15,"text-anchor":"middle","font-size":11,"font-weight":"bold",fill:color},"S "+Math.round(p.staticPsi)+" PSI"));
+      svg.append(svgEl("text",{x:xx,y:ty-2,"text-anchor":"middle","font-size":11,fill:color},"F "+Math.round(p.flowPsi)+" PSI"));
+      svg.append(svgEl("text",{x:xx,y:height-39,"text-anchor":"middle","font-size":11,fill:"#333"},Math.round(p.ft)+" ft"));}
+    svg.append(svgEl("text",{x:width/2,y:height-10,"text-anchor":"middle","font-size":13,"font-weight":"bold"},"Hose distance from pump (feet)"));
+    svg.append(svgEl("text",{x:15,y:top-17,"font-size":12,"font-weight":"bold"},"Relative elevation"));
+  }
+  async function calculateHoseProfile(line){const token=++hoseRequestId,status=document.getElementById("hoseStatus"),warning=document.getElementById("hoseWarning"),summary=document.getElementById("hoseSummary"),svg=document.getElementById("hoseGraph");
+    status.textContent="";warning.textContent="";summary.textContent="";svg.replaceChildren();
+    const psi=Number(hosePsi.value);if(!Number.isFinite(psi)||psi<50||psi>300){status.textContent="Enter pump PSI between 50 and 300.";return;}const flow=mark3Flow(psi);
+    const path=sampleHosePath(line.vertices,50),{stations,total}=path;
+    summary.textContent=`Pump: ${psi} PSI | Flow: ~${Math.round(flow)} GPM | Distance: ${Math.round(total).toLocaleString()} ft`;
+    if(total<=0||total>10000){status.textContent="This prototype supports hose lays up to 10,000 ft.";return;}
+    // Sample every 50 ft for terrain dips; show pressure labels every 100 ft.
+    status.textContent=`Retrieving ${stations.length} terrain elevations using USGS 3DEP batch sampling…`;
+    try{
+      if(!await loadHoseElevations(stations,token,status))return;
+      // Approximate 1.5-in hose friction: 15 PSI / 100 ft at 60 GPM, scaled by flow squared.
+      // Appliance loss: 0.46 PSI / wye at 50 GPM, scaled by flow squared.
+      const frictionPer100=15*Math.pow(flow/60,2),wyeLoss=.46*Math.pow(flow/50,2),base=stations[0].elevation;
+      for(const p of stations){p.rel=p.elevation-base;p.staticPsi=psi-.433*p.rel;
+        const wyes=Math.floor((p.ft+1e-6)/100);p.flowPsi=p.staticPsi-frictionPer100*p.ft/100-wyeLoss*wyes;}
+      const worst=stations.reduce((a,p)=>(Math.max(p.staticPsi,p.flowPsi)>Math.max(a.staticPsi,a.flowPsi)?p:a),stations[0]);
+      if(Math.max(worst.staticPsi,worst.flowPsi)>=300)warning.textContent=`⚠ HIGH PRESSURE: estimated ${Math.round(Math.max(worst.staticPsi,worst.flowPsi))} PSI near ${Math.round(worst.ft)} ft. Verify hose/fitting ratings and actual pressures.`;
+      status.textContent=`3DEP terrain profile loaded · ${stations.length} samples at 50-ft intervals · Static (S) above flowing (F) at each 100 ft`;
+      drawHoseChart(stations,total);
+    }catch(err){if(token!==hoseRequestId)return;status.textContent="Elevation unavailable: "+err.message+". No pressure estimates shown. Check internet access and the browser console.";console.warn("Hose elevation query failed",err);}}
 
   // =========================================================
   // AREA MEASUREMENT — POLYGON CORNERS AND ACRES
@@ -4401,8 +4442,6 @@ clearGpxButton.addEventListener("click", function () {
   });
 
   L.DomEvent.disableClickPropagation(gpsButton);
-
-  // stopGpsTracking: stop gps tracking logic.
   function stopGpsTracking() {
     situsRequest++;
     lastSitusPoint = null;
@@ -4432,8 +4471,6 @@ clearGpxButton.addEventListener("click", function () {
     gpsCoordinatesDisplay.textContent =
       "GPS: Off — tap GPS to start";
   }
-
-  // gpsError: gps error logic.
   function gpsError(error) {
     stopGpsTracking();
 
