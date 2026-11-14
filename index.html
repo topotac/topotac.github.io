@@ -1428,7 +1428,7 @@ html, body {
 #hosePanel{background:#fff;color:#171717;width:min(1250px,100%);max-height:calc(100dvh - 24px);overflow:auto;border:3px solid #ff861c;border-radius:10px;padding:16px;box-sizing:border-box;font:14px Arial}
 #hoseHeader{display:flex;justify-content:space-between;align-items:center;gap:12px}#hoseHeader h2{margin:0;font-size:20px}#hoseClose{font-size:24px;border:0;background:#eee;border-radius:5px;cursor:pointer;min-width:42px;min-height:42px}
 #hoseControls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}#hoseControls input{width:95px;padding:8px;font-size:16px}#hoseControls button{padding:9px;background:#ff861c;border:0;border-radius:5px;font-weight:bold}
-#hoseScrollTip{font-size:12px;color:#555;margin:8px 0}#hoseScroll{overflow-x:auto;border:1px solid #ddd;border-radius:6px}#hoseGraph{display:block;min-height:340px}#hoseWarning{color:#ad1616;font-weight:bold;margin:10px 0}#hoseStatus{margin:8px 0;color:#444}#hoseNote{font-size:12px;color:#555;line-height:1.5}
+#hoseScrollTip{display:flex;align-items:flex-start;gap:9px;background:#fff2e5;border:2px solid #ff861c;border-radius:7px;padding:11px 12px;font:13px/1.45 Arial;color:#171717;margin:12px 0}#hoseScrollTip strong{display:block;margin-bottom:3px}#hosePressureHelp{background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:10px 12px;margin:10px 0;font:12px/1.5 Arial}#hosePressureHelp p{margin:4px 0}#hosePressureHelp strong{color:#171717}#hoseScroll{overflow-x:auto;border:1px solid #ddd;border-radius:6px}#hoseGraph{display:block;min-height:340px}#hoseWarning{color:#ad1616;font-weight:bold;margin:10px 0}#hoseStatus{margin:8px 0;color:#444}#hoseNote{font-size:12px;color:#555;line-height:1.5}
 </style>
 </head>
 
@@ -1480,7 +1480,7 @@ html, body {
 <div id="hoseModal" hidden role="dialog" aria-modal="true" aria-labelledby="hoseTitle"><div id="hosePanel">
 <div id="hoseHeader"><h2 id="hoseTitle">HOSE LAY PROFILE</h2><button id="hoseClose" type="button" aria-label="Close hose lay profile">✕</button></div>
 <div id="hoseControls"><label for="hosePsi">Pump discharge PSI</label><input id="hosePsi" type="number" min="50" max="300" step="5" value="150"><button id="hoseCalculate" type="button">CALCULATE</button></div>
-<div id="hoseSummary"></div><p id="hoseScrollTip">Tip: Use the horizontal scrollbar at the bottom of the chart to view the entire hose lay.</p><div id="hoseStatus" role="status"></div><div id="hoseWarning" role="alert"></div><div id="hoseScroll"><svg id="hoseGraph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Elevation profile with static and flowing pressures"></svg></div>
+<div id="hoseSummary"></div><div id="hoseScrollTip" role="note"><span aria-hidden="true">↔</span><div><strong>CHART SCROLLS HORIZONTALLY</strong>The hose profile may extend beyond the right edge of the screen. Use the scrollbar at the bottom of the chart to view the entire hose lay.</div></div><div id="hosePressureHelp"><strong>Understanding the pressure lines</strong><p><strong>Static (S):</strong> Estimated hose pressure when no water is flowing; accounts for elevation changes.</p><p><strong>Flowing (F):</strong> Estimated hose pressure while flowing the calculated <span id="hoseHelpFlow">GPM</span> at a pump discharge pressure of <span id="hoseHelpPsi">150 PSI</span>. Accounts for elevation, hose friction, and modeled wye losses.</p></div><div id="hoseStatus" role="status"></div><div id="hoseWarning" role="alert"></div><div id="hoseScroll"><svg id="hoseGraph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Elevation profile with static and flowing pressures"></svg></div>
 <p id="hoseNote">Planning estimate only. MARK-3 reference flow; 1½-inch hose and a gated wye per 100 ft. Elevation comes from USGS 3DEP raster; elevations are sampled every 50 ft, but smaller terrain low spots can still be missed. Actual flow, hose friction, nozzle demand, appliance losses and pump shutoff pressure may differ. Flows below 100 or above 250 PSI are extrapolated beyond MARK-3 reference points. 300 PSI is a planning alert, not a hose rating. Closed valves and water hammer can produce higher pressures.</p>
 </div></div>
 <div id="lineSaveDialog" hidden role="dialog" aria-modal="true" aria-labelledby="lineSaveTitle" style="position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box">
@@ -4245,6 +4245,8 @@ clearGpxButton.addEventListener("click", function () {
     const psi=Number(hosePsi.value);if(!Number.isFinite(psi)||psi<50||psi>300){status.textContent="Enter pump PSI between 50 and 300.";return;}const flow=mark3Flow(psi);
     const path=sampleHosePath(line.vertices,50),{stations,total}=path;
     summary.textContent=`Pump: ${psi} PSI | Flow: ~${Math.round(flow)} GPM | Distance: ${Math.round(total).toLocaleString()} ft`;
+    document.getElementById("hoseHelpFlow").textContent=`~${Math.round(flow)} GPM`;
+    document.getElementById("hoseHelpPsi").textContent=`${psi} PSI`;
     if(total<=0||total>10000){status.textContent="This prototype supports hose lays up to 10,000 ft.";return;}
     // Sample every 50 ft for terrain dips; show pressure labels every 100 ft.
     status.textContent=`Retrieving ${stations.length} terrain elevations using USGS 3DEP batch sampling…`;
@@ -4257,7 +4259,7 @@ clearGpxButton.addEventListener("click", function () {
         const wyes=Math.floor((p.ft+1e-6)/100);p.flowPsi=p.staticPsi-frictionPer100*p.ft/100-wyeLoss*wyes;}
       const worst=stations.reduce((a,p)=>(Math.max(p.staticPsi,p.flowPsi)>Math.max(a.staticPsi,a.flowPsi)?p:a),stations[0]);
       if(Math.max(worst.staticPsi,worst.flowPsi)>=300)warning.textContent=`⚠ HIGH PRESSURE: estimated ${Math.round(Math.max(worst.staticPsi,worst.flowPsi))} PSI near ${Math.round(worst.ft)} ft. Verify hose/fitting ratings and actual pressures.`;
-      status.textContent=`3DEP terrain profile loaded · ${stations.length} samples at 50-ft intervals · Static (S) above flowing (F) at each 100 ft`;
+      status.textContent=`3DEP terrain profile loaded · ${stations.length} elevation samples at 50-ft intervals · Pressure labels every 100 ft`;
       drawHoseChart(stations,total);
     }catch(err){if(token!==hoseRequestId)return;status.textContent="Elevation unavailable: "+err.message+". No pressure estimates shown. Check internet access and the browser console.";console.warn("Hose elevation query failed",err);}}
 
