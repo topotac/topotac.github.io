@@ -1853,6 +1853,54 @@ html, body {
   color: #555;
   line-height: 1.5;
 }
+
+/* Independent line-construction dialog, matching the hose-lay profile layout. */
+#lineConstModal[hidden]{display:none!important}
+#lineConstModal{position:fixed;inset:0;z-index:25000;background:#000b;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
+#lineConstPanel{background:#fff;color:#171717;width:min(1250px,100%);max-height:calc(100dvh - 24px);overflow:auto;border:3px solid #ff861c;border-radius:10px;padding:16px;box-sizing:border-box;font:14px Arial}
+#lineConstHeader{display:flex;justify-content:space-between;align-items:center;gap:12px}
+#lineConstHeader h2{margin:0;font-size:20px}
+#lineConstClose{font-size:24px;border:0;background:#eee;border-radius:5px;cursor:pointer;min-width:42px;min-height:42px}
+#lineConstControls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}
+#lineConstControls select{padding:9px;max-width:100%;font-size:15px}
+#lineConstCalculate{padding:10px 16px;background:#ff861c;border:0;border-radius:5px;font-weight:bold;cursor:pointer}
+#lineConstHelp{background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:12px;margin:12px 0;line-height:1.5}
+#lineConstHelp p{margin:6px 0}
+#lineConstSummary{font-weight:bold;line-height:1.7}
+#lineConstStatus{margin:10px 0;min-height:18px}
+#lineConstStatus.hose-loading{color:#c00000;font-weight:bold;animation:hose-loading-pulse 1s ease-in-out infinite alternate}
+@media (prefers-reduced-motion: reduce){#lineConstStatus.hose-loading{animation:none}}
+#lineConstWarning{color:#a11b13;font-weight:bold;margin:10px 0}
+#lineConstScroll{overflow-x:auto;overflow-y:hidden;border:1px solid #ccc;background:white;margin:10px 0}
+#lineConstNote{font-size:12px;line-height:1.5;color:#444}
+
+/* MIR — independent, memory-only medical incident report */
+.leaflet-control-mir { margin-bottom:5px !important; }
+.leaflet-control-mir button {display:flex;align-items:center;justify-content:center;box-sizing:content-box;width:42px;height:42px;padding:0;background:#d40000;color:#fff;border:2px solid var(--tt-orange);border-radius:7px;font:bold 14px/1 Arial,sans-serif;text-align:center;box-shadow:0 2px 7px #0005;cursor:pointer;}
+#mirModal[hidden]{display:none!important}
+#mirModal{position:fixed;inset:0;z-index:30000;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:9px;box-sizing:border-box}
+#mirPanel{background:#fff;color:#161616;width:min(740px,100%);max-height:96dvh;display:flex;flex-direction:column;border-radius:8px;box-shadow:0 8px 35px #0008;font:14px Arial,sans-serif}
+#mirHeader{background:#242424;color:#fff;display:flex;align-items:center;gap:10px;justify-content:space-between;padding:11px 14px;border-radius:8px 8px 0 0}
+#mirHeader strong{font-size:17px}#mirHeader button{font-size:22px;background:transparent;border:0;color:#fff;cursor:pointer}
+#mirBody{overflow:auto;padding:12px 16px;overscroll-behavior:contain}
+#mirBody section{border:1px solid #aaa;border-radius:5px;margin:11px 0;padding:10px}
+#mirBody h3{font-size:14px;margin:0 0 9px;background:#eee;padding:7px}
+#mirBody label.mirField{display:block;font-weight:bold;margin:9px 0 4px}
+#mirBody input[type=text],#mirBody textarea{box-sizing:border-box;width:100%;border:1px solid #999;border-radius:4px;font:15px Arial;padding:8px;background:white;color:#111}
+#mirBody textarea{min-height:62px;resize:vertical}
+#mirBody .mirChecks{display:flex;flex-wrap:wrap;gap:8px 18px;margin:7px 0}
+#mirBody .mirChecks label{display:flex;align-items:center;gap:5px;font-weight:normal}
+#mirBody input[type=checkbox]{width:17px;height:17px;accent-color:#bb1717}
+#mirBody .mirGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px}
+#mirBody .mirHint{font-size:12px;color:#555;margin:5px 0}
+#mirBody table{width:100%;border-collapse:collapse;font-size:12px}
+#mirBody th,#mirBody td{border:1px solid #aaa;padding:3px}#mirBody td input{min-width:0!important;padding:5px!important}
+#mirFooter{border-top:1px solid #bbb;padding:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#mirFooter button{padding:9px 11px;font-weight:bold;border:1px solid #888;border-radius:5px;cursor:pointer;background:#eee;color:#111}
+#mirFooter #mirSave{background:#b70000;color:white;border-color:#b70000}
+#mirState{margin-left:auto;font-size:12px;color:#a00000;font-weight:bold}
+@media(max-width:520px){#mirBody .mirGrid{grid-template-columns:1fr}#mirBody{padding:8px}#mirPanel{max-height:98dvh}}
+
 </style>
 </head>
 
@@ -1900,12 +1948,23 @@ html, body {
 
 <button id="addPointButton" class="point-button" type="button" aria-pressed="false">ADD POINT</button>
 <button id="drawLineButton" class="point-button" type="button" aria-pressed="false">DRAW LINE</button>
-<div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tap a saved line for Hoselay Calcs, GPX Save, or Delete</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button><button id="lineDeleteAllButton" type="button" style="background:#8b1e1e;color:#fff;border-color:#ff861c">DELETE ALL LINES</button></div>
+<div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tap a saved line for Hose Lay, Line Construction, GPX Export, or Delete</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button><button id="lineDeleteAllButton" type="button" style="background:#8b1e1e;color:#fff;border-color:#ff861c">DELETE ALL LINES</button></div>
 <div id="hoseModal" hidden role="dialog" aria-modal="true" aria-labelledby="hoseTitle"><div id="hosePanel">
 <div id="hoseHeader"><h2 id="hoseTitle">HOSE LAY PROFILE</h2><button id="hoseClose" type="button" aria-label="Close hose lay profile">✕</button></div>
 <div id="hoseControls"><label for="hosePsi">Pump discharge PSI</label><input id="hosePsi" type="number" min="50" max="300" step="5" value="150"><button id="hoseCalculate" type="button">CALCULATE</button></div>
 <div id="hoseSummary"></div><div id="hoseScrollTip" role="note"><span aria-hidden="true">↔</span><div><strong>CHART SCROLLS HORIZONTALLY</strong>The hose profile may extend beyond the right edge of the screen. Scroll the chart to view the entire hose lay calculation.</div></div><div id="hosePressureHelp"><strong>Understanding the chart labels</strong><p><strong>S = Static pressure (P = PSI):</strong> Negative pressures use a single minus sign after the colon, without a space (for example, <strong>S:-12P</strong>). Estimated pressure at the wye with no water flowing, including elevation changes.</p><p><strong>AF = Available Flow:</strong> Estimated maximum flow at that wye while retaining <strong>30 PSI</strong> residual pressure. For example, <strong>AF:5G@30P</strong> means 5 gallons per minute (G) at 30 PSI (P). Each wye is evaluated separately, with all other outlets closed.</p><p><strong>SL = Slope:</strong> Grade between adjacent wye dots, calculated from elevation change divided by hose distance. Positive values are uphill; negative values are downhill (example: <strong>SL:-45%</strong>).</p><p><strong>EG = Elevation Gain:</strong> Net elevation difference at the downstream gated wye relative to the pump position. Positive is above the pump; negative is below (example: <strong>EG:+167'</strong>).</p><p>Drawn distance snaps to complete 100-ft hose lengths: 50 ft or less rounds down, more than 50 ft rounds up. All wyes, terrain samples, and pressure calculations use the snapped distance. When rounding up, the final hose continues in the direction of the last drawn segment. Estimates assume 1½-inch supply hose, a gated wye every 100 ft, and a MARK-3 reference-flow limit.</p></div><div id="hoseStatus" role="status"></div><div id="hoseWarning" role="alert"></div><div id="hoseScroll"><svg id="hoseGraph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Elevation profile with static pressure and estimated available flow at each wye"></svg></div>
 <p id="hoseNote">Planning estimate only. Hoselay distance is snapped to full 100-ft hose lengths (50 ft rounds down); extending a line follows its final drawn direction. AF is modeled for one open wye at a time, holding 30 PSI at that wye; 1½-inch hose and a gated wye per 100 ft. MARK-3 reference flow is a simplified cap, not a complete pump curve. Elevation comes from USGS 3DEP raster; elevations are sampled every 50 ft, but smaller terrain low spots can still be missed. Actual flow, hose friction, nozzle demand, appliance losses and pump shutoff pressure may differ. Pump reference flow below 100 or above 250 PSI is extrapolated beyond MARK-3 reference points. 300 PSI is a planning alert, not a hose rating. Closed valves and water hammer can produce higher pressures.</p>
+</div></div>
+
+<div id="lineConstModal" hidden role="dialog" aria-modal="true" aria-labelledby="lineConstTitle"><div id="lineConstPanel">
+<div id="lineConstHeader"><h2 id="lineConstTitle">LINE CONSTRUCTION PROFILE</h2><button id="lineConstClose" type="button" aria-label="Close line construction profile">✕</button></div>
+<div id="lineConstControls"><label for="lineConstFuel">Fuel model</label><select id="lineConstFuel">
+<option value="1">1 — Short Grass</option><option value="2">2 — Open Timber / Grass</option><option value="4">4 — Chaparral</option><option value="5">5 — Brush</option><option value="6">6 — Dormant Brush / Hardwood Slash</option><option value="8">8 — Closed Timber Litter</option><option value="9">9 — Hardwood Litter</option><option value="10">10 — Timber Litter &amp; Understory</option><option value="11">11 — Light Logging Slash</option><option value="12">12 — Medium Logging Slash</option><option value="13">13 — Heavy Logging Slash</option>
+</select><label for="lineConstResource">Resource</label><select id="lineConstResource"><option value="crew1">Type 1 Crew (20-person)</option><option value="crew2">Type 2 Crew (20-person)</option><option value="dozer1">Type 1 Dozer (heavy)</option><option value="dozer2">Type 2 Dozer (medium)</option><option value="dozer3">Type 3 Dozer (light)</option></select><button id="lineConstCalculate" type="button">CALCULATE</button></div>
+<div id="lineConstSummary"></div><div id="hoseScrollTip"><span aria-hidden="true">↔</span><div><strong>CHART SCROLLS HORIZONTALLY</strong>Scroll to see the complete line and all 100-foot station labels.</div></div>
+<div id="lineConstHelp"><strong>Reading the chart</strong><p><strong>SL:</strong> slope between adjacent 100-ft stations (positive uphill, negative downhill). <strong>EG:</strong> elevation gain relative to the start of the line (positive above, negative below). <strong>T:</strong> cumulative estimated construction time at each station (hours and minutes). <strong>R:</strong> estimated production rate in feet per hour for that segment.</p><p><strong>Crews:</strong> NWCG sustained 20-person crew rates; Type 1 and Type 2 direct-line values are used where published. For fuel models 7 and 11–13, NWCG provides separate older crew-type rates without direct/indirect classification. Crew rates are not adjusted for slope because this table provides no slope multiplier.</p><p><strong>Dozers:</strong> NWCG single-pass rates vary by fuel model, dozer type, uphill/downhill direction and slope class. Time is shown as a <strong>range</strong> using the published low/high rates; a published zero or slope beyond 74% cannot produce a finite time estimate. No slope extrapolation is applied.</p><p><strong>Distance:</strong> Line construction uses the <strong>actual drawn route</strong>, not the 100-ft hose-length rounding rule. Terrain is sampled at 100-ft intervals and at the actual endpoint. All construction slopes, production rates, and times use those same intervals.</p></div>
+<div id="lineConstStatus" role="status"></div><div id="lineConstWarning" role="alert"></div><div id="lineConstScroll"><svg id="lineConstGraph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fireline terrain profile, slope, elevation gain, and estimated construction time"></svg></div>
+<p id="lineConstNote">Planning estimates only. Source: NWCG Fire Line Production Rate Tables (2021), pp. 2–3 and 7–8; original rates are based on older studies. Rates do not guarantee field performance. Crew values represent sustained 20-person crews, and dozer values represent single-pass construction. Weather, rocks, access, fatigue, operator skill, line width, vegetation, tactical constraints, and safety conditions can materially change actual construction time. Dozer slope classes are based on segment-average grade; short steep pitches can be missed by 100-ft average slopes. No terrain data or unsupported production rate means no time estimate.</p>
 </div></div>
 <div id="lineSaveDialog" hidden role="dialog" aria-modal="true" aria-labelledby="lineSaveTitle" style="position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box">
   <form id="lineSaveForm" style="background:#fff;color:#171717;border-radius:10px;padding:18px;width:min(340px,100%);box-sizing:border-box;box-shadow:0 8px 32px #0005;display:grid;gap:10px">
@@ -2098,6 +2157,57 @@ html, body {
 })();
 </script>
 
+
+<div id="mirModal" hidden role="dialog" aria-modal="true" aria-labelledby="mirTitle">
+  <div id="mirPanel">
+    <div id="mirHeader"><strong id="mirTitle">MEDICAL INCIDENT REPORT (MIR)</strong><button id="mirCloseTop" type="button" aria-label="Close MIR">×</button></div>
+    <div id="mirBody">
+      <p class="mirHint"><b>ICS 206 WF (03/18) — Medical Incident Report.</b> For a medical emergency, identify the on-scene incident commander and announce “MEDICAL EMERGENCY” to communications/dispatch. This form supports, but does not replace, immediate emergency radio reporting.</p>
+      <section><h3>1. CONTACT COMMUNICATIONS / DISPATCH</h3>
+        <p class="mirHint">Verify correct frequency prior to starting report. Example: “Communications, Div. Alpha. Stand-by for Emergency Traffic.”</p>
+        <label class="mirField" for="mirContact">Contact / call sign / details</label><input id="mirContact" type="text" autocomplete="off">
+      </section>
+      <section><h3>2. INCIDENT STATUS</h3>
+        <label class="mirField">Severity of emergency / transport priority</label>
+        <div class="mirChecks"><label><input type="checkbox" id="mirRed"> RED / PRIORITY 1 — Immediate</label><label><input type="checkbox" id="mirYellow"> YELLOW / PRIORITY 2 — Delayed if necessary</label><label><input type="checkbox" id="mirGreen"> GREEN / PRIORITY 3 — Non-emergency</label></div>
+        <label class="mirField" for="mirInjury">Nature / mechanism of injury or illness; brief summary (including patient count)</label><textarea id="mirInjury"></textarea>
+        <label class="mirField">Evacuation request (check all that apply)</label>
+        <div class="mirChecks"><label><input type="checkbox" id="mirAir"> Air ambulance</label><label><input type="checkbox" id="mirHoist"> Short haul / hoist</label><label><input type="checkbox" id="mirGround"> Ground ambulance</label><label><input type="checkbox" id="mirEvacOther"> Other</label></div>
+        <input id="mirEvacOtherText" type="text" placeholder="Other evacuation request / description" aria-label="Other evacuation request">
+        <label class="mirField" for="mirPatientLocation">Patient location — descriptive location and latitude / longitude (WGS84)</label><input id="mirPatientLocation" type="text" autocomplete="off" placeholder="Enter manually">
+        <div class="mirGrid"><div><label class="mirField" for="mirIncident">Incident name (geographic name + Medical)</label><input id="mirIncident" type="text"></div><div><label class="mirField" for="mirIC">On-scene incident commander</label><input id="mirIC" type="text"></div></div>
+        <label class="mirField" for="mirCare">Patient care — care provider</label><input id="mirCare" type="text">
+      </section>
+      <section><h3>3. INITIAL PATIENT ASSESSMENT</h3><p class="mirHint">Complete for each patient as applicable, starting with the most severe. See IRPG patient assessment guidance.</p>
+        <label class="mirField" for="mirAssessment">Patient assessment</label><textarea id="mirAssessment"></textarea>
+        <label class="mirField" for="mirTreatment">Treatment</label><textarea id="mirTreatment"></textarea>
+      </section>
+      <section><h3>4. EVACUATION PLAN</h3>
+        <label class="mirField" for="mirEvacLocation">Evacuation location (if different) — descriptive location or lat. / long.</label><input id="mirEvacLocation" type="text" placeholder="Enter manually">
+        <label class="mirField" for="mirETA">Patient's ETA to evacuation location</label><input id="mirETA" type="text">
+        <label class="mirField" for="mirHazards">Helispot / extraction site size and hazards</label><textarea id="mirHazards"></textarea>
+      </section>
+      <section><h3>5. ADDITIONAL RESOURCES / EQUIPMENT NEEDS</h3>
+        <p class="mirHint">Examples: Paramedic/EMT, crews, immobilization devices, AED, oxygen, trauma bag, IV/fluids, splints, rope rescue, wheeled litter, HAZMAT, extrication.</p>
+        <div class="mirChecks"><label><input type="checkbox" id="mirEMT"> Paramedic / EMT</label><label><input type="checkbox" id="mirCrews"> Crews</label><label><input type="checkbox" id="mirAED"> AED</label><label><input type="checkbox" id="mirOxygen"> Oxygen</label><label><input type="checkbox" id="mirTrauma"> Trauma bag</label><label><input type="checkbox" id="mirLitter"> Wheeled litter</label><label><input type="checkbox" id="mirEquipOther"> Other</label></div>
+        <label class="mirField" for="mirEquipment">Additional equipment / Other description</label><textarea id="mirEquipment"></textarea>
+      </section>
+      <section><h3>6. COMMUNICATIONS</h3><p class="mirHint">Identify state air/ground EMS frequencies and hospital contacts as applicable.</p>
+        <div style="overflow-x:auto"><table><thead><tr><th>Function</th><th>Channel name / number</th><th>Receive (RX)</th><th>Tone / NAC</th><th>Transmit (TX)</th><th>Tone / NAC</th></tr></thead><tbody>
+          <tr><th>COMMAND</th><td><input id="mirCmdName" type="text"></td><td><input id="mirCmdRX" type="text"></td><td><input id="mirCmdRXTone" type="text"></td><td><input id="mirCmdTX" type="text"></td><td><input id="mirCmdTXTone" type="text"></td></tr>
+          <tr><th>AIR-TO-GRND</th><td><input id="mirAirName" type="text"></td><td><input id="mirAirRX" type="text"></td><td><input id="mirAirRXTone" type="text"></td><td><input id="mirAirTX" type="text"></td><td><input id="mirAirTXTone" type="text"></td></tr>
+          <tr><th>TACTICAL</th><td><input id="mirTacName" type="text"></td><td><input id="mirTacRX" type="text"></td><td><input id="mirTacRXTone" type="text"></td><td><input id="mirTacTX" type="text"></td><td><input id="mirTacTXTone" type="text"></td></tr>
+        </tbody></table></div>
+      </section>
+      <section><h3>7. CONTINGENCY</h3><p class="mirHint">If primary options fail, what actions can be implemented in conjunction with the primary evacuation method?</p><textarea id="mirContingency"></textarea></section>
+      <section><h3>8. ADDITIONAL INFORMATION</h3><p class="mirHint">Updates / changes, etc.</p><textarea id="mirAdditional"></textarea></section>
+      <p class="mirHint">REMEMBER: Confirm ETAs of resources ordered. Act according to your level of training. Be alert. Keep calm. Think clearly. Act decisively.</p>
+    </div>
+    <div id="mirFooter"><button type="button" id="mirClose">CLOSE</button><button type="button" id="mirClear">CLEAR FORM</button><button type="button" id="mirSave">SAVE PDF</button><span id="mirState" aria-live="polite"></span></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
@@ -2111,6 +2221,66 @@ html, body {
 
   // ZOOM CONTROLS — fixed in the lower-right corner.
   L.control.zoom({position:"bottomright",zoomInTitle:"Zoom in",zoomOutTitle:"Zoom out"}).addTo(map);
+
+
+  // MIR: self-contained form state lives in DOM memory until this page is reloaded.
+  const mirModal=document.getElementById('mirModal');
+  const mirBody=document.getElementById('mirBody');
+  const mirState=document.getElementById('mirState');
+  const mirFields=Array.from(mirBody.querySelectorAll('input,textarea'));
+  let mirDirty=false;
+  const mirControl=L.control({position:'bottomright'});
+  mirControl.onAdd=function(){const container=L.DomUtil.create('div','leaflet-control-mir');const button=document.createElement('button');button.type='button';button.textContent='MIR';button.title='Medical Incident Report';button.setAttribute('aria-label','Open Medical Incident Report');container.appendChild(button);L.DomEvent.disableClickPropagation(container);L.DomEvent.disableScrollPropagation(container);button.addEventListener('click',function(){mirModal.hidden=false;});return container;};
+  mirControl.addTo(map); // added after zoom: Leaflet bottom-right controls stack upward
+  function mirClose(){mirModal.hidden=true;}
+  document.getElementById('mirClose').addEventListener('click',mirClose);
+  document.getElementById('mirCloseTop').addEventListener('click',mirClose);
+  mirFields.forEach(el=>el.addEventListener(el.type==='checkbox'?'change':'input',function(){mirDirty=true;mirState.textContent='UNSAVED CHANGES';}));
+  document.getElementById('mirClear').addEventListener('click',function(){if(!confirm('Clear all MIR entries? This cannot be undone.'))return;mirFields.forEach(el=>{if(el.type==='checkbox')el.checked=false;else el.value='';});mirDirty=false;mirState.textContent='FORM CLEARED';mirBody.scrollTop=0;});
+  function mirVal(id){const el=document.getElementById(id);return el.type==='checkbox'?el.checked:el.value.trim();}
+  function mirSelected(items){return items.filter(item=>mirVal(item[0])).map(item=>item[1]);}
+  document.getElementById('mirSave').addEventListener('click',function(){
+    if(!window.jspdf||!window.jspdf.jsPDF){alert('PDF library did not load. Connect to the internet and reload TopoTac before saving. Your form entries remain in memory.');return;}
+    try{
+      const doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'pt',format:'letter'});
+      const W=612,M=32,R=W-M,contentW=W-2*M;let y=34,page=1;
+      const text=(str,x,yy,size=9,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(20,20,20);doc.text(String(str),x,yy);};
+      const footer=()=>{doc.setDrawColor(130);doc.line(M,752,R,752);text('ICS 206 WF (03/18) | Medical Incident Report | TopoTac transcription',M,765,7);text('Page '+page,R,765,7,false);};
+      const nextPage=()=>{footer();doc.addPage();page++;y=35;};
+      const ensure=(height)=>{if(y+height>739)nextPage();};
+      const section=(num,title)=>{ensure(28);doc.setFillColor(226,226,226);doc.rect(M,y-12,contentW,20,'F');text(num+'. '+title,M+6,y+2,10,true);y+=22;};
+      const field=(label,value)=>{const valueText=String(value||'');doc.setFont('helvetica','normal');doc.setFontSize(9);const lines=doc.splitTextToSize(valueText||' ',contentW-15);const height=14+Math.max(1,lines.length)*12+5;ensure(height);text(label,M+3,y,8,true);y+=13;lines.forEach(line=>{text(line,M+8,y,9);y+=12;});y+=5;};
+      const checks=(label,items)=>field(label,items.length?items.join('  |  '):'');
+      doc.setFontSize(13);doc.text('MEDICAL PLAN (ICS 206 WF)',W/2,y,{align:'center'});y+=17;
+      doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('Medical Incident Report',W/2,y,{align:'center'});y+=15;
+      doc.setFontSize(8);doc.setFont('helvetica','normal');
+      const notice=doc.splitTextToSize('FOR A MEDICAL EMERGENCY: Identify on-scene incident commander and announce MEDICAL EMERGENCY to communications/dispatch.',contentW);
+      notice.forEach(t=>{text(t,M,y,8,true);y+=10;});y+=9;
+      section(1,'CONTACT COMMUNICATIONS / DISPATCH');field('Contact / call sign / details',mirVal('mirContact'));
+      section(2,'INCIDENT STATUS');
+      checks('Severity / transport priority',mirSelected([['mirRed','RED / PRIORITY 1'],['mirYellow','YELLOW / PRIORITY 2'],['mirGreen','GREEN / PRIORITY 3']]));
+      field('Nature / mechanism of injury or illness; brief summary',mirVal('mirInjury'));
+      const evac=mirSelected([['mirAir','Air Ambulance'],['mirHoist','Short Haul / Hoist'],['mirGround','Ground Ambulance'],['mirEvacOther','Other']]);
+      if(mirVal('mirEvacOtherText'))evac.push('Other details: '+mirVal('mirEvacOtherText'));
+      checks('Evacuation request',evac);
+      field('Patient location (description and WGS84 lat. / long.)',mirVal('mirPatientLocation'));
+      field('Incident name',mirVal('mirIncident'));field('On-scene incident commander',mirVal('mirIC'));field('Patient care provider',mirVal('mirCare'));
+      section(3,'INITIAL PATIENT ASSESSMENT');field('Patient assessment',mirVal('mirAssessment'));field('Treatment',mirVal('mirTreatment'));
+      section(4,'EVACUATION PLAN');field('Evacuation location (if different)',mirVal('mirEvacLocation'));field("Patient's ETA to evacuation location",mirVal('mirETA'));field('Helispot / extraction site size and hazards',mirVal('mirHazards'));
+      section(5,'ADDITIONAL RESOURCES / EQUIPMENT NEEDS');
+      checks('Selected needs',mirSelected([['mirEMT','Paramedic / EMT'],['mirCrews','Crews'],['mirAED','AED'],['mirOxygen','Oxygen'],['mirTrauma','Trauma bag'],['mirLitter','Wheeled litter'],['mirEquipOther','Other']]));
+      field('Additional equipment / Other description',mirVal('mirEquipment'));
+      section(6,'COMMUNICATIONS');
+      for(const [name,prefix] of [['COMMAND','mirCmd'],['AIR-TO-GRND','mirAir'],['TACTICAL','mirTac']]){
+        field(name+' — Channel / RX / RX tone / TX / TX tone',[mirVal(prefix+'Name'),mirVal(prefix+'RX'),mirVal(prefix+'RXTone'),mirVal(prefix+'TX'),mirVal(prefix+'TXTone')].join('  |  '));
+      }
+      section(7,'CONTINGENCY');field('Backup plans',mirVal('mirContingency'));
+      section(8,'ADDITIONAL INFORMATION');field('Updates / changes',mirVal('mirAdditional'));
+      ensure(30);text('Confirm ETAs. Act according to your training. Be alert. Keep calm. Think clearly. Act decisively.',M,y,8);footer();
+      const stamp=new Date();const pad=n=>String(n).padStart(2,'0');const filename='TopoTac_MIR_'+stamp.getFullYear()+'-'+pad(stamp.getMonth()+1)+'-'+pad(stamp.getDate())+'_'+pad(stamp.getHours())+pad(stamp.getMinutes())+'.pdf';
+      doc.save(filename);mirDirty=false;mirState.textContent='PDF DOWNLOAD REQUESTED';
+    }catch(err){console.error('MIR PDF error',err);alert('Could not create PDF: '+err.message);}
+  });
 
   // =========================================================
   // BASE MAPS
@@ -4669,6 +4839,8 @@ clearGpxButton.addEventListener("click", function () {
       exportBtn.addEventListener("click",()=>exportDrawnLineGpx(line));
       const hoseBtn=makeAction("HOSE LAY PROFILE");
       hoseBtn.addEventListener("click",()=>{map.closePopup();openHoseProfile(line);});
+      const constructBtn=makeAction("LINE CONSTRUCTION PROFILE");
+      constructBtn.addEventListener("click",()=>{map.closePopup();openLineConstructionProfile(line);});
       const deleteBtn=makeAction("DELETE LINE");
       deleteBtn.addEventListener("click",()=>{
         if(!confirm('Delete line "'+line.name+'"?'))return;
@@ -5029,6 +5201,177 @@ clearGpxButton.addEventListener("click", function () {
       status.classList.remove("hose-loading");
       status.textContent = "Elevation unavailable: " + err.message + ". No pressure estimates shown. Check internet access and the browser console.";
       console.warn("Hose elevation query failed", err);
+    }
+  }
+
+
+  // LINE CONSTRUCTION — independent modal, shared 3DEP elevation sampler.
+  // All rates below are transcribed from NWCG 2021 Fire Line Production Rate Tables.
+  // Crews: sustained 20-person direct construction, feet/hour (pp. 2–3).
+  const LINE_CREW_RATES={
+    1:[1122,627],2:[1122,627],4:[436,449],5:[1089,471],6:[1089,471],
+    8:[693,447],9:[693,447],10:[693,447],11:[990,594],12:[462,264],13:[330,198]
+  };
+  // Dozer table p.7: for each type and fuel group, up and down ranges in chains/hr,
+  // four columns correspond to 0–25%, 26–40%, 41–55%, 56–74%.
+  const LINE_DOZER={
+    3:{
+      '1,2':{up:[[55,90],[30,55],[8,30],[0,8]],down:[[90,110],[90,110],[20,90],[0,20]]},
+      '3,5,8':{up:[[45,70],[25,45],[2,25],[0,2]],down:[[70,80],[65,80],[0,65],[0,0]]},
+      '4':{up:[[20,35],[10,20],[0,10],[0,0]],down:[[35,40],[25,40],[0,25],[0,0]]},
+      '6,7,9':{up:[[35,55],[15,35],[0,15],[0,0]],down:[[55,60],[40,60],[0,40],[0,0]]},
+      '11,12':{up:[[15,25],[7,15],[0,7],[0,0]],down:[[25,30],[10,30],[0,10],[0,0]]},
+      '10,13':{up:[[8,15],[3,8],[0,3],[0,0]],down:[[10,15],[5,10],[0,5],[0,0]]}
+    },
+    2:{
+      '1,2':{up:[[85,125],[60,85],[30,60],[0,30]],down:[[125,145],[130,145],[75,130],[0,75]]},
+      '3,5,8':{up:[[70,105],[45,70],[15,45],[0,15]],down:[[105,120],[105,120],[55,105],[0,55]]},
+      '4':{up:[[35,60],[20,35],[2,20],[0,2]],down:[[60,75],[65,76],[20,65],[0,20]]},
+      '6,7,9':{up:[[50,85],[30,50],[7,30],[0,7]],down:[[85,100],[85,100],[40,85],[0,40]]},
+      '11,12':{up:[[25,40],[15,25],[1,15],[0,1]],down:[[40,55],[45,55],[0,45],[0,0]]},
+      '10,13':{up:[[10,20],[7,10],[0,7],[0,0]],down:[[20,25],[20,25],[0,20],[0,0]]}
+    },
+    1:{
+      '1,2':{up:[[100,140],[70,100],[35,70],[0,35]],down:[[140,155],[140,155],[85,140],[0,85]]},
+      '3,5,8':{up:[[75,110],[50,75],[20,50],[0,20]],down:[[110,130],[110,130],[55,110],[0,55]]},
+      '4':{up:[[45,70],[30,45],[8,30],[0,8]],down:[[70,80],[75,85],[25,75],[0,25]]},
+      '6,7,9':{up:[[65,95],[40,65],[15,40],[0,15]],down:[[95,110],[90,110],[50,90],[0,50]]},
+      '11,12':{up:[[35,55],[20,35],[3,20],[0,3]],down:[[55,65],[55,65],[6,55],[0,6]]},
+      '10,13':{up:[[20,35],[9,20],[0,9],[0,0]],down:[[35,40],[30,40],[0,30],[0,0]]}
+    }
+  };
+  const lineConstModal=document.getElementById('lineConstModal');
+  let lineConstSelected=null;
+  function closeLineConstructionProfile(){hoseRequestId++;lineConstModal.hidden=true;}
+  document.getElementById('lineConstClose').addEventListener('click',closeLineConstructionProfile);
+  lineConstModal.addEventListener('click',e=>{if(e.target===lineConstModal)closeLineConstructionProfile();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!lineConstModal.hidden)closeLineConstructionProfile();});
+  L.DomEvent.disableClickPropagation(lineConstModal);L.DomEvent.disableScrollPropagation(lineConstModal);
+  function openLineConstructionProfile(line){
+    lineConstSelected=line;lineConstModal.hidden=false;
+    document.getElementById('lineConstSummary').textContent='';
+    document.getElementById('lineConstStatus').classList.remove('hose-loading');
+    document.getElementById('lineConstStatus').textContent='Choose a fuel model and resource, then select CALCULATE.';
+    document.getElementById('lineConstWarning').textContent='';
+    document.getElementById('lineConstGraph').replaceChildren();
+  }
+  document.getElementById('lineConstCalculate').addEventListener('click',()=>{if(lineConstSelected)calculateLineConstruction(lineConstSelected);});
+  // Use the actual polyline endpoint. No hose-length snapping or extrapolation.
+  function sampleConstructionPath(vertices){
+    const lengths=[0];
+    for(let i=1;i<vertices.length;i++)lengths.push(lengths[i-1]+map.distance(vertices[i-1],vertices[i])*3.280839895);
+    const total=lengths[lengths.length-1],dists=[0];
+    for(let d=100;d<total-0.00001;d+=100)dists.push(d);
+    if(total>0)dists.push(total);
+    const stations=dists.map(d=>{
+      let i=1;while(i<lengths.length-1&&lengths[i]<d)i++;
+      const len=lengths[i]-lengths[i-1],t=len?(d-lengths[i-1])/len:0;
+      return {ft:d,lat:vertices[i-1].lat+(vertices[i].lat-vertices[i-1].lat)*t,lng:vertices[i-1].lng+(vertices[i].lng-vertices[i-1].lng)*t};
+    });
+    return {stations,total};
+  }
+  function lineDozerRange(type,fuel,grade){
+    const group=Object.keys(LINE_DOZER[type]).find(k=>k.split(',').includes(String(fuel)));
+    const row=LINE_DOZER[type][group];
+    const slope=Math.abs(grade);
+    const cls=slope<=25?0:slope<=40?1:slope<=55?2:slope<=74?3:-1;
+    if(cls<0)return null;
+    return row[grade<0?'down':'up'][cls].map(v=>v*66); // 1 chain = 66 ft
+  }
+  function lineTimeText(hours){
+    if(!Number.isFinite(hours))return 'N/A';
+    const m=Math.round(hours*60),h=Math.floor(m/60);
+    return h?(h+'h'+String(m%60).padStart(2,'0')+'m'):(m+'m');
+  }
+  function drawConstructionChart(stations,total,segments){
+    const svg=document.getElementById('lineConstGraph');svg.replaceChildren();
+    const labels=stations.filter((p,i)=>i===0||i===stations.length-1||Math.abs(p.ft/100-Math.round(p.ft/100))<0.00001);
+    const width=Math.max(720,(labels.length-1)*120+160),height=460,left=80,right=45,top=100,bottom=72;
+    const plotW=width-left-right-125,plotH=height-top-bottom;
+    svg.setAttribute('width',width);svg.setAttribute('height',height);svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+    const vals=stations.map(p=>p.rel),min=Math.min(0,...vals),max=Math.max(0,...vals),span=Math.max(40,max-min);
+    const lo=Math.floor((min-span*.14)/20)*20,hi=Math.ceil((max+span*.14)/20)*20;
+    const x=d=>left+d/Math.max(100,total)*plotW,y=e=>top+(hi-e)/(hi-lo)*plotH;
+    for(let j=0;j<=5;j++){
+      const v=lo+(hi-lo)*j/5,yy=y(v);
+      svg.append(svgEl('line',{x1:left,y1:yy,x2:width-right,y2:yy,stroke:'#ddd'}));
+      svg.append(svgEl('text',{x:left-8,y:yy+4,'text-anchor':'end','font-size':12,fill:'#444'},Math.round(v)+' ft'));
+    }
+    svg.append(svgEl('polyline',{points:stations.map(p=>x(p.ft)+','+y(p.rel)).join(' '),fill:'none',stroke:'#ad6018','stroke-width':3}));
+    // Spread the final endpoint's text to the next 100-ft label slot if the
+    // final segment is short; keep its terrain marker at its true location.
+    for(let i=0;i<labels.length;i++){
+      const p=labels[i],xx=x(p.ft),yy=y(p.rel);
+      let lx=xx;
+      if(i===labels.length-1&&i>1&&p.ft-labels[i-1].ft<65)lx=Math.max(xx,x(labels[i-1].ft)+115);
+      svg.append(svgEl('circle',{cx:xx,cy:yy,r:4,fill:'#ff861c',stroke:'#fff','stroke-width':1}));
+      const ty=Math.max(42,yy-32);
+      svg.append(svgEl('line',{x1:lx,y1:ty+5,x2:xx,y2:yy-5,stroke:'#999','stroke-dasharray':'2 3'}));
+      const txt=p.timeValid?(p.timeMin===p.timeMax?lineTimeText(p.timeMin):lineTimeText(p.timeMin)+'–'+lineTimeText(p.timeMax)):'N/A';
+      svg.append(svgEl('text',{x:lx,y:ty-16,'text-anchor':'middle','font-size':11,'font-weight':'bold',fill:'#222'},'T:'+txt));
+      svg.append(svgEl('text',{x:lx,y:ty-2,'text-anchor':'middle','font-size':11,fill:'#222'},i===0?'START':Math.round(p.ft)+"'"));
+      svg.append(svgEl('text',{x:xx,y:height-39,'text-anchor':'middle','font-size':11,fill:'#333'},Math.round(p.ft)+' ft'));
+    }
+    for(let i=1;i<labels.length;i++){
+      const a=labels[i-1],b=labels[i],run=b.ft-a.ft;
+      if(run<=0)continue;
+      const grade=100*(b.elevation-a.elevation)/run,mid=(a.ft+b.ft)/2;
+      const ymid=y((a.rel+b.rel)/2),yy=Math.min(height-bottom-22,Math.max(top+35,ymid+32));
+      const tAttrs={x:x(mid),y:yy,'text-anchor':'middle','font-size':11,'font-weight':'bold',fill:'#275b35',stroke:'#fff','stroke-width':3,'paint-order':'stroke'};
+      svg.append(svgEl('text',tAttrs,'SL:'+Math.round(grade)+'%'));
+      svg.append(svgEl('text',{...tAttrs,y:yy+14},'EG:'+(b.rel>0?'+':'')+Math.round(b.rel)+"'"));
+      const seg=segments.filter(z=>z.endFt>a.ft+0.00001&&z.startFt<b.ft-0.00001);
+      const bad=seg.some(z=>z.lowRate<=0||z.highRate<=0);
+      const avg=seg.length&&!bad?seg.reduce((v,z)=>v+(z.highRate+z.lowRate)/2*(Math.min(z.endFt,b.ft)-Math.max(z.startFt,a.ft)),0)/seg.reduce((v,z)=>v+(Math.min(z.endFt,b.ft)-Math.max(z.startFt,a.ft)),0):null;
+      svg.append(svgEl('text',{...tAttrs,y:yy+28},'R:'+(avg===null?'N/A':Math.round(avg))+'ft/h'));
+    }
+    svg.append(svgEl('text',{x:width/2,y:height-10,'text-anchor':'middle','font-size':13,'font-weight':'bold'},'Fireline distance from start (feet)'));
+    svg.append(svgEl('text',{x:15,y:top-24,'font-size':12,'font-weight':'bold'},'Relative elevation'));
+  }
+  async function calculateLineConstruction(line){
+    const token=++hoseRequestId,status=document.getElementById('lineConstStatus'),summary=document.getElementById('lineConstSummary'),warning=document.getElementById('lineConstWarning'),svg=document.getElementById('lineConstGraph');
+    status.classList.remove('hose-loading');status.textContent='';summary.textContent='';warning.textContent='';svg.replaceChildren();
+    const fuel=Number(document.getElementById('lineConstFuel').value),resource=document.getElementById('lineConstResource').value;
+    const {stations,total}=sampleConstructionPath(line.vertices);
+    if(total<=0||total>10000){status.textContent='Line distance must be between 0 and 10,000 feet.';return;}
+    status.classList.add('hose-loading');
+    status.textContent=`Retrieving ${stations.length} terrain elevations using USGS 3DEP batch sampling…`;
+    try{
+      if(!await loadHoseElevations(stations,token,status))return;
+      if(token!==hoseRequestId)return;
+      const base=stations[0].elevation;
+      stations.forEach(p=>p.rel=p.elevation-base);
+      let lowHours=0,highHours=0,valid=true,invalidSegments=0;
+      const invalidDetails=[];
+      const segments=[];
+      for(let i=1;i<stations.length;i++){
+        const a=stations[i-1],b=stations[i],run=b.ft-a.ft;
+        const grade=100*(b.elevation-a.elevation)/run;
+        const range=resource.startsWith('crew')?(()=>{const r=LINE_CREW_RATES[fuel][resource==='crew1'?0:1];return [r,r];})():lineDozerRange(Number(resource.slice(-1)),fuel,grade);
+        const [lowRate,highRate]=range||[0,0];
+        segments.push({startFt:a.ft,endFt:b.ft,lowRate,highRate,grade});
+        if(!range||lowRate<=0||highRate<=0){
+          valid=false;invalidSegments++;
+          const reason=!range?'slope outside NWCG 0–74% classes':highRate<=0?'published production rate is zero':'published range includes zero (no finite worst-case time)';
+          invalidDetails.push(`${Math.round(a.ft)}–${Math.round(b.ft)} ft: SL:${Math.round(grade)}% (${reason}; rate ${lowRate}–${highRate} ft/h)`);
+        }
+        else if(valid){lowHours+=run/highRate;highHours+=run/lowRate;}
+        b.timeValid=valid;b.timeMin=lowHours;b.timeMax=highHours;
+      }
+      stations[0].timeValid=true;stations[0].timeMin=0;stations[0].timeMax=0;
+      const resourceLabel=document.getElementById('lineConstResource').selectedOptions[0].textContent;
+      const fuelLabel=document.getElementById('lineConstFuel').selectedOptions[0].textContent;
+      const result=valid?(lineTimeText(lowHours)===lineTimeText(highHours)?lineTimeText(lowHours):lineTimeText(lowHours)+' to '+lineTimeText(highHours)):'Unavailable for entire route';
+      summary.textContent=`${resourceLabel} | ${fuelLabel} | Distance: ${Math.round(total).toLocaleString()} ft (${(total/66).toFixed(1)} chains) | Estimated construction time: ${result}`;
+      if(invalidSegments)warning.textContent=`⚠ ${invalidSegments} construction segment(s) have unsupported or zero-bound dozer rates. All slope labels and calculations use the same 100-ft intervals (or the shorter final interval). N/A begins after the first affected segment. Details: ${invalidDetails.join('; ')}.`;
+      status.classList.remove('hose-loading');
+      status.textContent=`3DEP loaded · ${stations.length} terrain samples · calculations and chart at 100-ft stations · NWCG 2021 production tables`;
+      drawConstructionChart(stations,total,segments);
+    }catch(err){
+      if(token!==hoseRequestId)return;
+      status.classList.remove('hose-loading');
+      status.textContent='Elevation unavailable: '+err.message+'. No time estimates shown.';
+      console.warn('Line construction elevation query failed',err);
     }
   }
 
