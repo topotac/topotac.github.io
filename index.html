@@ -1969,7 +1969,7 @@ html, body {
 <div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tap a saved line for Hose Lay, Line Construction, GPX Export, or Delete</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button><button id="lineDeleteAllButton" type="button" style="background:#8b1e1e;color:#fff;border-color:#ff861c">DELETE ALL LINES</button></div>
 <div id="hoseModal" hidden role="dialog" aria-modal="true" aria-labelledby="hoseTitle"><div id="hosePanel">
 <div id="hoseHeader"><h2 id="hoseTitle">HOSE LAY PROFILE</h2><button id="hoseClose" type="button" aria-label="Close hose lay profile">✕</button></div>
-<div id="hoseControls"><label for="hosePsi">Pump discharge PSI</label><input id="hosePsi" type="number" min="50" max="300" step="5" value="150"><button id="hoseCalculate" type="button">CALCULATE</button></div>
+<div id="hoseControls"><label for="hosePsi">Pump discharge PSI</label><input id="hosePsi" type="number" min="50" max="300" step="5" value="125"><button id="hoseCalculate" type="button">CALCULATE</button></div>
 <fieldset class="elevation-source" aria-label="Elevation data source"><legend>Elevation source</legend><label><input type="radio" name="hoseElevationSource" value="dogami" checked> DOGAMI (Oregon)</label><label><input type="radio" name="hoseElevationSource" value="usgs"> USGS 3DEP (nationwide)</label><span id="hoseElevationSourceHint">DOGAMI selected for Oregon routes.</span></fieldset>
 <div id="hoseSummary"></div>
 <div id="hoseStatus" role="status"></div>
@@ -5255,12 +5255,12 @@ clearGpxButton.addEventListener("click", function () {
       Math.abs(p.ft / 100 - Math.round(p.ft / 100)) < .00001
     );
     for (const p of labels) {
-      const xx = x(p.ft), yy = y(p.rel), alert = p.staticPsi >= 300, color = alert ? "#c00" : "#222";
+      const xx = x(p.ft), yy = y(p.rel), alert = p.staticPsi >= 300, depleted = Math.round(p.staticPsi) <= 0, color = alert ? "#c00" : "#222";
       const labelX = xx;
-      svg.append(svgEl("circle", {cx:xx,cy:yy,r:4,fill:alert?"#c00":"#ff861c",stroke:"white","stroke-width":1}));
+      svg.append(svgEl("circle", {cx:xx,cy:yy,r:4,fill:(alert||depleted)?"#c00":"#ff861c",stroke:"white","stroke-width":1}));
       const ty = Math.max(34, yy - 24);
       svg.append(svgEl("line", {x1:labelX,y1:ty+4,x2:xx,y2:yy-5,stroke:"#999","stroke-dasharray":"2 3"}));
-      svg.append(svgEl("text", {x:labelX,y:ty-15,"text-anchor":"middle","font-size":11,"font-weight":"bold",fill:color}, "S:" + Math.round(p.staticPsi) + "P"));
+      svg.append(svgEl("text", {x:labelX,y:ty-15,"text-anchor":"middle","font-size":11,"font-weight":"bold",fill:(alert||depleted)?"#c00":"#222"}, "S:" + Math.round(p.staticPsi) + "P"));
       svg.append(svgEl("text", {x:labelX,y:ty-2,"text-anchor":"middle","font-size":11,fill:color}, p.ft < 0.001 ? "PUMP" : "AF:" + Math.round(p.availableFlow) + "G@30P"));
       svg.append(svgEl("text", {x:labelX,y:height-39,"text-anchor":"middle","font-size":11,fill:"#333"}, Math.round(p.ft) + " ft"));
     }
