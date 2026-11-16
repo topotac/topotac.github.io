@@ -4,7 +4,7 @@
 <!--
  TOPOTAC SOURCE GUIDE
  01. Styles: map, controls, drawer, legend, and responsive layouts
- 02. Markup: controls, GPS/situs readouts, GPX input, marked points
+ 02. Markup: controls, GPS/situs readouts, GPX files, marked point actions
  03. Tools drawer and legend behavior
  04. Leaflet initialization and base maps
  05. ArcGIS exports: LiDAR, PLSS, public land, taxlots
@@ -274,13 +274,8 @@ html, body {
   min-height: 44px !important;
   border: 2px solid #ff861c !important;
 }
-#clearPointsButton {
-  bottom: 332px;
-  color: #b42318;
-}
-#enterCoordsButton {
-  bottom: 380px;
-}
+
+
 .marked-point-pin {
   width: 26px;
   height: 26px;
@@ -661,11 +656,8 @@ html, body {
     bottom: 8px !important;
     left: 8px !important;
   }
-  #clearPointsButton {
-    bottom: 8px;
-    left: 438px;
-  }
-  #enterCoordsButton {
+
+#enterCoordsButton {
     bottom: 8px;
     left: 550px;
   }
@@ -770,11 +762,8 @@ html, body {
     bottom: 12px !important;
     left: 8px !important;
   }
-  #clearPointsButton {
-    bottom: 268px;
-    left: 8px;
-  }
-  #enterCoordsButton {
+
+#enterCoordsButton {
     bottom: 316px;
     left: 8px;
   }
@@ -890,11 +879,8 @@ html, body {
     bottom: 8px !important;
     left: 8px !important;
   }
-  #clearPointsButton {
-    bottom: 8px;
-    left: 438px;
-  }
-  #enterCoordsButton {
+
+#enterCoordsButton {
     bottom: 8px;
     left: 550px;
   }
@@ -995,11 +981,8 @@ html, body {
     bottom: 12px !important;
     left: 8px !important;
   }
-  #clearPointsButton {
-    bottom: 268px;
-    left: 8px;
-  }
-  #enterCoordsButton {
+
+#enterCoordsButton {
     bottom: 316px;
     left: 8px;
   }
@@ -1111,11 +1094,8 @@ html, body {
     bottom: 8px !important;
     left: 8px !important;
   }
-  #clearPointsButton {
-    bottom: 8px;
-    left: 438px;
-  }
-  #enterCoordsButton {
+
+#enterCoordsButton {
     bottom: 8px;
     left: 550px;
   }
@@ -1220,7 +1200,7 @@ html, body {
   left: 105px !important;
 }
 #drawLineButton {
-  left: calc(105px + 108px) !important;
+  left: 209px !important;
 }
 #drawLineButton[aria-pressed="true"] {
   background: #e00000 !important;
@@ -1273,7 +1253,6 @@ html, body {
 }
 @media (max-width:420px) {
   #drawLineButton {
-    left: 211px !important;
     padding: 8px 6px !important;
     font-size: 11px !important;
   }
@@ -1901,6 +1880,27 @@ html, body {
 #mirState{margin-left:auto;font-size:12px;color:#a00000;font-weight:bold}
 @media(max-width:520px){#mirBody .mirGrid{grid-template-columns:1fr}#mirBody{padding:8px}#mirPanel{max-height:98dvh}}
 
+
+/* MARKED POINT ACTIONS — one panel and one set of button rules. */
+#pointActionsPanel {
+  position:absolute;top:59px;left:105px;z-index:3200;
+  width:310px;max-width:calc(100vw - 125px);box-sizing:border-box;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;
+  padding:9px;background:#171717;color:#fff;border:2px solid #ff861c;
+  border-radius:7px;box-shadow:0 2px 7px #0005;font:12px Arial;
+}
+#pointActionsPanel[hidden] {display:none!important}
+#pointActionsPanel .point-actions-hint {grid-column:1/-1;text-align:center;color:#ffbf83;font-size:11px}
+#pointActionsPanel button {
+  min-width:0;min-height:40px;width:100%;box-sizing:border-box;
+  margin:0;padding:7px 5px;background:#171717;color:#fff;
+  border:1px solid #ff861c;border-radius:5px;font:bold 11px Arial;
+  cursor:pointer;touch-action:manipulation;
+}
+#pointActionsPanel #pointSingleButton[aria-pressed="true"] {background:#d90000;color:#fff}
+#pointActionsPanel #clearPointsButton {background:#8b1e1e}
+#pointActionsPanel #pointActionsClose {grid-column:1/-1}
+@media(max-width:420px) {#pointActionsPanel {left:9px;max-width:calc(100vw - 18px)}}
 </style>
 </head>
 
@@ -1948,6 +1948,15 @@ html, body {
 
 <button id="addPointButton" class="point-button" type="button" aria-pressed="false">ADD POINT</button>
 <button id="drawLineButton" class="point-button" type="button" aria-pressed="false">DRAW LINE</button>
+<div id="pointActionsPanel" hidden role="group" aria-label="Marked point tools">
+  <div class="point-actions-hint" id="pointActionsHint">Choose a point action</div>
+  <button id="pointSingleButton" type="button" aria-pressed="false">ADD SINGLE POINT</button>
+  <button id="enterCoordsButton" type="button">ADD BY COORDS</button>
+  <button id="savePointsGpxButton" type="button">SAVE AS GPX</button>
+  <button id="clearPointsButton" type="button">DELETE ALL POINTS</button>
+  <button id="pointActionsClose" type="button">CANCEL</button>
+</div>
+
 <div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tap a saved line for Hose Lay, Line Construction, GPX Export, or Delete</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button><button id="lineDeleteAllButton" type="button" style="background:#8b1e1e;color:#fff;border-color:#ff861c">DELETE ALL LINES</button></div>
 <div id="hoseModal" hidden role="dialog" aria-modal="true" aria-labelledby="hoseTitle"><div id="hosePanel">
 <div id="hoseHeader"><h2 id="hoseTitle">HOSE LAY PROFILE</h2><button id="hoseClose" type="button" aria-label="Close hose lay profile">✕</button></div>
@@ -1974,8 +1983,6 @@ html, body {
     <div style="display:flex;gap:8px;justify-content:flex-end"><button id="lineSaveCancel" type="button" style="padding:9px 14px">CANCEL</button><button type="submit" style="padding:9px 14px">SAVE LINE</button></div>
   </form>
 </div>
-<button id="clearPointsButton" class="point-button" type="button">CLEAR POINTS</button>
-<button id="enterCoordsButton" class="point-button" type="button">ENTER COORDS</button>
 <button id="measureAreaButton" type="button" aria-pressed="false">MEASURE AREA</button>
 <button id="clearMeasureButton" type="button">CLR MEASURE</button>
 <div id="measureStatus" role="status" hidden></div>
@@ -2103,8 +2110,8 @@ html, body {
   document.body.append(saveGpsButton, gpsStatsButton, gpsStatsPanel);
   const groups = [
     ['GPS & TRACKING', ['addressSearchButton', 'clearTrackButton', 'saveGpsButton', 'gpsStatsButton', 'gpsCoordinates', 'gpsStatsPanel']],
-    ['GPX TRACKS', ['gpxImportButton', 'clearGpxButton']],
-    ['POINTS & MEASURE', ['enterCoordsButton', 'measureAreaButton', 'clearPointsButton', 'clearMeasureButton', 'measureStatus']],
+    ['GPX FILES', ['gpxImportButton', 'clearGpxButton']],
+    ['MEASURE', ['measureAreaButton', 'clearMeasureButton', 'measureStatus']],
     ['DISPLAY', ['opacityControl']]
   ];
  groups.forEach(([heading, ids]) => {
@@ -2134,6 +2141,7 @@ html, body {
  // Keep ADD POINT visible so its active state cannot be hidden in the drawer.
  document.body.append(document.getElementById('gpsButton'));
  document.body.append(document.getElementById('addPointButton'));
+ document.body.append(document.getElementById('pointActionsPanel'));
  document.body.append(document.getElementById('drawLineButton'));
  document.body.append(document.getElementById('lineDrawPanel'));
   function close() {
@@ -4346,20 +4354,23 @@ function historicalPerimeterStyle() {
       });
     }
 
-    // Add named waypoints if the GPX contains them.
+    // Add standalone waypoints, including GPX files containing no tracks.
+    const waypointPoints=[];
     Array.from(xml.getElementsByTagName("wpt")).forEach(function (node) {
       const point = gpxPointFromNode(node);
       if (!point) return;
+      waypointPoints.push(point);
       const name = gpxText(node, "name") || "Waypoint";
       L.marker(point).bindPopup(
         "<strong>" + escapeHtml(name) + "</strong><br>GPX waypoint"
       ).addTo(thisFileLayer);
     });
 
-    if (!allPoints.length) {
-      throw new Error("No usable track or route points were found in " + fileName + ".");
+    if (!allPoints.length && !waypointPoints.length) {
+      throw new Error("No usable tracks, routes, or waypoints were found in " + fileName + ".");
     }
 
+    if (allPoints.length) {
     const firstPoint = allPoints[0];
     const lastPoint = allPoints[allPoints.length - 1];
     L.marker(firstPoint, { icon: makeGpxEndpointIcon("start") })
@@ -4368,6 +4379,7 @@ function historicalPerimeterStyle() {
     L.marker(lastPoint, { icon: makeGpxEndpointIcon("end") })
       .bindPopup("<strong>End</strong><br>" + escapeHtml(trackName))
       .addTo(thisFileLayer);
+    }
 
     const distance = gpxDistanceMeters(allPoints);
    // Display this imported file immediately and track it
@@ -4378,14 +4390,14 @@ function historicalPerimeterStyle() {
 
     layerControl.addOverlay(
       thisFileLayer,
-      escapeHtml(trackName) + " (" + formatGpxDistance(distance) + ")"
+      escapeHtml(trackName) + (allPoints.length ? " (" + formatGpxDistance(distance) + ")" : " (" + waypointPoints.length + " points)")
     );
 
-    const bounds = L.latLngBounds(allPoints);
+    const bounds = L.latLngBounds(allPoints.concat(waypointPoints));
     if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), { maxZoom: 16 });
 
-    return trackName + ": " + allPoints.length + " points, " +
-      formatGpxDistance(distance);
+    return trackName + ": " + allPoints.length + " track points, " + waypointPoints.length + " waypoints" +
+      (allPoints.length ? ", " + formatGpxDistance(distance) : "");
   }
 
   gpxImportButton.addEventListener("click", function () {
@@ -4556,6 +4568,7 @@ clearGpxButton.addEventListener("click", function () {
       toDDM(event.latlng.lng);
     if (measureActive || lineDrawingActive) return;
     if (pointPlacementActive) {
+      setPointMode(false); // A single tap places one point, then exits placement mode.
       addMarkedPoint(event.latlng.lat, event.latlng.lng);
     } else {
       identifyClickedParcel(event.latlng);
@@ -4642,10 +4655,40 @@ clearGpxButton.addEventListener("click", function () {
   function setPointMode(active) {
     pointPlacementActive=active;
     addPointButton.setAttribute("aria-pressed",String(active));
-    addPointButton.textContent=active?"✓ ADD POINT":"ADD POINT";
+    document.getElementById("pointSingleButton").setAttribute("aria-pressed",String(active));
+    document.getElementById("pointActionsHint").textContent=active?"Tap the map to place a point":"Choose a point action";
     map.getContainer().style.cursor=active?"crosshair":"";
   }
-  addPointButton.addEventListener("click",()=>{if(lineDrawingActive)cancelLineDrawing();if(measureActive)stopMeasure();setPointMode(!pointPlacementActive);});
+  const pointActionsPanel=document.getElementById("pointActionsPanel");
+  addPointButton.addEventListener("click",()=>{
+    const opening=pointActionsPanel.hidden;
+    pointActionsPanel.hidden=!opening;
+    if(!opening) setPointMode(false);
+    if(opening){
+      document.getElementById("toolsDrawer").hidden=true;
+      document.getElementById("toolsToggle").setAttribute("aria-expanded","false");
+      if(lineDrawingActive) cancelLineDrawing();
+    }
+  });
+  // One-shot point placement: no persistent placement mode after a map tap.
+  document.getElementById("pointSingleButton").addEventListener("click",()=>{
+    if(lineDrawingActive)cancelLineDrawing();
+    if(measureActive)stopMeasure();
+    setPointMode(true);
+    pointActionsPanel.hidden=true;
+  });
+  document.getElementById("pointActionsClose").addEventListener("click",()=>{setPointMode(false);pointActionsPanel.hidden=true;});
+  document.getElementById("savePointsGpxButton").addEventListener("click",()=>{
+    if(!markedPoints.length){alert("No marked points to export.");return;}
+    const escapeXml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+    const waypoints=markedPoints.map(p=>`  <wpt lat="${p.lat}" lon="${p.lng}"><name>${escapeXml(p.name||`Point ${p.id}`)}</name></wpt>`).join("\n");
+    const gpx=`<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="TopoTac" xmlns="http://www.topografix.com/GPX/1/1">\n${waypoints}\n</gpx>\n`;
+    const url=URL.createObjectURL(new Blob([gpx],{type:"application/gpx+xml;charset=utf-8"}));
+    const link=document.createElement("a");link.href=url;
+    link.download="TopoTac_Points_"+new Date().toISOString().slice(0,10)+".gpx";
+    document.body.append(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  });
   clearPointsButton.addEventListener("click",()=>{
     if (!markedPoints.length) return;
     const confirmed=confirm("Delete all "+markedPoints.length+" marked points?");
@@ -4659,6 +4702,7 @@ clearGpxButton.addEventListener("click", function () {
     pointEntryPanel.hidden = !opening;
     pointEntryError.textContent = "";
     if (opening) {
+      pointActionsPanel.hidden=true;
       // The coordinate editor is a separate panel, not part of the Tools drawer.
       document.getElementById("toolsDrawer").hidden = true;
       document.getElementById("toolsToggle").setAttribute("aria-expanded", "false");
@@ -4734,7 +4778,7 @@ clearGpxButton.addEventListener("click", function () {
       });
     });
   });
-  [addPointButton,clearPointsButton,enterCoordsButton,pointEntryPanel].forEach(el=>{
+  [addPointButton,pointActionsPanel,pointEntryPanel].forEach(el=>{
     L.DomEvent.disableClickPropagation(el);
     L.DomEvent.disableScrollPropagation(el);
   });
@@ -4922,7 +4966,7 @@ clearGpxButton.addEventListener("click", function () {
   }
   drawLineButton.addEventListener("click",()=>{
     if(lineDrawingActive){cancelLineDrawing();return;}
-    if(measureActive)stopMeasure();setPointMode(false);
+    if(measureActive)stopMeasure();setPointMode(false);pointActionsPanel.hidden=true;
     lineDrawingActive=true;draftVertices=[];lineDrawPanel.hidden=false;
     drawLineButton.setAttribute("aria-pressed","true");drawLineButton.textContent="✓ DRAW LINE";
     map.getContainer().style.cursor="crosshair";refreshDraftLine();
