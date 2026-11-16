@@ -5278,7 +5278,7 @@ clearGpxButton.addEventListener("click", function () {
     } catch (err) {
       if (token !== hoseRequestId) return;
       status.classList.remove("hose-loading");
-      status.textContent = "Elevation unavailable: " + err.message + ". No pressure estimates shown. Check internet access and the browser console.";
+      status.textContent = "Elevation data unavailable. Tap CALCULATE again to retry. If it continues, check your internet connection.";
       console.warn("Hose elevation query failed", err);
     }
   }
@@ -5449,7 +5449,7 @@ clearGpxButton.addEventListener("click", function () {
     }catch(err){
       if(token!==hoseRequestId)return;
       status.classList.remove('hose-loading');
-      status.textContent='Elevation unavailable: '+err.message+'. No time estimates shown.';
+      status.textContent='Elevation data unavailable. Tap CALCULATE again to retry. If it continues, check your internet connection.';
       console.warn('Line construction elevation query failed',err);
     }
   }
