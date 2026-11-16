@@ -1898,6 +1898,18 @@ html, body {
 /* Compact mobile chart guidance shared by both profile dialogs. */
 .profile-scroll-tip{display:block;width:fit-content;max-width:100%;box-sizing:border-box;background:#fff7ed;border-left:3px solid #ff861c;border-radius:3px;padding:5px 9px;margin:7px 0 5px;color:#573515;font:600 12px/1.3 Arial,sans-serif}
 @media(max-width:600px){#hosePanel,#lineConstPanel{padding:10px}#hoseHeader h2,#lineConstHeader h2{font-size:17px}#hoseScroll,#lineConstScroll{margin-top:5px}}
+
+/* Shared elevation source selection: compact, touch-friendly radio controls. */
+.elevation-source{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin:8px 0 10px;padding:7px 10px;border:1px solid #bbb;border-radius:6px;font:12px Arial}
+.elevation-source legend{font-weight:bold;padding:0 4px}
+.elevation-source label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;min-height:26px}
+.elevation-source input{accent-color:#e87810;width:17px;height:17px;margin:0}
+.elevation-source span{flex-basis:100%;font-size:11px;color:#555}
+
+#lineConstFuelGuide{background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:12px;margin:12px 0;line-height:1.45;font-size:12px}
+#lineConstFuelGuide p{margin:7px 0}
+.fuel-guide-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 14px;margin:9px 0}
+@media(max-width:600px){.fuel-guide-grid{grid-template-columns:1fr}}
 </style>
 </head>
 
@@ -1958,27 +1970,30 @@ html, body {
 <div id="hoseModal" hidden role="dialog" aria-modal="true" aria-labelledby="hoseTitle"><div id="hosePanel">
 <div id="hoseHeader"><h2 id="hoseTitle">HOSE LAY PROFILE</h2><button id="hoseClose" type="button" aria-label="Close hose lay profile">✕</button></div>
 <div id="hoseControls"><label for="hosePsi">Pump discharge PSI</label><input id="hosePsi" type="number" min="50" max="300" step="5" value="150"><button id="hoseCalculate" type="button">CALCULATE</button></div>
+<fieldset class="elevation-source" aria-label="Elevation data source"><legend>Elevation source</legend><label><input type="radio" name="hoseElevationSource" value="dogami" checked> DOGAMI (Oregon)</label><label><input type="radio" name="hoseElevationSource" value="usgs"> USGS 3DEP (nationwide)</label><span id="hoseElevationSourceHint">DOGAMI selected for Oregon routes.</span></fieldset>
 <div id="hoseSummary"></div>
 <div id="hoseStatus" role="status"></div>
 <div id="hoseWarning" role="alert"></div>
 <div class="profile-scroll-tip" role="note">↔ Swipe horizontally to view full chart</div>
 <div id="hoseScroll"><svg id="hoseGraph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Elevation profile with static pressure and estimated available flow at each wye"></svg></div>
 <div id="hosePressureHelp"><strong>Understanding the chart labels</strong><p><strong>S = Static pressure (P = PSI):</strong> Negative pressures use a single minus sign after the colon, without a space (for example, <strong>S:-12P</strong>). Estimated pressure at the wye with no water flowing, including elevation changes.</p><p><strong>AF = Available Flow:</strong> Estimated maximum flow at that wye while retaining <strong>30 PSI</strong> residual pressure. For example, <strong>AF:5G@30P</strong> means 5 gallons per minute (G) at 30 PSI (P). Each wye is evaluated separately, with all other outlets closed.</p><p><strong>SL = Slope:</strong> Grade between adjacent wye dots, calculated from elevation change divided by hose distance. Positive values are uphill; negative values are downhill (example: <strong>SL:-45%</strong>).</p><p><strong>EG = Elevation Gain:</strong> Net elevation difference at the downstream gated wye relative to the pump position. Positive is above the pump; negative is below (example: <strong>EG:+167'</strong>).</p><p>Drawn distance snaps to complete 100-ft hose lengths: 50 ft or less rounds down, more than 50 ft rounds up. All wyes, terrain samples, and pressure calculations use the snapped distance. When rounding up, the final hose continues in the direction of the last drawn segment. Estimates assume 1½-inch supply hose, a gated wye every 100 ft, and a MARK-3 reference-flow limit.</p></div>
-<p id="hoseNote">Planning estimate only. Hoselay distance is snapped to full 100-ft hose lengths (50 ft rounds down); extending a line follows its final drawn direction. AF is modeled for one open wye at a time, holding 30 PSI at that wye; 1½-inch hose and a gated wye per 100 ft. MARK-3 reference flow is a simplified cap, not a complete pump curve. Elevation comes from USGS 3DEP raster; elevations are sampled every 50 ft, but smaller terrain low spots can still be missed. Actual flow, hose friction, nozzle demand, appliance losses and pump shutoff pressure may differ. Pump reference flow below 100 or above 250 PSI is extrapolated beyond MARK-3 reference points. 300 PSI is a planning alert, not a hose rating. Closed valves and water hammer can produce higher pressures.</p>
+<p id="hoseNote">Planning estimate only. Hoselay distance is snapped to full 100-ft hose lengths (50 ft rounds down); extending a line follows its final drawn direction. AF is modeled for one open wye at a time, holding 30 PSI at that wye; 1½-inch hose and a gated wye per 100 ft. MARK-3 reference flow is a simplified cap, not a complete pump curve. Elevation comes from the selected DOGAMI bare-earth LiDAR or USGS 3DEP raster; elevations are sampled every 50 ft, but smaller terrain low spots can still be missed. Actual flow, hose friction, nozzle demand, appliance losses and pump shutoff pressure may differ. Pump reference flow below 100 or above 250 PSI is extrapolated beyond MARK-3 reference points. 300 PSI is a planning alert, not a hose rating. Closed valves and water hammer can produce higher pressures.</p>
 </div></div>
 
 <div id="lineConstModal" hidden role="dialog" aria-modal="true" aria-labelledby="lineConstTitle"><div id="lineConstPanel">
 <div id="lineConstHeader"><h2 id="lineConstTitle">LINE CONSTRUCTION PROFILE</h2><button id="lineConstClose" type="button" aria-label="Close line construction profile">✕</button></div>
 <div id="lineConstControls"><label for="lineConstFuel">Fuel model</label><select id="lineConstFuel">
-<option value="1">1 — Short Grass</option><option value="2">2 — Open Timber / Grass</option><option value="4">4 — Chaparral</option><option value="5">5 — Brush</option><option value="6">6 — Dormant Brush / Hardwood Slash</option><option value="8">8 — Closed Timber Litter</option><option value="9">9 — Hardwood Litter</option><option value="10">10 — Timber Litter &amp; Understory</option><option value="11">11 — Light Logging Slash</option><option value="12">12 — Medium Logging Slash</option><option value="13">13 — Heavy Logging Slash</option>
+<option value="1">1 — Short Grass</option><option value="2">2 — Grass / Open Timber &amp; Shrubs</option><option value="4">4 — Chaparral / Mature Brush</option><option value="5">5 — Young Brush</option><option value="6">6 — Intermediate / Dormant Brush</option><option value="8">8 — Closed Timber / Short-Needle Litter</option><option value="9">9 — Hardwood / Long-Needle Pine Litter</option><option value="10">10 — Mature Timber / Heavy Understory</option><option value="11">11 — Light Slash</option><option value="12">12 — Medium Slash</option><option value="13">13 — Heavy Slash</option>
 </select><label for="lineConstResource">Resource</label><select id="lineConstResource"><option value="crew1">Type 1 Crew (20-person)</option><option value="crew2">Type 2 Crew (20-person)</option><option value="dozer1">Type 1 Dozer (heavy)</option><option value="dozer2">Type 2 Dozer (medium)</option><option value="dozer3">Type 3 Dozer (light)</option></select><button id="lineConstCalculate" type="button">CALCULATE</button></div>
+<fieldset class="elevation-source" aria-label="Elevation data source"><legend>Elevation source</legend><label><input type="radio" name="lineConstElevationSource" value="dogami" checked> DOGAMI (Oregon)</label><label><input type="radio" name="lineConstElevationSource" value="usgs"> USGS 3DEP (nationwide)</label><span id="lineConstElevationSourceHint">DOGAMI selected for Oregon routes.</span></fieldset>
 <div id="lineConstSummary"></div>
 <div id="lineConstStatus" role="status"></div>
 <div id="lineConstWarning" role="alert"></div>
 <div class="profile-scroll-tip" role="note">↔ Swipe horizontally to view full chart</div>
 <div id="lineConstScroll"><svg id="lineConstGraph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fireline terrain profile, slope, elevation gain, and estimated construction time"></svg></div>
-<div id="lineConstHelp"><strong>Reading the chart</strong><p><strong>SL:</strong> slope between adjacent 100-ft stations (positive uphill, negative downhill). <strong>EG:</strong> elevation gain relative to the start of the line (positive above, negative below). <strong>T:</strong> cumulative estimated construction time at each station (hours and minutes). <strong>R:</strong> estimated production rate in feet per hour for that segment.</p><p><strong>Crews:</strong> NWCG sustained 20-person crew rates; Type 1 and Type 2 direct-line values are used where published. For fuel models 7 and 11–13, NWCG provides separate older crew-type rates without direct/indirect classification. Crew rates are not adjusted for slope because this table provides no slope multiplier.</p><p><strong>Dozers:</strong> NWCG single-pass rates vary by fuel model, dozer type, uphill/downhill direction and slope class. For published production ranges, the midpoint is used for planning estimates (for example, 0–7 becomes 3.5 chains/hour). Only a zero-only rate or slope beyond 74% prevents a finite time estimate. No slope extrapolation is applied.</p><p><strong>Distance:</strong> Line construction uses the <strong>actual drawn route</strong>, not the 100-ft hose-length rounding rule. Terrain is sampled at 100-ft intervals and at the actual endpoint. All construction slopes, production rates, and times use those same intervals.</p></div>
-<p id="lineConstNote">Planning estimates only. Source: NWCG Fire Line Production Rate Tables (2021), pp. 2–3 and 7–8; original rates are based on older studies. Rates do not guarantee field performance. Crew values represent sustained 20-person crews, and dozer values represent single-pass construction. Weather, rocks, access, fatigue, operator skill, line width, vegetation, tactical constraints, and safety conditions can materially change actual construction time. Dozer slope classes are based on segment-average grade; short steep pitches can be missed by 100-ft average slopes. No terrain data or unsupported production rate means no time estimate.</p>
+<div id="lineConstFuelGuide"><strong>Fuel model quick reference (Anderson 13-model system)</strong><p>Choose the fuel model that best represents the fuels along the proposed line, not simply the dominant tree species.</p><div class="fuel-guide-grid"><div><b>1 — Short Grass:</b> Mostly cured grass, little shrub or tree cover.</div><div><b>2 — Grass / Open Timber &amp; Shrubs:</b> Grass carries fire beneath scattered trees or shrubs.</div><div><b>4 — Chaparral / Mature Brush:</b> Tall, dense, mature shrubs with substantial woody fuel; includes Oregon mixed brush.</div><div><b>5 — Young Brush:</b> Shorter, greener shrubs with relatively little dead material.</div><div><b>6 — Intermediate / Dormant Brush:</b> Older, more flammable shrubs than Model 5; less fuel than Model 4. Can include cured hardwood slash.</div><div><b>8 — Closed Timber / Short-Needle Litter:</b> Compact needles and leaves beneath a shaded, closed canopy, with little understory.</div><div><b>9 — Hardwood / Long-Needle Pine Litter:</b> Oak, madrone, or long-needle pine litter; generally more active surface spread than Model 8.</div><div><b>10 — Mature Timber / Heavy Understory:</b> Heavier downed woody fuels and understory in timber stands.</div><div><b>11 — Light Slash:</b> Scattered limbs and lighter cutting or natural debris.</div><div><b>12 — Medium Slash:</b> More continuous debris from thinning, partial cuts, or clearcuts.</div><div><b>13 — Heavy Slash:</b> Heavy concentrations of logging debris and large woody material.</div></div><p>These are identification aids, not a replacement for field fuel assessment. The calculator continues using the original NWCG production-rate model numbers.</p></div>
+<div id="lineConstHelp"><strong>Reading the chart</strong><p><strong>SL:</strong> slope between adjacent 100-ft stations (positive uphill, negative downhill). <strong>EG:</strong> elevation gain relative to the start of the line (positive above, negative below). <strong>T:</strong> cumulative estimated construction time at each station (hours and minutes). <strong>R:</strong> estimated production rate in feet per hour for that segment.</p><p><strong>Crews:</strong> NWCG sustained 20-person crew rates; Type 1 and Type 2 direct-line values are used where published. For fuel models 7 and 11–13, NWCG provides separate older crew-type rates without direct/indirect classification. Crew rates are not adjusted for slope because this table provides no slope multiplier.</p><p><strong>Dozers:</strong> NWCG single-pass rates vary by fuel model, dozer type, uphill/downhill direction and slope class. Segment slopes are rounded to the nearest whole percent before selecting a slope class, matching the SL chart label. For published production ranges, the midpoint is used for planning estimates (for example, 0–7 becomes 3.5 chains/hour). Only a zero-only rate or slope beyond 74% prevents a finite time estimate. No slope extrapolation is applied.</p><p><strong>Distance:</strong> Line construction uses the <strong>actual drawn route</strong>, not the 100-ft hose-length rounding rule. Terrain is sampled at 100-ft intervals and at the actual endpoint. All construction slopes, production rates, and times use those same intervals.</p></div>
+<p id="lineConstNote">Planning estimates only. Source: NWCG Fire Line Production Rate Tables (2021), pp. 2–3 and 7–8; original rates are based on older studies. Rates do not guarantee field performance. Crew values represent sustained 20-person crews, and dozer values represent single-pass construction. Weather, rocks, access, fatigue, operator skill, line width, vegetation, tactical constraints, and safety conditions can materially change actual construction time. Dozer slope classes use each segment-average grade rounded to the nearest whole percent, matching the displayed SL label; short steep pitches can be missed by 100-ft average slopes. No terrain data or unsupported production rate means no time estimate.</p>
 </div></div>
 <div id="lineSaveDialog" hidden role="dialog" aria-modal="true" aria-labelledby="lineSaveTitle" style="position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box">
   <form id="lineSaveForm" style="background:#fff;color:#171717;border-radius:10px;padding:18px;width:min(340px,100%);box-sizing:border-box;box-shadow:0 8px 32px #0005;display:grid;gap:10px">
@@ -5033,6 +5048,7 @@ clearGpxButton.addEventListener("click", function () {
   L.DomEvent.disableClickPropagation(hoseModal);L.DomEvent.disableScrollPropagation(hoseModal);
   function openHoseProfile(line) {
     hoseSelectedLine = line;
+    initializeElevationSource("hose",line.vertices);
     hoseModal.hidden = false;
     calculateHoseProfile(line);
   }
@@ -5100,82 +5116,105 @@ clearGpxButton.addEventListener("click", function () {
     });
     return {stations, total, clickedTotal};
   }
-  // Batch USGS 3DEP ImageServer raster samples in one request per 150 points.
-  // The source raster is meters; convert to international feet.
+  // Shared elevation sampler. Both profiles keep their original 50/100-ft stations.
+  // DOGAMI bare-earth DTM values are feet; USGS 3DEP values are meters.
+  const elevationServices={
+    dogami:{name:'DOGAMI',url:'https://gis.dogami.oregon.gov/arcgis/rest/services/lidar/DIGITAL_TERRAIN_MODEL_MOSAIC/ImageServer/getSamples',feetPerUnit:1},
+    usgs:{name:'USGS 3DEP',url:'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/getSamples',feetPerUnit:3.280839895}
+  };
   const hoseElevationCache=new Map();
-  async function loadHoseElevations(stations,token,status){
+  // Approximate Oregon boundary for choosing the initial source; no remote geocoder.
+  // User can override at any time. DOGAMI's actual coverage is checked by samples.
+  const oregonOutline=[
+    [-124.57,42.00],[-117.03,42.00],[-117.03,44.30],[-116.90,44.75],
+    [-116.98,45.40],[-116.87,45.62],[-116.98,46.00],[-117.60,46.00],
+    [-118.25,45.78],[-119.00,45.93],[-119.70,45.85],[-120.65,45.75],
+    [-121.20,45.70],[-121.65,45.70],[-122.20,45.55],[-122.75,45.60],
+    [-123.20,46.12],[-123.95,46.25],[-124.10,46.20],[-124.57,45.90]
+  ];
+  function isOregonPoint(lat,lng){
+    let inside=false;
+    for(let i=0,j=oregonOutline.length-1;i<oregonOutline.length;j=i++){
+      const [xi,yi]=oregonOutline[i],[xj,yj]=oregonOutline[j];
+      if(((yi>lat)!==(yj>lat))&&(lng<(xj-xi)*(lat-yi)/(yj-yi)+xi))inside=!inside;
+    }
+    return inside;
+  }
+  function sourceForRoute(stations){return stations.length&&stations.every(p=>isOregonPoint(p.lat,p.lng))?'dogami':'usgs';}
+  function setElevationSource(kind,source,hint){
+    const name=kind==='hose'?'hoseElevationSource':'lineConstElevationSource';
+    const radio=document.querySelector(`input[name="${name}"][value="${source}"]`);
+    if(radio)radio.checked=true;
+    const info=document.getElementById(kind==='hose'?'hoseElevationSourceHint':'lineConstElevationSourceHint');
+    if(info)info.textContent=hint|| (source==='dogami'?'DOGAMI selected for Oregon routes.':'USGS selected for routes outside Oregon.');
+  }
+  for(const kind of ['hose','lineConst']){
+    const name=kind==='hose'?'hoseElevationSource':'lineConstElevationSource';
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r=>r.addEventListener('change',()=>{
+      if(!r.checked)return;
+      const other=kind==='hose'?'lineConst':'hose';
+      setElevationSource(other,r.value,'Source last selected in the other profile.');
+      setElevationSource(kind,r.value,r.value==='dogami'?'DOGAMI selected. Oregon coverage only.':'USGS 3DEP selected. Nationwide coverage.');
+    }));
+  }
+  function selectedElevationSource(kind){return document.querySelector(`input[name="${kind==='hose'?'hoseElevationSource':'lineConstElevationSource'}"]:checked`)?.value||'usgs';}
+  function initializeElevationSource(kind,vertices){
+    const src=sourceForRoute(vertices||[]);
+    setElevationSource(kind,src,src==='dogami'?'DOGAMI default for Oregon. Switch to USGS if needed.':'Outside Oregon: USGS selected automatically.');
+  }
+  async function loadHoseElevations(stations,token,status,sourceKey){
+    const service=elevationServices[sourceKey];
+    if(!service)throw Error('Unknown elevation source');
+    if(sourceKey==='dogami'&&!stations.every(p=>isOregonPoint(p.lat,p.lng)))throw Error('DOGAMI is only available for Oregon routes. Select USGS.');
     const uncached=[];
-    stations.forEach((p, i) => {
-      const key = p.lat.toFixed(6) + "," + p.lng.toFixed(6);
-      p._elevKey = key;
-      if (hoseElevationCache.has(key)) p.elevation = hoseElevationCache.get(key);
-      else uncached.push({p, i});
+    stations.forEach((p,i)=>{
+      const key=sourceKey+':'+p.lat.toFixed(6)+','+p.lng.toFixed(6);
+      p._elevKey=key;
+      if(hoseElevationCache.has(key))p.elevation=hoseElevationCache.get(key);
+      else uncached.push({p,i});
     });
     for(let start=0;start<uncached.length;start+=150){
       const group=uncached.slice(start,start+150);
-      status.textContent=`Requesting terrain elevations in batches (${Math.min(start+group.length,uncached.length)} of ${uncached.length})…`;
-      const geometry = {
-        points: group.map(({p}) => [p.lng, p.lat]),
-        spatialReference: {wkid: 4326}
-      };
-      const body = new URLSearchParams({
-        f: "json",
-        geometryType: "esriGeometryMultipoint",
-        geometry: JSON.stringify(geometry),
-        returnFirstValueOnly: "true",
-        interpolation: "RSP_BilinearInterpolation"
-      });
-      let data, lastError;
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const controller = new AbortController(),
-              timer = setTimeout(() => controller.abort(), 20000);
-        try {
-          const r = await fetch(
-            "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/getSamples",
-            {
-              method: "POST",
-              headers: {"Content-Type": "application/x-www-form-urlencoded"},
-              body: body.toString(),
-              signal: controller.signal
-            }
-          );
-          if (!r.ok) throw Error("3DEP HTTP " + r.status);
-          data = await r.json();
-          if (data.error) throw Error(data.error.message || "3DEP service error");
-          if (!Array.isArray(data.samples)) throw Error("3DEP returned no samples");
+      status.textContent=`${service.name}: requesting elevations (${Math.min(start+group.length,uncached.length)} of ${uncached.length})…`;
+      const geometry={points:group.map(({p})=>[p.lng,p.lat]),spatialReference:{wkid:4326}};
+      const body=new URLSearchParams({f:'json',geometryType:'esriGeometryMultipoint',geometry:JSON.stringify(geometry),returnFirstValueOnly:'true',interpolation:'RSP_BilinearInterpolation'});
+      let data,lastError;
+      for(let attempt=0;attempt<2;attempt++){
+        const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+        try{
+          const r=await fetch(service.url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),signal:controller.signal});
+          if(!r.ok)throw Error(`${service.name} HTTP ${r.status}`);
+          data=await r.json();
+          if(data.error)throw Error(data.error.message||`${service.name} service error`);
+          if(!Array.isArray(data.samples))throw Error(`${service.name} returned no samples`);
           break;
-        } catch (err) {
-          lastError = err;
-        } finally {
-          clearTimeout(timer);
-        }
+        }catch(err){lastError=err;data=null;}
+        finally{clearTimeout(timer);}
       }
-      if (!data) throw Error("3DEP batch request failed: " + (lastError?.message || "unknown error"));
-      if (token !== hoseRequestId) return false;
-      // ArcGIS samples include the sampled location. Match by coordinates rather than
-      // trusting array ordering, since no-data locations can be omitted by the service.
-      const unused = data.samples.map(sample => ({sample, used: false}));
-      for (const {p} of group) {
-        let best = null, bestD = Infinity;
-        for (const item of unused) {
-          if (item.used) continue;
-          const xy = item.sample.location;
-          const x = Number(xy?.x), y = Number(xy?.y);
-          if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
-          const d = Math.pow((x - p.lng) * Math.cos(p.lat * Math.PI / 180), 2) + Math.pow(y - p.lat, 2);
-          if (d < bestD) {bestD = d; best = item;}
+      if(!data)throw Error(`${service.name} batch request failed: ${lastError?.message||'unknown error'}`);
+      if(token!==hoseRequestId)return false;
+      const unused=data.samples.map(sample=>({sample,used:false}));
+      for(const {p} of group){
+        let best=null,bestD=Infinity;
+        for(const item of unused){
+          if(item.used)continue;
+          const xy=item.sample.location;
+          const x=Number(xy?.x),y=Number(xy?.y);
+          if(!Number.isFinite(x)||!Number.isFinite(y))continue;
+          const d=Math.pow((x-p.lng)*Math.cos(p.lat*Math.PI/180),2)+Math.pow(y-p.lat,2);
+          if(d<bestD){bestD=d;best=item;}
         }
-        if (!best || bestD > 1e-8) continue;
-        best.used = true;
-        const meters = Number(best.sample.value);
-        if (best.sample.value === null || best.sample.value === undefined || !Number.isFinite(meters) || meters <= -10000) continue;
-        p.elevation = meters * 3.280839895;
-        hoseElevationCache.set(p._elevKey, p.elevation);
+        if(!best||bestD>1e-8)continue;
+        best.used=true;
+        const raw=Number(best.sample.value);
+        if(best.sample.value===null||best.sample.value===undefined||!Number.isFinite(raw)||raw<=-10000)continue;
+        p.elevation=raw*service.feetPerUnit;
+        hoseElevationCache.set(p._elevKey,p.elevation);
       }
     }
     const missing=stations.filter(p=>!Number.isFinite(p.elevation));
-    if(missing.length)throw Error(`${missing.length} of ${stations.length} 3DEP raster samples unavailable; no pressures calculated`);
-    status.textContent=`Loaded ${stations.length} terrain elevations`;
+    if(missing.length)throw Error(`${missing.length} of ${stations.length} ${service.name} elevation samples unavailable`);
+    status.textContent=`Loaded ${stations.length} elevations from ${service.name}`;
     return true;
   }
   function svgEl(tag, attrs, text) {
@@ -5259,9 +5298,10 @@ clearGpxButton.addEventListener("click", function () {
     if(total<=0||total>10000){status.textContent="Snapped hoselay must be between 100 and 10,000 ft.";return;}
     // Sample every 50 ft for terrain dips; show pressure labels every 100 ft.
     status.classList.add("hose-loading");
-    status.textContent=`Retrieving ${stations.length} terrain elevations using USGS 3DEP batch sampling…`;
+    const sourceKey=selectedElevationSource("hose");
+    status.textContent=`Retrieving ${stations.length} terrain elevations from ${elevationServices[sourceKey].name}…`;
     try{
-      if(!await loadHoseElevations(stations,token,status))return;
+      if(!await loadHoseElevations(stations,token,status,sourceKey))return;
       // Compute static pressure from elevation, then solve each station's
       // single-outlet available flow subject to a 30-PSI residual target.
       const base=stations[0].elevation;
@@ -5273,12 +5313,12 @@ clearGpxButton.addEventListener("click", function () {
       const worst=stations.reduce((a,p)=>p.staticPsi>a.staticPsi?p:a,stations[0]);
       if(worst.staticPsi>=300)warning.textContent=`⚠ HIGH STATIC PRESSURE: estimated ${Math.round(worst.staticPsi)} PSI near ${Math.round(worst.ft)} ft. Verify hose/fitting ratings and actual pressures.`;
       status.classList.remove("hose-loading");
-      status.textContent=`3DEP terrain profile loaded · ${stations.length} elevation samples at 50-ft intervals · S, AF and EG labels every 100 ft · 30 PSI residual target`;
+      status.textContent=`${elevationServices[sourceKey].name} terrain profile loaded · ${stations.length} elevation samples at 50-ft intervals · S, AF and EG labels every 100 ft · 30 PSI residual target`;
       drawHoseChart(stations,total);
     } catch (err) {
       if (token !== hoseRequestId) return;
       status.classList.remove("hose-loading");
-      status.textContent = "Elevation data unavailable. Tap CALCULATE again to retry. If it continues, check your internet connection.";
+      status.textContent = sourceKey==="dogami" ? "DOGAMI elevation unavailable at this location. Tap CALCULATE again to retry, or select USGS 3DEP." : "Elevation data unavailable. Tap CALCULATE again to retry. If it continues, check your internet connection.";
       console.warn("Hose elevation query failed", err);
     }
   }
@@ -5328,7 +5368,7 @@ clearGpxButton.addEventListener("click", function () {
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!lineConstModal.hidden)closeLineConstructionProfile();});
   L.DomEvent.disableClickPropagation(lineConstModal);L.DomEvent.disableScrollPropagation(lineConstModal);
   function openLineConstructionProfile(line){
-    lineConstSelected=line;lineConstModal.hidden=false;
+    lineConstSelected=line;initializeElevationSource("lineConst",line.vertices);lineConstModal.hidden=false;
     document.getElementById('lineConstSummary').textContent='';
     document.getElementById('lineConstStatus').classList.remove('hose-loading');
     document.getElementById('lineConstStatus').textContent='Choose a fuel model and resource, then select CALCULATE.';
@@ -5415,9 +5455,10 @@ clearGpxButton.addEventListener("click", function () {
     const {stations,total}=sampleConstructionPath(line.vertices);
     if(total<=0||total>10000){status.textContent='Line distance must be between 0 and 10,000 feet.';return;}
     status.classList.add('hose-loading');
-    status.textContent=`Retrieving ${stations.length} terrain elevations using USGS 3DEP batch sampling…`;
+    const sourceKey=selectedElevationSource("lineConst");
+    status.textContent=`Retrieving ${stations.length} terrain elevations from ${elevationServices[sourceKey].name}…`;
     try{
-      if(!await loadHoseElevations(stations,token,status))return;
+      if(!await loadHoseElevations(stations,token,status,sourceKey))return;
       if(token!==hoseRequestId)return;
       const base=stations[0].elevation;
       stations.forEach(p=>p.rel=p.elevation-base);
@@ -5426,7 +5467,8 @@ clearGpxButton.addEventListener("click", function () {
       const segments=[];
       for(let i=1;i<stations.length;i++){
         const a=stations[i-1],b=stations[i],run=b.ft-a.ft;
-        const grade=100*(b.elevation-a.elevation)/run;
+        // Match the displayed whole-percent slope before selecting the NWCG slope class.
+        const grade=Math.round(100*(b.elevation-a.elevation)/run);
         const range=resource.startsWith('crew')?(()=>{const r=LINE_CREW_RATES[fuel][resource==='crew1'?0:1];return [r,r];})():lineDozerRange(Number(resource.slice(-1)),fuel,grade);
         const [lowRate,highRate]=range||[0,0];
         segments.push({startFt:a.ft,endFt:b.ft,lowRate,highRate,grade});
@@ -5446,12 +5488,12 @@ clearGpxButton.addEventListener("click", function () {
       summary.textContent=`${resourceLabel} | ${fuelLabel} | Distance: ${Math.round(total).toLocaleString()} ft (${(total/66).toFixed(1)} chains) | Estimated construction time: ${result}`;
       if(invalidSegments)warning.textContent=`⚠ ${invalidSegments} construction segment(s) have unsupported or zero-only dozer rates. All slope labels and calculations use the same 100-ft intervals (or the shorter final interval). N/A begins after the first affected segment. Details: ${invalidDetails.join('; ')}.`;
       status.classList.remove('hose-loading');
-      status.textContent=`3DEP loaded · ${stations.length} terrain samples · calculations and chart at 100-ft stations · NWCG 2021 production tables`;
+      status.textContent=`${elevationServices[sourceKey].name} loaded · ${stations.length} terrain samples · calculations and chart at 100-ft stations · NWCG 2021 production tables`;
       drawConstructionChart(stations,total,segments);
     }catch(err){
       if(token!==hoseRequestId)return;
       status.classList.remove('hose-loading');
-      status.textContent='Elevation data unavailable. Tap CALCULATE again to retry. If it continues, check your internet connection.';
+      status.textContent=sourceKey==='dogami' ? 'DOGAMI elevation unavailable at this location. Tap CALCULATE again to retry, or select USGS 3DEP.' : 'Elevation data unavailable. Tap CALCULATE again to retry. If it continues, check your internet connection.';
       console.warn('Line construction elevation query failed',err);
     }
   }
