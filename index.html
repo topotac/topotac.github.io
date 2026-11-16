@@ -3065,8 +3065,22 @@ function updatePublicLand() {
           "State: " + escapeHtml(props.POOState) +
           "</div>";
 
-        marker.bindPopup(popup);
-        marker.addTo(replacementLayer);
+marker.bindPopup(popup);
+marker.addTo(replacementLayer);
+
+// Larger invisible touch target (40px diameter)
+const fireTouchTarget = L.circleMarker([lat, lng], {
+  radius: 20,
+  stroke: false,
+  fillColor: "#ffffff",
+  fill: true,
+  fillOpacity: 0.001,
+  interactive: true,
+  bubblingMouseEvents: false
+});
+
+fireTouchTarget.bindPopup(popup);
+fireTouchTarget.addTo(replacementLayer);
       });
 
       nifcFireLayer.clearLayers();
