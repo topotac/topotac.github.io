@@ -1977,7 +1977,7 @@ html, body {
 <div id="lineConstWarning" role="alert"></div>
 <div class="profile-scroll-tip" role="note">↔ Swipe horizontally to view full chart</div>
 <div id="lineConstScroll"><svg id="lineConstGraph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fireline terrain profile, slope, elevation gain, and estimated construction time"></svg></div>
-<div id="lineConstHelp"><strong>Reading the chart</strong><p><strong>SL:</strong> slope between adjacent 100-ft stations (positive uphill, negative downhill). <strong>EG:</strong> elevation gain relative to the start of the line (positive above, negative below). <strong>T:</strong> cumulative estimated construction time at each station (hours and minutes). <strong>R:</strong> estimated production rate in feet per hour for that segment.</p><p><strong>Crews:</strong> NWCG sustained 20-person crew rates; Type 1 and Type 2 direct-line values are used where published. For fuel models 7 and 11–13, NWCG provides separate older crew-type rates without direct/indirect classification. Crew rates are not adjusted for slope because this table provides no slope multiplier.</p><p><strong>Dozers:</strong> NWCG single-pass rates vary by fuel model, dozer type, uphill/downhill direction and slope class. Time is shown as a <strong>range</strong> using the published low/high rates; a published zero or slope beyond 74% cannot produce a finite time estimate. No slope extrapolation is applied.</p><p><strong>Distance:</strong> Line construction uses the <strong>actual drawn route</strong>, not the 100-ft hose-length rounding rule. Terrain is sampled at 100-ft intervals and at the actual endpoint. All construction slopes, production rates, and times use those same intervals.</p></div>
+<div id="lineConstHelp"><strong>Reading the chart</strong><p><strong>SL:</strong> slope between adjacent 100-ft stations (positive uphill, negative downhill). <strong>EG:</strong> elevation gain relative to the start of the line (positive above, negative below). <strong>T:</strong> cumulative estimated construction time at each station (hours and minutes). <strong>R:</strong> estimated production rate in feet per hour for that segment.</p><p><strong>Crews:</strong> NWCG sustained 20-person crew rates; Type 1 and Type 2 direct-line values are used where published. For fuel models 7 and 11–13, NWCG provides separate older crew-type rates without direct/indirect classification. Crew rates are not adjusted for slope because this table provides no slope multiplier.</p><p><strong>Dozers:</strong> NWCG single-pass rates vary by fuel model, dozer type, uphill/downhill direction and slope class. For published production ranges, the midpoint is used for planning estimates (for example, 0–7 becomes 3.5 chains/hour). Only a zero-only rate or slope beyond 74% prevents a finite time estimate. No slope extrapolation is applied.</p><p><strong>Distance:</strong> Line construction uses the <strong>actual drawn route</strong>, not the 100-ft hose-length rounding rule. Terrain is sampled at 100-ft intervals and at the actual endpoint. All construction slopes, production rates, and times use those same intervals.</p></div>
 <p id="lineConstNote">Planning estimates only. Source: NWCG Fire Line Production Rate Tables (2021), pp. 2–3 and 7–8; original rates are based on older studies. Rates do not guarantee field performance. Crew values represent sustained 20-person crews, and dozer values represent single-pass construction. Weather, rocks, access, fatigue, operator skill, line width, vegetation, tactical constraints, and safety conditions can materially change actual construction time. Dozer slope classes are based on segment-average grade; short steep pitches can be missed by 100-ft average slopes. No terrain data or unsupported production rate means no time estimate.</p>
 </div></div>
 <div id="lineSaveDialog" hidden role="dialog" aria-modal="true" aria-labelledby="lineSaveTitle" style="position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box">
@@ -5293,6 +5293,7 @@ clearGpxButton.addEventListener("click", function () {
   };
   // Dozer table p.7: for each type and fuel group, up and down ranges in chains/hr,
   // four columns correspond to 0–25%, 26–40%, 41–55%, 56–74%.
+  // Calculation uses midpoint of each published range; [0,0] remains unavailable.
   const LINE_DOZER={
     3:{
       '1,2':{up:[[55,90],[30,55],[8,30],[0,8]],down:[[90,110],[90,110],[20,90],[0,20]]},
@@ -5386,7 +5387,7 @@ clearGpxButton.addEventListener("click", function () {
       svg.append(svgEl('circle',{cx:xx,cy:yy,r:4,fill:'#ff861c',stroke:'#fff','stroke-width':1}));
       const ty=Math.max(42,yy-32);
       svg.append(svgEl('line',{x1:lx,y1:ty+5,x2:xx,y2:yy-5,stroke:'#999','stroke-dasharray':'2 3'}));
-      const txt=p.timeValid?(p.timeMin===p.timeMax?lineTimeText(p.timeMin):lineTimeText(p.timeMin)+'–'+lineTimeText(p.timeMax)):'N/A';
+      const txt=p.timeValid?lineTimeText(p.timeMin):'N/A';
       svg.append(svgEl('text',{x:lx,y:ty-16,'text-anchor':'middle','font-size':11,'font-weight':'bold',fill:'#222'},'T:'+txt));
       svg.append(svgEl('text',{x:lx,y:ty-2,'text-anchor':'middle','font-size':11,fill:'#222'},i===0?'START':Math.round(p.ft)+"'"));
       svg.append(svgEl('text',{x:xx,y:height-39,'text-anchor':'middle','font-size':11,fill:'#333'},Math.round(p.ft)+' ft'));
@@ -5400,7 +5401,7 @@ clearGpxButton.addEventListener("click", function () {
       svg.append(svgEl('text',tAttrs,'SL:'+Math.round(grade)+'%'));
       svg.append(svgEl('text',{...tAttrs,y:yy+14},'EG:'+(b.rel>0?'+':'')+Math.round(b.rel)+"'"));
       const seg=segments.filter(z=>z.endFt>a.ft+0.00001&&z.startFt<b.ft-0.00001);
-      const bad=seg.some(z=>z.lowRate<=0||z.highRate<=0);
+      const bad=seg.some(z=>(z.lowRate+z.highRate)<=0);
       const avg=seg.length&&!bad?seg.reduce((v,z)=>v+(z.highRate+z.lowRate)/2*(Math.min(z.endFt,b.ft)-Math.max(z.startFt,a.ft)),0)/seg.reduce((v,z)=>v+(Math.min(z.endFt,b.ft)-Math.max(z.startFt,a.ft)),0):null;
       svg.append(svgEl('text',{...tAttrs,y:yy+28},'R:'+(avg===null?'N/A':Math.round(avg))+'ft/h'));
     }
@@ -5420,7 +5421,7 @@ clearGpxButton.addEventListener("click", function () {
       if(token!==hoseRequestId)return;
       const base=stations[0].elevation;
       stations.forEach(p=>p.rel=p.elevation-base);
-      let lowHours=0,highHours=0,valid=true,invalidSegments=0;
+      let estimatedHours=0,valid=true,invalidSegments=0;
       const invalidDetails=[];
       const segments=[];
       for(let i=1;i<stations.length;i++){
@@ -5429,20 +5430,21 @@ clearGpxButton.addEventListener("click", function () {
         const range=resource.startsWith('crew')?(()=>{const r=LINE_CREW_RATES[fuel][resource==='crew1'?0:1];return [r,r];})():lineDozerRange(Number(resource.slice(-1)),fuel,grade);
         const [lowRate,highRate]=range||[0,0];
         segments.push({startFt:a.ft,endFt:b.ft,lowRate,highRate,grade});
-        if(!range||lowRate<=0||highRate<=0){
+        const midpointRate=(lowRate+highRate)/2;
+        if(!range||midpointRate<=0){
           valid=false;invalidSegments++;
-          const reason=!range?'slope outside NWCG 0–74% classes':highRate<=0?'published production rate is zero':'published range includes zero (no finite worst-case time)';
+          const reason=!range?'slope outside NWCG 0–74% classes':'published production rate is zero';
           invalidDetails.push(`${Math.round(a.ft)}–${Math.round(b.ft)} ft: SL:${Math.round(grade)}% (${reason}; rate ${lowRate}–${highRate} ft/h)`);
         }
-        else if(valid){lowHours+=run/highRate;highHours+=run/lowRate;}
-        b.timeValid=valid;b.timeMin=lowHours;b.timeMax=highHours;
+        else if(valid){estimatedHours+=run/midpointRate;}
+        b.timeValid=valid;b.timeMin=estimatedHours;b.timeMax=estimatedHours;
       }
       stations[0].timeValid=true;stations[0].timeMin=0;stations[0].timeMax=0;
       const resourceLabel=document.getElementById('lineConstResource').selectedOptions[0].textContent;
       const fuelLabel=document.getElementById('lineConstFuel').selectedOptions[0].textContent;
-      const result=valid?(lineTimeText(lowHours)===lineTimeText(highHours)?lineTimeText(lowHours):lineTimeText(lowHours)+' to '+lineTimeText(highHours)):'Unavailable for entire route';
+      const result=valid?lineTimeText(estimatedHours):'Unavailable for entire route';
       summary.textContent=`${resourceLabel} | ${fuelLabel} | Distance: ${Math.round(total).toLocaleString()} ft (${(total/66).toFixed(1)} chains) | Estimated construction time: ${result}`;
-      if(invalidSegments)warning.textContent=`⚠ ${invalidSegments} construction segment(s) have unsupported or zero-bound dozer rates. All slope labels and calculations use the same 100-ft intervals (or the shorter final interval). N/A begins after the first affected segment. Details: ${invalidDetails.join('; ')}.`;
+      if(invalidSegments)warning.textContent=`⚠ ${invalidSegments} construction segment(s) have unsupported or zero-only dozer rates. All slope labels and calculations use the same 100-ft intervals (or the shorter final interval). N/A begins after the first affected segment. Details: ${invalidDetails.join('; ')}.`;
       status.classList.remove('hose-loading');
       status.textContent=`3DEP loaded · ${stations.length} terrain samples · calculations and chart at 100-ft stations · NWCG 2021 production tables`;
       drawConstructionChart(stations,total,segments);
