@@ -237,6 +237,8 @@ footer a { margin-right: 14px; }
 <li><strong>US Current Fires</strong><span class="layer-description"> — Current mapped fire perimeters.</span></li>
 <li><strong>OR Historical Fires</strong><span class="layer-description"> — Past Oregon fire perimeters.</span></li>
 <li><strong>OR RAWS WX</strong><span class="layer-description"> — Oregon remote weather stations with NWS observation graphs.</span></li>
+<li><strong>GP COMMS</strong><span class="layer-description"> — Grants Pass modeled strongest-repeater radio coverage.</span></li>
+<li><strong>MFR COMMS</strong><span class="layer-description"> — Medford modeled strongest-repeater radio coverage.</span></li>
 <li><strong>US Air Quality (AQI)</strong><span class="layer-description"> — EPA AirNow estimated PM2.5 AQI regions; updates while enabled.</span></li>
 </ol>
 <p>Choose one base map at a time; check or uncheck overlays independently. Imported GPX files add their own named entries when opened, so those entries may appear in addition to this default list. Long filenames may be shortened visually in the menu.</p>
@@ -453,6 +455,27 @@ footer a { margin-right: 14px; }
       </div>
 </section>
 </div>
+<h2 class="section-title" id="radio-comms">Radio coverage — GP &amp; MFR COMMS</h2>
+<div class="grid">
+<section class="card"><h3>GP COMMS — Grants Pass</h3>
+<p>Enable <strong>GP COMMS</strong> in the upper-right Layers menu. The colored overlay identifies the repeater with the strongest predicted signal at each covered location.</p>
+<div class="legend-row"><span class="swatch" style="background:#ff0000"></span><strong>Sexton</strong> — red</div>
+<div class="legend-row"><span class="swatch" style="background:#0066ff"></span><strong>Isabelle</strong> — blue</div>
+<div class="legend-row"><span class="swatch" style="background:#00a000"></span><strong>Grayback</strong> — green</div>
+<p>Tap the map within the GP coverage area while the layer is enabled to view the strongest modeled repeater, predicted signal in <strong>dBm</strong>, and illustrative signal bars. GP's map lookup cutoff is <strong>−116 dBm</strong>.</p></section>
+<section class="card"><h3>MFR COMMS — Medford</h3>
+<p>Enable <strong>MFR COMMS</strong> independently from GP. The overlay identifies the strongest modeled repeater across the Medford radio study area.</p>
+<div class="legend-row"><span class="swatch" style="background:#ff0000"></span><strong>Roxy</strong> — red</div>
+<div class="legend-row"><span class="swatch" style="background:#00cc00"></span><strong>Flounce</strong> — green</div>
+<div class="legend-row"><span class="swatch" style="background:#0066ff"></span><strong>Soda</strong> — blue</div>
+<div class="legend-row"><span class="swatch" style="background:#ff9900"></span><strong>TBOX</strong> — orange</div>
+<p>Tap the map within the MFR coverage area while enabled to view the strongest modeled repeater, predicted <strong>dBm</strong>, and illustrative signal bars. MFR's cutoff is <strong>−118 dBm</strong>.</p></section>
+</div>
+<section class="card"><h3>Reading the radio coverage</h3>
+<p>Each color represents the <strong>strongest predicted repeater</strong> at that location, not a signal-strength category. A colored area does not mean the signal is strong everywhere within it. More negative dBm readings represent weaker predicted signals; for example, −110 dBm is weaker than −90 dBm.</p>
+<p>Check or uncheck GP COMMS and MFR COMMS separately. Both can be enabled, but their colored overlays overlap geographically. <strong>When both are enabled in an overlapping area, MFR takes priority for map-click identification.</strong> Disable MFR to inspect GP there.</p>
+<div class="callout"><strong>Planning estimate only:</strong> Coverage comes from Radio Mobile terrain-based modeling, not real-time measurements. Antenna installation, vegetation, structures, interference, equipment and field conditions can change actual performance. Signal bars are illustrative, not calibrated receiver readings. Never rely on this overlay alone for emergency communications decisions.</div>
+</section>
 <h2 class="section-title">US Air Quality (AQI)</h2>
 <section class="card"><h3>Estimated PM2.5 air quality</h3>
 <p>Enable <strong>US Air Quality (AQI)</strong> in the layer menu to view estimated EPA AirNow PM2.5 AQI regions. The overlay is refreshed approximately hourly while enabled and reloads for the visible map area as needed. Colors follow AQI categories: green (good), yellow (moderate), orange (unhealthy for sensitive groups), red (unhealthy), purple (very unhealthy), and maroon (hazardous).</p>
