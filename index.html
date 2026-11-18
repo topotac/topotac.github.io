@@ -4332,6 +4332,87 @@ function historicalPerimeterStyle() {
     gpRadioPopup = L.popup().setLatLng(latlng).setContent(content).openOn(map);
   }
 
+  // RADIO COVERAGE — MFR (Medford). Separate from GP; compatible 3-byte signal data.
+  const mfrRadioCoverage = L.imageOverlay(
+    "https://topotac.com/radio/MFR/coverage.png",
+    [[41.921599064588, -123.263886724599], [42.777440935412, -122.298843275401]],
+    { opacity: 0.4, interactive: false, attribution: "MFR COMMS" }
+  );
+  const mfrSignalUrl = "https://topotac.com/radio/MFR/signal.bin";
+  const mfrRadioWidth = 375, mfrRadioHeight = 450;
+  const mfrRadioBounds = mfrRadioCoverage.getBounds();
+  const mfrRadioNames = {1:"Flounce", 2:"Soda", 3:"TBOX", 4:"Roxy"};
+  const mfrRadioColors = {1:"#00cc00", 2:"#0066ff", 3:"#ff9900", 4:"#ff0000"};
+  let mfrSignalData = null, mfrSignalLoading = null, mfrRadioPopup = null, mfrRadioRequest = 0;
+
+  function loadMfrSignal() {
+    if (mfrSignalData) return Promise.resolve(mfrSignalData);
+    if (mfrSignalLoading) return mfrSignalLoading;
+    mfrSignalLoading = fetch(mfrSignalUrl).then(response => {
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      return response.arrayBuffer();
+    }).then(buffer => {
+      if (buffer.byteLength !== mfrRadioWidth * mfrRadioHeight * 3)
+        throw new Error("Unexpected MFR signal file size: " + buffer.byteLength);
+      mfrSignalData = new DataView(buffer);
+      return mfrSignalData;
+    }).catch(error => {
+      console.warn("MFR radio lookup unavailable:", error);
+      throw error;
+    }).finally(() => { mfrSignalLoading = null; });
+    return mfrSignalLoading;
+  }
+  function closeMfrRadioPopup() {
+    ++mfrRadioRequest;
+    if (mfrRadioPopup && map.hasLayer(mfrRadioPopup)) map.closePopup(mfrRadioPopup);
+    mfrRadioPopup = null;
+  }
+  map.on("overlayadd", event => {
+    if (event.layer === mfrRadioCoverage) loadMfrSignal().catch(() => {});
+  });
+  map.on("overlayremove", event => {
+    if (event.layer === mfrRadioCoverage) closeMfrRadioPopup();
+  });
+  async function identifyMfrRadio(latlng) {
+    if (!map.hasLayer(mfrRadioCoverage) || !mfrRadioBounds.contains(latlng)) return;
+    const request = ++mfrRadioRequest;
+    let content;
+    try {
+      const data = await loadMfrSignal();
+      if (request !== mfrRadioRequest || !map.hasLayer(mfrRadioCoverage) ||
+          pointPlacementActive || lineDrawingActive || measureActive) return;
+      const north = mfrRadioBounds.getNorth(), south = mfrRadioBounds.getSouth();
+      const west = mfrRadioBounds.getWest(), east = mfrRadioBounds.getEast();
+      const col = Math.min(mfrRadioWidth-1, Math.max(0,
+        Math.floor((latlng.lng-west)/(east-west)*mfrRadioWidth)));
+      const row = Math.min(mfrRadioHeight-1, Math.max(0,
+        Math.floor((north-latlng.lat)/(north-south)*mfrRadioHeight)));
+      const offset = (row*mfrRadioWidth+col)*3;
+      const id = data.getUint8(offset);
+      const tenths = data.getInt16(offset+1, true);
+      if (!id || tenths === -32768 || tenths < -1180) {
+        content = '<strong>MFR COMMS</strong><div>No predicted coverage at or above −118 dBm</div>';
+      } else {
+        const name = mfrRadioNames[id] || "Unknown repeater";
+        const dbm = tenths / 10;
+        const bars = Math.max(1, Math.min(5, Math.floor((dbm+118)/10)+1));
+        const barHtml = Array.from({length:5}, (_,i) =>
+          '<span style="display:inline-block;width:7px;height:'+(9+i*4)+'px;margin-right:3px;vertical-align:bottom;background:'+
+          (i<bars?'#20944e':'#bbb')+'"></span>').join('');
+        content = '<strong>MFR COMMS</strong><div style="margin-top:6px">Strongest: '+
+          '<span style="color:'+mfrRadioColors[id]+';font-weight:bold">●</span> '+name+'</div>'+
+          '<div>Predicted: <strong>'+dbm.toFixed(1)+' dBm</strong></div>'+
+          '<div style="margin-top:5px">'+barHtml+'</div>';
+      }
+      content += '<div style="font-size:10px;color:#666;margin-top:7px">RF Level Prediction, not a measured signal</div>';
+    } catch (error) {
+      if (request !== mfrRadioRequest || !map.hasLayer(mfrRadioCoverage)) return;
+      content = '<strong>MFR COMMS</strong><div>Signal lookup unavailable. Check signal.bin.</div>';
+    }
+    if (request !== mfrRadioRequest || !map.hasLayer(mfrRadioCoverage)) return;
+    mfrRadioPopup = L.popup().setLatLng(latlng).setContent(content).openOn(map);
+  }
+
   // Saved drawn lines have their own visibility checkbox.
   const drawnLineLayer = L.featureGroup().addTo(map);
 
@@ -4347,6 +4428,7 @@ function historicalPerimeterStyle() {
       "Drawn Lines": drawnLineLayer,
       "OR LiDAR": hillshade,
       "GP COMMS": gpRadioCoverage,
+      "MFR COMMS": mfrRadioCoverage,
       "OR State Roads": odfRoads,
       "OR TRS": plss,
       "Josephine Co Taxlots": josephineTaxlots,
@@ -4695,6 +4777,11 @@ clearGpxButton.addEventListener("click", function () {
       toDDM(event.latlng.lat) + "  " +
       toDDM(event.latlng.lng);
     if (measureActive || lineDrawingActive) return;
+    // If both coverage layers are enabled in their overlap, prefer MFR.
+    if (!pointPlacementActive && map.hasLayer(mfrRadioCoverage) && mfrRadioBounds.contains(event.latlng)) {
+      identifyMfrRadio(event.latlng);
+      return;
+    }
     if (!pointPlacementActive && map.hasLayer(gpRadioCoverage) && gpRadioCoverage.getBounds().contains(event.latlng)) {
       identifyGpRadio(event.latlng);
       return;
