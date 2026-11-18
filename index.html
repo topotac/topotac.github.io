@@ -4323,7 +4323,7 @@ function historicalPerimeterStyle() {
           '<div>Predicted: <strong>'+dbm.toFixed(1)+' dBm</strong></div>'+
           '<div style="margin-top:5px">'+barHtml+'</div>';
       }
-      content += '<div style="font-size:10px;color:#666;margin-top:7px">Radio Mobile prediction, not a measured signal</div>';
+      content += '<div style="font-size:10px;color:#666;margin-top:7px">RF Level Prediction, not a measured signal</div>';
     } catch (error) {
       if (request !== gpRadioRequest || !map.hasLayer(gpRadioCoverage)) return;
       content = '<strong>GP Radio Coverage</strong><div>Signal lookup unavailable. Check signal.bin.</div>';
