@@ -1,0 +1,26 @@
+{
+  "id": "GP",
+  "name": "Grants Pass",
+  "version": 1,
+  "coverage_image": "coverage.png",
+  "threshold_dbm": -116,
+  "opacity": 0.5,
+  "bounds": [
+    [41.92159906458797, -123.92187671122996],
+    [42.77744093541203, -122.95684328877006]
+  ],
+  "repeaters": {
+    "1": {
+      "name": "Sexton",
+      "color": "#FF0000"
+    },
+    "2": {
+      "name": "Isabelle",
+      "color": "#0066FF"
+    },
+    "3": {
+      "name": "Grayback",
+      "color": "#00FF00"
+    }
+  }
+}
