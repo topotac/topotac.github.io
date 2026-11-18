@@ -4248,7 +4248,7 @@ function historicalPerimeterStyle() {
       [41.92159906458797, -123.92187671122996],
       [42.77744093541203, -122.95684328877006]
     ],
-    { opacity: 1.0, interactive: false, attribution: "Radio Mobile predicted coverage" }
+    { opacity: 1.0, interactive: false, attribution: "GP COMMS" }
   );
 
   // GP numerical radio lookup: 3 bytes/cell, north-to-south and west-to-east.
@@ -4309,7 +4309,7 @@ function historicalPerimeterStyle() {
       const id = data.getUint8(offset);
       const tenths = data.getInt16(offset+1, true);
       if (!id || tenths === -32768 || tenths < -1160) {
-        content = '<strong>GP Radio Coverage</strong><div>No predicted coverage at or above −116 dBm</div>';
+        content = '<strong>GP COMMS</strong><div>No predicted coverage at or above −116 dBm</div>';
       } else {
         const name = gpRadioNames[id] || "Unknown repeater";
         const dbm = tenths / 10;
@@ -4318,7 +4318,7 @@ function historicalPerimeterStyle() {
         const barHtml = Array.from({length:5}, (_,i) =>
           '<span style="display:inline-block;width:7px;height:'+(9+i*4)+'px;margin-right:3px;vertical-align:bottom;background:'+
           (i<bars?'#20944e':'#bbb')+'"></span>').join('');
-        content = '<strong>GP Radio Coverage</strong><div style="margin-top:6px">Strongest: '+
+        content = '<strong>GP COMMS</strong><div style="margin-top:6px">Strongest: '+
           '<span style="color:'+gpRadioColors[id]+';font-weight:bold">●</span> '+name+'</div>'+
           '<div>Predicted: <strong>'+dbm.toFixed(1)+' dBm</strong></div>'+
           '<div style="margin-top:5px">'+barHtml+'</div>';
@@ -4326,7 +4326,7 @@ function historicalPerimeterStyle() {
       content += '<div style="font-size:10px;color:#666;margin-top:7px">RF Level Prediction, not a measured signal</div>';
     } catch (error) {
       if (request !== gpRadioRequest || !map.hasLayer(gpRadioCoverage)) return;
-      content = '<strong>GP Radio Coverage</strong><div>Signal lookup unavailable. Check signal.bin.</div>';
+      content = '<strong>GP COMMS</strong><div>Signal lookup unavailable. Check signal.bin.</div>';
     }
     if (request !== gpRadioRequest || !map.hasLayer(gpRadioCoverage)) return;
     gpRadioPopup = L.popup().setLatLng(latlng).setContent(content).openOn(map);
