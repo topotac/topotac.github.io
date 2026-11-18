@@ -1,0 +1,52 @@
+{
+  "office": "MFR",
+  "network": "MFR COMMS",
+  "source_file": "MFR_COMMS_2_Pixel(1).txt",
+  "width": 375,
+  "height": 450,
+  "bounds": {
+    "north": 42.77744093541203,
+    "south": 41.92159906458797,
+    "west": -123.26388672459893,
+    "east": -122.29884327540107
+  },
+  "row_order": "north_to_south",
+  "column_order": "west_to_east",
+  "pixel_coordinates": "pixel centers, approximate regular lon/lat grid",
+  "reference_dbm": -118.0,
+  "coverage_cutoff_dbm": -116.0,
+  "default_opacity": 0.4,
+  "repeaters": [
+    {
+      "id": 1,
+      "name": "Flounce",
+      "color": "#00CC00"
+    },
+    {
+      "id": 2,
+      "name": "Soda",
+      "color": "#0066FF"
+    },
+    {
+      "id": 3,
+      "name": "TBOX",
+      "color": "#FF9900"
+    },
+    {
+      "id": 4,
+      "name": "Roxy",
+      "color": "#FF0000"
+    }
+  ],
+  "signal_bin": {
+    "format": "row-major north-to-south, west-to-east; 3 bytes/cell: uint8 repeater ID, int16 little-endian dBm x10; -32768 missing",
+    "bytes_per_cell": 3
+  },
+  "coverage_png": {
+    "mode": "RGBA",
+    "alpha": "255 if predicted dBm >= -116; otherwise 0"
+  },
+  "source_rows": 168729,
+  "missing_cells": 21,
+  "notes": "Georeferenced to outer pixel edges. GP-compatible 3-byte signal lookup. Uniform -116 dBm coverage cutoff for GP and MFR. Radio Mobile prediction, not measured coverage."
+}
