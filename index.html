@@ -4239,6 +4239,18 @@ function historicalPerimeterStyle() {
     finally{go.disabled=false;}
   });
 
+  // RADIO COVERAGE — GP (Grants Pass). PNG already contains fixed 50% alpha.
+  // Use Leaflet opacity 1.0 to avoid multiplying the baked-in transparency.
+  // Additional offices (e.g. MFR) can be added as independent image overlays.
+  const gpRadioCoverage = L.imageOverlay(
+    "radio/GP/coverage.png",
+    [
+      [41.92159906458797, -123.92187671122996],
+      [42.77744093541203, -122.95684328877006]
+    ],
+    { opacity: 1.0, interactive: false, attribution: "Radio Mobile predicted coverage" }
+  );
+
   // Saved drawn lines have their own visibility checkbox.
   const drawnLineLayer = L.featureGroup().addTo(map);
 
@@ -4253,6 +4265,7 @@ function historicalPerimeterStyle() {
       "Marked Points": markedPointsLayer,
       "Drawn Lines": drawnLineLayer,
       "OR LiDAR": hillshade,
+      "GP Radio Coverage": gpRadioCoverage,
       "OR State Roads": odfRoads,
       "OR TRS": plss,
       "Josephine Co Taxlots": josephineTaxlots,
