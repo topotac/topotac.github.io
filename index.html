@@ -2100,7 +2100,7 @@ html, body {
  <div class="legend-entry"><i class="legend-area" style="background:#00cc00"></i>Flounce — green</div>
  <div class="legend-entry"><i class="legend-area" style="background:#0066ff"></i>Soda — blue</div>
  <div class="legend-entry"><i class="legend-area" style="background:#ff9900"></i>TBOX — orange</div>
- <div class="legend-note">MFR COMMS shows the strongest modeled repeater at each location. Map click lookup reports predicted dBm at or above −118 dBm. Enable the appropriate office layer; in overlap areas MFR takes click priority when both are on. These are predictions, not measured signal or guaranteed communications.</div>
+ <div class="legend-note">MFR COMMS shows the strongest modeled repeater at each location. Map click lookup reports predicted dBm at or above −116 dBm. Enable the appropriate office layer; in overlap areas MFR takes click priority when both are on. These are predictions, not measured signal or guaranteed communications.</div>
  <div class="legend-section">OTHER FEATURES</div>
  <div class="legend-entry"><i class="legend-dot" style="background:#008CFF;border:2px solid white;border-radius:0;box-shadow:0 0 0 1px #777"></i>RAWS weather station</div>
  <div class="legend-entry"><i class="legend-area water"></i>USGS waterbody</div>
@@ -4401,12 +4401,12 @@ function historicalPerimeterStyle() {
       const offset = (row*mfrRadioWidth+col)*3;
       const id = data.getUint8(offset);
       const tenths = data.getInt16(offset+1, true);
-      if (!id || tenths === -32768 || tenths < -1180) {
-        content = '<strong>MFR COMMS</strong><div>No predicted coverage at or above −118 dBm</div>';
+      if (!id || tenths === -32768 || tenths < -1160) {
+        content = '<strong>MFR COMMS</strong><div>No predicted coverage at or above −116 dBm</div>';
       } else {
         const name = mfrRadioNames[id] || "Unknown repeater";
         const dbm = tenths / 10;
-        const bars = Math.max(1, Math.min(5, Math.floor((dbm+118)/10)+1));
+        const bars = Math.max(1, Math.min(5, Math.floor((dbm+116)/10)+1));
         const barHtml = Array.from({length:5}, (_,i) =>
           '<span style="display:inline-block;width:7px;height:'+(9+i*4)+'px;margin-right:3px;vertical-align:bottom;background:'+
           (i<bars?'#20944e':'#bbb')+'"></span>').join('');
