@@ -1466,6 +1466,13 @@ html, body {
   white-space: nowrap;
 }
 
+/* Single scrollbar for all Layers entries, including imported GeoPDFs. */
+.leaflet-control-layers-expanded .leaflet-control-layers-list {
+  max-height: none !important;
+  overflow-y: visible !important;
+  overflow-x: visible !important;
+}
+
 /* MAP ZOOM LEVEL — compact readout directly beneath the Layers control. */
 .leaflet-control.zoom-level-readout {
   float: right;
