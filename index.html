@@ -4374,7 +4374,7 @@ function historicalPerimeterStyle() {
           '<div>Predicted: <strong>'+dbm.toFixed(1)+' dBm</strong></div>'+
           '<div style="margin-top:5px">'+barHtml+'</div>';
       }
-      content += '<div style="font-size:10px;color:#666;margin-top:7px">RF Level Prediction, not a measured signal</div>';
+      content += '<div style="font-size:10px;color:#666;margin-top:7px">Calculated RF Level Prediction.</div>';
     } catch (error) {
       if (request !== gpRadioRequest || !map.hasLayer(gpRadioCoverage)) return;
       content = '<strong>GP COMMS</strong><div>Signal lookup unavailable. Check signal.bin.</div>';
@@ -4455,7 +4455,7 @@ function historicalPerimeterStyle() {
           '<div>Predicted: <strong>'+dbm.toFixed(1)+' dBm</strong></div>'+
           '<div style="margin-top:5px">'+barHtml+'</div>';
       }
-      content += '<div style="font-size:10px;color:#666;margin-top:7px">RF Level Prediction, not a measured signal</div>';
+      content += '<div style="font-size:10px;color:#666;margin-top:7px">Calculated RF Level Prediction.</div>';
     } catch (error) {
       if (request !== mfrRadioRequest || !map.hasLayer(mfrRadioCoverage)) return;
       content = '<strong>MFR COMMS</strong><div>Signal lookup unavailable. Check signal.bin.</div>';
