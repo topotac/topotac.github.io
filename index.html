@@ -6116,7 +6116,7 @@ clearGpxButton.addEventListener("click", function () {
 })();
 </script>
 
-<!-- pdf-lib is required by the AMG GeoPDF /VP object reader. Load before the AMG module. -->
+<!-- Diagnostic: Phase 4 converter with only the required pdf-lib dependency added. -->
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
 <script type="module">
@@ -6603,7 +6603,6 @@ async function buildTiles(page,geo,corners,scale,id,conversionBudget=MAX_BYTES){
  const viewport=page.getViewport({scale});const rect=viewport.convertToViewportRectangle(geo.bbox);
  const pdfX=Math.min(rect[0],rect[2]),pdfY=Math.min(rect[1],rect[3]),pdfW=Math.abs(rect[2]-rect[0]),pdfH=Math.abs(rect[3]-rect[1]);
  const produced=[];let saved=0;
- if (!Number.isFinite(width*height) || width*height > 60000000) throw Error('Output resolution exceeds the 60 MP conversion safety limit. Choose a lower quality.');
  try{
  for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
   const x=col*tileSize,y=row*tileSize,w=Math.min(tileSize,width-x),h=Math.min(tileSize,height-y);
@@ -6617,27 +6616,18 @@ async function buildTiles(page,geo,corners,scale,id,conversionBudget=MAX_BYTES){
   const ex=Math.min(Math.ceil(viewport.width),Math.ceil(pdfX+maxU*pdfW)+3),ey=Math.min(Math.ceil(viewport.height),Math.ceil(pdfY+maxV*pdfH)+3);
   const rw=ex-sx,rh=ey-sy;if(rw<1||rh<1)continue;
   if(rw*rh>16000000)throw Error('Single tile source crop '+rw+'×'+rh+' exceeds 16 MP. Try 2×.');
-  const src=document.createElement('canvas');
-  const dst=document.createElement('canvas');
-  let blob;
-  try {
-   src.width=rw;src.height=rh;
-   const sc=src.getContext('2d');if(!sc)throw Error('PDF tile canvas unavailable');
-   await page.render({canvasContext:sc,viewport,transform:[1,0,0,1,-sx,-sy],background:'rgba(255,255,255,0)'}).promise;
-   dst.width=w;dst.height=h;const dc=dst.getContext('2d');if(!dc)throw Error('Output tile canvas unavailable');
-   const point=(i,j)=>({x:pdfX+uv[j][i][0]*pdfW-sx,y:pdfY+uv[j][i][1]*pdfH-sy});
-   const target=(i,j)=>({x:w*i/grid,y:h*j/grid});
-   for(let j=0;j<grid;j++)for(let i=0;i<grid;i++){
-    const a=point(i,j),b=point(i+1,j),c=point(i+1,j+1),d=point(i,j+1);
-    const A=target(i,j),B=target(i+1,j),C=target(i+1,j),D=target(i,j+1);
-    warpTriangle(dc,src,a,b,c,A,B,C);warpTriangle(dc,src,a,c,d,A,C,D);
-   }
-   blob=await new Promise(resolve=>dst.toBlob(resolve,'image/png'));
-  } finally {
-   // Release both potentially large canvases even when rendering or encoding fails.
-   src.width=src.height=0;
-   dst.width=dst.height=0;
+  const src=document.createElement('canvas');src.width=rw;src.height=rh;
+  const sc=src.getContext('2d');if(!sc)throw Error('PDF tile canvas unavailable');
+  await page.render({canvasContext:sc,viewport,transform:[1,0,0,1,-sx,-sy],background:'rgba(255,255,255,0)'}).promise;
+  const dst=document.createElement('canvas');dst.width=w;dst.height=h;const dc=dst.getContext('2d');if(!dc)throw Error('Output tile canvas unavailable');
+  const point=(i,j)=>({x:pdfX+uv[j][i][0]*pdfW-sx,y:pdfY+uv[j][i][1]*pdfH-sy});
+  const target=(i,j)=>({x:w*i/grid,y:h*j/grid});
+  for(let j=0;j<grid;j++)for(let i=0;i<grid;i++){
+   const a=point(i,j),b=point(i+1,j),c=point(i+1,j+1),d=point(i,j+1);
+   const A=target(i,j),B=target(i+1,j),C=target(i+1,j+1),D=target(i,j+1);
+   warpTriangle(dc,src,a,b,c,A,B,C);warpTriangle(dc,src,a,c,d,A,C,D);
   }
+  const blob=await new Promise(resolve=>dst.toBlob(resolve,'image/png'));src.width=src.height=0;dst.width=dst.height=0;
   if(!blob)throw Error('PNG tile encoding failed');const key=id+':'+row+':'+col;
   if (conversionBytes + blob.size > conversionBudget) throw Error('500 MB storage limit would be exceeded.');
   await tileOp('put',key,blob);produced.push(key);saved++;conversionBytes += blob.size;
@@ -6693,7 +6683,6 @@ el('amgConvert').onclick = async () => {
     const bytes = new Uint8Array(await file.arrayBuffer());
     const geo = await getGeoViewportWithObjects(bytes);
     const corners = geoCorners(geo);
-    // PDF.js may transfer the supplied buffer to its worker; do not reuse bytes afterward.
     pdfDoc = await pdfjsLib.getDocument({data:bytes}).promise;
     const page = await pdfDoc.getPage(1);
     const requested = Number(el('amgQuality').value);
@@ -6708,11 +6697,6 @@ el('amgConvert').onclick = async () => {
         break;
       } catch (error) {
         failures.push(scale + '×: ' + error.message);
-        // Only resolution/memory pressure merits a lower-quality retry.
-        // Storage quota, disk failures and malformed PDFs will not improve at 2×.
-        const message = String(error?.message || error);
-        const retryable = /16 MP|60 MP|canvas|render|memory|allocation|too large|too many pixels/i.test(message);
-        if (!retryable || /quota|storage|indexeddb|transaction|500 MB/i.test(message)) throw error;
         if (scale !== attempts[attempts.length - 1]) amgStatus('AMG: retrying at lower resolution…');
       }
     }
