@@ -6245,7 +6245,7 @@ function updateLayerMenu() {
       control.className = 'amg-layer-item';
       const slider = document.createElement('input');
       slider.type = 'range'; slider.min = '0'; slider.max = '100';
-      slider.value = String(Math.round((mapOpacity.get(id) ?? .8) * 100));
+      slider.value = String(Math.round((mapOpacity.get(id) ?? 1) * 100));
       slider.setAttribute('aria-label', 'Opacity: ' + record.meta.name);
       slider.addEventListener('input', () => {
         const opacity = Number(slider.value) / 100;
@@ -6300,7 +6300,7 @@ function tiledOverlay(record){
        !map.getBounds().pad(.15).intersects(L.latLngBounds(bounds)))return;
     const url=URL.createObjectURL(blob);
     try{
-     const layer=L.imageOverlay(url,bounds,{opacity:group.amgOpacity??.8,interactive:false});
+     const layer=L.imageOverlay(url,bounds,{opacity:group.amgOpacity??1,interactive:false});
      layer.addTo(group);active.set(key,{layer,url});
     }catch(error){URL.revokeObjectURL(url);throw error;}
    }).catch(error=>{
@@ -6317,7 +6317,7 @@ function tiledOverlay(record){
    });
   }
  }
- group.amgOpacity=.8;
+ group.amgOpacity=1;
  group.setOpacity=v=>{group.amgOpacity=v;for(const t of active.values())t.layer.setOpacity(v);};
  group.getBounds=()=>L.latLngBounds(m.bounds);
  group.on('add',()=>{failed.clear();update();});
@@ -6337,11 +6337,11 @@ function showMap(record, zoom = false) {
     item = tiledOverlay(record);
   } else {
     const url = URL.createObjectURL(record.blob);
-    item = {layer: L.imageOverlay(url, record.meta.bounds, {opacity:.8,interactive:false}), url};
+    item = {layer: L.imageOverlay(url, record.meta.bounds, {opacity:1,interactive:false}), url};
   }
   mapRecords.set(record.id, record);
   mapVisibility.set(record.id, true);
-  mapOpacity.set(record.id, .8);
+  mapOpacity.set(record.id, 1);
   item.layer.addTo(map);
   layerControl.addOverlay(item.layer, 'GeoPDF: ' + record.meta.name);
   layers.set(record.id, item);
