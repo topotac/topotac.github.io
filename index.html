@@ -5944,7 +5944,14 @@ clearGpxButton.addEventListener("click", function () {
     gpsStatsButton.setAttribute('aria-expanded',String(!gpsStatsPanel.hidden));
     updateGpsStats();
   });
-  setInterval(updateGpsStats,1000);
+  // Phase 6: refresh the GPS statistics only while the panel is visible.
+  // GPS tracking and recording are independent of this display timer.
+  setInterval(() => {
+    if (!gpsStatsPanel.hidden && !document.hidden) updateGpsStats();
+  }, 1000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !gpsStatsPanel.hidden) updateGpsStats();
+  });
 
   // =========================================================
   // PHONE GPS
