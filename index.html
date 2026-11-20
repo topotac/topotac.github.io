@@ -4294,7 +4294,7 @@ function historicalPerimeterStyle() {
   // Use Leaflet opacity 1.0 to avoid multiplying the baked-in transparency.
   // Additional offices (e.g. MFR) can be added as independent image overlays.
   const gpRadioCoverage = L.imageOverlay(
-    "https://topotac.com/radio/GP/coverage.png",
+    "https://topotac.com/radio/GP/coverage.png?v=50w-20261120",
     [
       [41.92159906458797, -123.92187671122996],
       [42.77744093541203, -122.95684328877006]
@@ -4304,7 +4304,7 @@ function historicalPerimeterStyle() {
 
   // GP numerical radio lookup: 3 bytes/cell, north-to-south and west-to-east.
   // Radio identification is ONLY active while GP Radio Coverage is checked.
-  const gpSignalUrl = "https://topotac.com/radio/GP/signal.bin";
+  const gpSignalUrl = "https://topotac.com/radio/GP/signal.bin?v=50w-20261120";
   const gpRadioWidth = 375, gpRadioHeight = 450;
   const gpRadioBounds = gpRadioCoverage.getBounds();
   const gpRadioNames = {1:"Sexton", 2:"Isabelle", 3:"Grayback"};
@@ -4385,11 +4385,11 @@ function historicalPerimeterStyle() {
 
   // RADIO COVERAGE — MFR (Medford). Separate from GP; compatible 3-byte signal data.
   const mfrRadioCoverage = L.imageOverlay(
-    "https://topotac.com/radio/MFR/coverage.png",
+    "https://topotac.com/radio/MFR/coverage.png?v=50w-20261120",
     [[41.921599064588, -123.263886724599], [42.777440935412, -122.298843275401]],
     { opacity: 0.5, interactive: false, attribution: "MFR COMMS" }
   );
-  const mfrSignalUrl = "https://topotac.com/radio/MFR/signal.bin";
+  const mfrSignalUrl = "https://topotac.com/radio/MFR/signal.bin?v=50w-20261120";
   const mfrRadioWidth = 375, mfrRadioHeight = 450;
   const mfrRadioBounds = mfrRadioCoverage.getBounds();
   const mfrRadioNames = {1:"Flounce", 2:"Soda", 3:"TBOX", 4:"Roxy"};
