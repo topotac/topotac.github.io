@@ -4497,7 +4497,8 @@ function historicalPerimeterStyle() {
   const overlaysMenu = layerMenu.querySelector('.leaflet-control-layers-overlays');
   const lidarLabel = [...overlaysMenu.querySelectorAll('label')].find(label =>
     label.textContent.includes('OR LiDAR'));
-  if (lidarLabel) lidarLabel.after(document.getElementById('opacityControl'));
+  const lidarOpacityControl = document.getElementById('opacityControl');
+  if (lidarLabel && lidarOpacityControl) lidarLabel.after(lidarOpacityControl);
   const geopdfButton = document.createElement('button');
   geopdfButton.id = 'amgOpen';
   geopdfButton.type = 'button';
@@ -4513,7 +4514,7 @@ function historicalPerimeterStyle() {
     const overlays = layerMenu.querySelector('.leaflet-control-layers-overlays');
     if (overlays) {
       const lidar = [...overlays.querySelectorAll('label')].find(label => label.textContent.includes('OR LiDAR'));
-      if (lidar) lidar.after(document.getElementById('opacityControl'));
+      if (lidar && lidarOpacityControl) lidar.after(lidarOpacityControl);
       overlays.append(geopdfButton);
     }
     window.topotacRefreshAMGLayers?.();
