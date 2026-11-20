@@ -4488,7 +4488,7 @@ function historicalPerimeterStyle() {
     }
   ).addTo(map);
 
-  // AMG uses the existing map and Layers control; no second Leaflet map.
+  // TERaH uses the existing map and Layers control; no second Leaflet map.
   window.topotacAMGContext = {map, layerControl};
 
   // Keep the LiDAR slider directly beneath the existing LiDAR checkbox.
@@ -6124,11 +6124,11 @@ clearGpxButton.addEventListener("click", function () {
 })();
 </script>
 
-<!-- Diagnostic: Phase 4 converter with only the required pdf-lib dependency added. -->
+<!-- TERaH GeoPDF support: pdf-lib required by the tested Phase 4 object reader. -->
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
 <script type="module">
-/* AMG GEOPDF IMPORTER — browser-local rendering and IndexedDB storage.
+/* TERaH (formerly AMG) GEOPDF IMPORTER — browser-local rendering and IndexedDB storage.
    Preserve tested four-corner affine georeferencing and tiled rendering. */
 import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs';
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
@@ -6137,7 +6137,7 @@ const panel = document.createElement('div');
 panel.id = 'amgPanel';
 panel.hidden = true;
 panel.innerHTML = `
-  <div class="amg-row"><h3>GEOPDF MANAGER</h3><button id="amgClose" type="button">✕</button></div>
+  <div class="amg-row"><h3>GEOPDF IMPORT (TERaH Tool)</h3><button id="amgClose" type="button">✕</button></div>
   <div id="amgStorage" role="status">Checking map storage…</div>
   <label>Choose GeoPDF <input type="file" id="amgFile" accept=".pdf,application/pdf"></label>
   <label>Conversion quality
@@ -6145,13 +6145,12 @@ panel.innerHTML = `
       <option value="2">Standard 2×</option>
       <option value="3" selected>High 3× (recommended)</option>
       <option value="4">Ultra 4×</option>
-      <option value="6">Maximum 6×</option>
     </select>
   </label>
   <p><button type="button" id="amgConvert">CONVERT & SAVE MAP</button></p>
   <p><a href="https://ftp.wildfire.gov/public/incident_specific_maps/pacific_nw/"
     target="_blank" rel="noopener noreferrer">NIFC PNW INCIDENT MAPS LINK ↗</a></p>
-  <p class="amg-note">Download a GeoPDF from NIFC, then select it from it's downloaded location with the CHOOSE FILE button above. PDFs without usable georeferencing are rejected.</p>
+  <p class="amg-note">TERaH imports georeferenced PDFs then performs Terrain Extraction Rendering and Handeling functions, and saves them on this device. Choose a downloaded GeoPDF above, select output quality, and tap the Convert and Save button. PDFs without usable georeferencing are rejected.</p>
   <div id="amgStatus" role="status">Choose a georeferenced PDF to begin.</div>
   <h3>Saved maps</h3><div id="amgList">Loading…</div>
   <p class="amg-note">Maps are stored on this device, not the server. Clearing website data may remove them. Verify alignment before field use.</p>`;
@@ -6264,7 +6263,7 @@ function updateLayerMenu() {
 
 function tiledOverlay(record){
  const group=L.layerGroup();
- const active=new Map(),pending=new Set(),missing=new Set();
+ const active=new Map(),pending=new Set(),missing=new Set(),failed=new Set();
  const MAX_TILE_READS=6;
  let disposed=false, generation=0;
  const m=record.meta, [sw,ne]=m.bounds;
@@ -6292,7 +6291,7 @@ function tiledOverlay(record){
   // Only a bounded number of IndexedDB reads may be outstanding.
   for(const {key,bounds} of visible){
    if(pending.size>=MAX_TILE_READS)break;
-   if(active.has(key)||pending.has(key)||missing.has(key))continue;
+   if(active.has(key)||pending.has(key)||missing.has(key)||failed.has(key))continue;
    pending.add(key);
    const requestGeneration=generation;
    tileOp('get',record.id+':'+key).then(blob=>{
@@ -6304,7 +6303,14 @@ function tiledOverlay(record){
      const layer=L.imageOverlay(url,bounds,{opacity:group.amgOpacity??.8,interactive:false});
      layer.addTo(group);active.set(key,{layer,url});
     }catch(error){URL.revokeObjectURL(url);throw error;}
-   }).catch(error=>console.error('AMG tile read',error)).finally(()=>{
+   }).catch(error=>{
+    // Do not immediately retry a failed IndexedDB read in the finally/update loop.
+    // Allow a fresh attempt when the GeoPDF layer is switched off and on again.
+    if(!disposed&&requestGeneration===generation){
+     failed.add(key);
+     console.error('TERaH tile read failed ('+key+'); toggle the GeoPDF layer to retry',error);
+    }
+   }).finally(()=>{
     pending.delete(key);
     // Continue filling visible tiles without waiting for another map movement.
     if(!disposed&&map.hasLayer(group))update();
@@ -6314,12 +6320,12 @@ function tiledOverlay(record){
  group.amgOpacity=.8;
  group.setOpacity=v=>{group.amgOpacity=v;for(const t of active.values())t.layer.setOpacity(v);};
  group.getBounds=()=>L.latLngBounds(m.bounds);
- group.on('add',update);
+ group.on('add',()=>{failed.clear();update();});
  group.on('remove',()=>{generation++;clearActive();});
  map.on('moveend zoomend',update);
  return {layer:group,cleanup:()=>{
   disposed=true;generation++;map.off('moveend zoomend',update);
-  group.off('add',update);clearActive();pending.clear();
+  group.off('add');clearActive();pending.clear();failed.clear();
  }};
 }
 window.topotacRefreshAMGLayers = updateLayerMenu;
@@ -6531,7 +6537,7 @@ function geoCorners(v){
 }
 function bilinear(c,u,v){const a=(1-u)*(1-v),b=u*(1-v),d=u*v,e=(1-u)*v;return [a*c[0].xy[0]+b*c[1].xy[0]+d*c[2].xy[0]+e*c[3].xy[0],a*c[0].xy[1]+b*c[1].xy[1]+d*c[2].xy[1]+e*c[3].xy[1]]}
 async function rectify(source,corners,renderScale){
- amgStatus('AMG: correcting map orientation…'); await new Promise(r=>setTimeout(r,30));
+ amgStatus('TERaH: correcting map orientation…'); await new Promise(r=>setTimeout(r,30));
  const xs=corners.map(c=>c.xy[0]),ys=corners.map(c=>c.xy[1]);
  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
  const spanX=maxX-minX,spanY=maxY-minY;
@@ -6568,7 +6574,7 @@ async function rectify(source,corners,renderScale){
    const d00=project(u0,v0),d10=project(u1,v0),d01=project(u0,v1),d11=project(u1,v1);
    triangle(s00,s10,s11,d00,d10,d11);triangle(s00,s11,s01,d00,d11,d01);
   }
-  if(j%4===0){amgStatus('AMG: rectifying map '+Math.round((j+1)/grid*100)+'%');await new Promise(r=>setTimeout(r,0));}
+  if(j%4===0){amgStatus('TERaH: rectifying map '+Math.round((j+1)/grid*100)+'%');await new Promise(r=>setTimeout(r,0));}
  }
  // Reject a blank result instead of allowing a misleading map to be saved.
  const probe=document.createElement('canvas');probe.width=128;probe.height=128;const pc=probe.getContext('2d',{willReadFrequently:true});pc.drawImage(out,0,0,128,128);const pixels=pc.getImageData(0,0,128,128).data;
@@ -6639,7 +6645,7 @@ async function buildTiles(page,geo,corners,scale,id,conversionBudget=MAX_BYTES){
   if(!blob)throw Error('PNG tile encoding failed');const key=id+':'+row+':'+col;
   if (conversionBytes + blob.size > conversionBudget) throw Error('500 MB storage limit would be exceeded.');
   await tileOp('put',key,blob);produced.push(key);saved++;conversionBytes += blob.size;
-  amgStatus('AMG '+scale+'×: generated '+saved+' / '+(cols*rows)+' tiles');await nextFrame();
+  amgStatus('TERaH '+scale+'×: generated '+saved+' / '+(cols*rows)+' tiles');await nextFrame();
  }
  if(saved===0)throw Error('No geographic tiles produced');
  return {name:id,bounds:[unmerc(west,south),unmerc(east,north)],source:'GeoPDF',renderScale:scale,tiled:true,tileSize,width,height,cols,rows,outputPixels:[width,height],storedBytes:conversionBytes};
@@ -6693,7 +6699,7 @@ el('amgConvert').onclick = async () => {
     const corners = geoCorners(geo);
     pdfDoc = await pdfjsLib.getDocument({data:bytes}).promise;
     const page = await pdfDoc.getPage(1);
-    const requested = Number(el('amgQuality').value);
+    const requested = Math.min(4, Math.max(2, Number(el('amgQuality').value) || 3));
     const attempts = [requested, ...[3,2].filter(n => n < requested)];
     const name = file.name.replace(/\.pdf$/i, '').replace(/[^a-z0-9_-]+/gi, '_');
     const failures = [];
@@ -6705,7 +6711,7 @@ el('amgConvert').onclick = async () => {
         break;
       } catch (error) {
         failures.push(scale + '×: ' + error.message);
-        if (scale !== attempts[attempts.length - 1]) amgStatus('AMG: retrying at lower resolution…');
+        if (scale !== attempts[attempts.length - 1]) amgStatus('TERaH: retrying at lower resolution…');
       }
     }
     if (!meta) throw Error('Tiled rendering failed. ' + failures.join(' | '));
@@ -6716,7 +6722,7 @@ el('amgConvert').onclick = async () => {
     el('amgFile').value = '';
   } catch (error) {
     console.error('AMG conversion', error);
-    amgStatus('AMG stopped: ' + error.message);
+    amgStatus('TERaH stopped: ' + error.message);
     if (tempId) {
       // Failed conversions are not retained as saved maps.
       const records = await dbAction('readonly', 'getAll').catch(() => []);
