@@ -386,20 +386,6 @@ html, body {
   padding: 8px 9px !important;
   font-size: 11px !important;
 }
-#legendToggle {
-  position: absolute;
-  top: 8px;
-  left: 208px;
-  z-index: 2100;
-  min-height: 40px;
-  background: #171717;
-  color: #fff;
-  border: 2px solid #ff861c;
-  border-radius: 6px;
-  font: bold 11px Arial;
-  padding: 7px 9px;
-  cursor: pointer;
-}
 #legendPanel {
   position: absolute;
   top: 58px;
@@ -493,15 +479,6 @@ html, body {
   left: auto !important;
   z-index: auto !important;
 }
-#toolsDrawer #legendToggle {
-  position: static !important;
-  top: auto !important;
-  left: auto !important;
-  z-index: auto !important;
-  min-height: 40px !important;
-  margin: 3px !important;
-  font-size: 12px !important;
-}
 .tools-links {
   display: flex;
   flex-wrap: wrap;
@@ -512,19 +489,7 @@ html, body {
   align-items: center;
 }
 
- /* Match MAP GUIDE and LEGEND button sizes */
-#toolsDrawer .tools-links #mapGuideButton,
-#toolsDrawer .tools-links #legendToggle {
-  width: 110px !important;
-  height: 40px !important;
-  box-sizing: border-box;
-  padding: 8px !important;
-  margin: 3px !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px !important;
-}
+ /* MAP GUIDE link sizing inside the Tools drawer. */
  
 #coordinates, #gpsCoordinates, #situsAddress {
   box-sizing: border-box !important;
@@ -999,11 +964,6 @@ html, body {
     padding: 7px !important;
     font-size: 10px !important;
   }
-  #legendToggle {
-    left: 188px;
-    padding: 7px;
-    font-size: 10px;
-  }
   #gpsCoordinates .gps-lat, #gpsCoordinates .gps-lng {
     display: block;
   }
@@ -1117,11 +1077,6 @@ html, body {
     left: 94px !important;
     padding: 7px !important;
     font-size: 10px !important;
-  }
-  #legendToggle {
-    left: 188px;
-    padding: 7px;
-    font-size: 10px;
   }
 }
 
@@ -1366,7 +1321,7 @@ html, body {
   gap: 6px !important;
   border-top: 1px solid #555 !important;
 }
-#toolsDrawer .tools-links #mapGuideButton,#toolsDrawer .tools-links #legendToggle {
+#toolsDrawer .tools-links #mapGuideButton {
   width: 100% !important;
   height: 42px !important;
 }
@@ -1910,6 +1865,78 @@ html, body {
 #lineConstFuelGuide p{margin:7px 0}
 .fuel-guide-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 14px;margin:9px 0}
 @media(max-width:600px){.fuel-guide-grid{grid-template-columns:1fr}}
+
+/* ================================================================
+   GEOPDF MANAGER AND LAYERS MENU — compact field-friendly controls
+   ================================================================ */
+.leaflet-control-layers .tt-layer-action {
+  display: block; width: 100%; min-height: 30px; margin: 7px 0;
+  padding: 5px 8px; background: #171717; color: #fff;
+  border: 1px solid #ff861c; border-radius: 5px;
+  font: bold 11px Arial, sans-serif; cursor: pointer;
+}
+.leaflet-control-layers #opacityControl {
+  position: static !important; width: 100% !important;
+  margin: 0 0 8px !important; padding: 4px 6px !important;
+  background: #f3f3f3 !important; box-shadow: none !important;
+  font-size: 11px !important; z-index: auto !important;
+}
+.leaflet-control-layers #opacityControl input { margin: 3px 0 !important; }
+.amg-layer-item { padding: 0 5px 7px 20px; }
+.amg-layer-item input[type=range] { width: 100%; accent-color: #ff861c; }
+#toolsDrawer .tools-links { grid-template-columns: 1fr !important; }
+#toolsDrawer .tools-links #mapGuideButton { width: 100% !important; height: 32px !important; min-height: 32px !important; }
+#amgPanel {
+  position: absolute; z-index: 4000; top: 58px; left: 9px;
+  width: min(350px, calc(100vw - 18px));
+  max-height: calc(100dvh - 72px); overflow: auto;
+  background: #171717; color: white; border: 2px solid #ff861c;
+  border-radius: 9px; padding: 12px; box-sizing: border-box;
+  box-shadow: 0 3px 16px #0009; font: 12px/1.5 Arial;
+}
+#amgPanel[hidden] { display: none !important; }
+#amgPanel h3 { color: #ff861c; margin: 0 0 8px; }
+#amgPanel button, #amgPanel select {
+  background: #ff861c; color: #111; border: 0; border-radius: 5px;
+  padding: 9px; font: bold 12px Arial; cursor: pointer;
+}
+#amgPanel button:disabled { opacity: .5; cursor: default; }
+#amgPanel select, #amgPanel input[type=file] { width: 100%; margin: 8px 0; }
+#amgPanel .amg-row { display: flex; gap: 7px; align-items: center; justify-content: space-between; margin: 7px 0; }
+#amgPanel .amg-row button { padding: 5px 8px; }
+#amgPanel .amg-note { color: #bbb; font-size: 11px; }
+#amgPanel a { color: #ffbf83; font-weight: bold; }
+#amgPanel #amgStatus { white-space: pre-wrap; color: #ffbf83; overflow-wrap: anywhere; }
+#amgPanel #amgStorage { padding: 8px; border: 1px solid #555; border-radius: 5px; }
+#amgPanel .amg-saved-map { border-top: 1px solid #555; padding: 8px 0; overflow-wrap: anywhere; }
+
+/* LEGEND — standalone control, aligned to the 44px zoom readout. */
+.leaflet-top.leaflet-right #legendToggle.tt-floating-legend {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  display: block !important;
+  float: right !important;
+  clear: both !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 22px !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+  margin: 4px 9px 0 0 !important;
+  padding: 4px 7px !important;
+  background: #171717 !important;
+  color: #fff !important;
+  border: 1px solid #ff861c !important;
+  border-radius: 5px !important;
+  font: bold 11px/1 Arial, sans-serif !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 5px rgba(0,0,0,.35) !important;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
 </style>
 </head>
 
@@ -2041,13 +2068,15 @@ html, body {
   drawer.hidden = true;
   document.body.append(toggle, drawer);
   const guide = document.getElementById('mapGuideButton');
- // Guide remains inside the tools drawer.
+  // Guide remains inside the tools drawer.
   const legendButton = document.createElement('button');
   legendButton.id = 'legendToggle';
   legendButton.type = 'button';
-  legendButton.textContent = '◈ LEGEND';
+  legendButton.textContent = 'LGND';
   legendButton.setAttribute('aria-expanded', 'false');
   legendButton.setAttribute('aria-controls', 'legendPanel');
+  // Attach the button before the map initialization relocates it beneath Z.
+  document.body.appendChild(legendButton);
   const legend = document.createElement('div');
   legend.id = 'legendPanel';
   legend.hidden = true;
@@ -2142,8 +2171,7 @@ html, body {
   const groups = [
     ['GPS & TRACKING', ['addressSearchButton', 'clearTrackButton', 'saveGpsButton', 'gpsStatsButton', 'gpsCoordinates', 'gpsStatsPanel']],
     ['GPX FILES', ['gpxImportButton', 'clearGpxButton']],
-    ['MEASURE', ['measureAreaButton', 'clearMeasureButton', 'measureStatus']],
-    ['DISPLAY', ['opacityControl']]
+    ['MEASURE', ['measureAreaButton', 'clearMeasureButton', 'measureStatus']]
   ];
  groups.forEach(([heading, ids]) => {
    const section = document.createElement('section');
@@ -2167,9 +2195,9 @@ html, body {
  });
   const links = document.createElement('section');
   links.className = 'tools-links';
-  links.append(guide, legendButton);
+  links.append(guide);
   drawer.append(links);
- // Keep ADD POINT visible so its active state cannot be hidden in the drawer.
+  // Keep ADD POINT visible so its active state cannot be hidden in the drawer.
  document.body.append(document.getElementById('gpsButton'));
  document.body.append(document.getElementById('addPointButton'));
  document.body.append(document.getElementById('pointActionsPanel'));
@@ -4460,6 +4488,39 @@ function historicalPerimeterStyle() {
     }
   ).addTo(map);
 
+  // AMG uses the existing map and Layers control; no second Leaflet map.
+  window.topotacAMGContext = {map, layerControl};
+
+  // Keep the LiDAR slider directly beneath the existing LiDAR checkbox.
+  const layerMenu = layerControl.getContainer();
+  const baseChoices = layerMenu.querySelector('.leaflet-control-layers-base');
+  const overlaysMenu = layerMenu.querySelector('.leaflet-control-layers-overlays');
+  const lidarLabel = [...overlaysMenu.querySelectorAll('label')].find(label =>
+    label.textContent.includes('OR LiDAR'));
+  if (lidarLabel) lidarLabel.after(document.getElementById('opacityControl'));
+  const geopdfButton = document.createElement('button');
+  geopdfButton.id = 'amgOpen';
+  geopdfButton.type = 'button';
+  geopdfButton.className = 'tt-layer-action';
+  geopdfButton.textContent = 'GEOPDF';
+  geopdfButton.addEventListener('click', () => window.topotacOpenAMG?.());
+  overlaysMenu.append(geopdfButton);
+  // Keep our custom buttons and sliders attached after Leaflet refreshes the list.
+  const originalUpdate = layerControl._update.bind(layerControl);
+  layerControl._update = function () {
+    originalUpdate();
+    const base = layerMenu.querySelector('.leaflet-control-layers-base');
+    const overlays = layerMenu.querySelector('.leaflet-control-layers-overlays');
+    if (overlays) {
+      const lidar = [...overlays.querySelectorAll('label')].find(label => label.textContent.includes('OR LiDAR'));
+      if (lidar) lidar.after(document.getElementById('opacityControl'));
+      overlays.append(geopdfButton);
+    }
+    window.topotacRefreshAMGLayers?.();
+  };
+  L.DomEvent.disableClickPropagation(layerMenu);
+  L.DomEvent.disableScrollPropagation(layerMenu);
+
   // Small live zoom indicator beneath the upper-right Layers menu.
   const zoomReadout = L.control({ position: "topright" });
   zoomReadout.onAdd = function () {
@@ -4470,6 +4531,20 @@ function historicalPerimeterStyle() {
     return label;
   };
   zoomReadout.addTo(map);
+
+  // Independent LEGEND button directly below the existing zoom readout.
+  // This is not part of the zoom control and does not alter its behavior.
+  const zoomBox = zoomReadout.getContainer();
+  const legendButton = document.getElementById('legendToggle');
+  if (zoomBox && legendButton) {
+    legendButton.textContent = 'LGND';
+    legendButton.setAttribute('aria-label', 'Map legend');
+    legendButton.classList.remove('tt-layer-action');
+    legendButton.classList.add('tt-floating-legend');
+    zoomBox.insertAdjacentElement('afterend', legendButton);
+    L.DomEvent.disableClickPropagation(legendButton);
+    L.DomEvent.disableScrollPropagation(legendButton);
+  }
 
   // =========================================================
   // GPX IMPORT — local files, rendered as a separate map layer
@@ -6041,5 +6116,636 @@ clearGpxButton.addEventListener("click", function () {
 })();
 </script>
 
+<script type="module">
+/* AMG GEOPDF IMPORTER — browser-local rendering and IndexedDB storage.
+   Preserve tested four-corner affine georeferencing and tiled rendering. */
+import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
+const {map,layerControl}=window.topotacAMGContext||{};
+const panel = document.createElement('div');
+panel.id = 'amgPanel';
+panel.hidden = true;
+panel.innerHTML = `
+  <div class="amg-row"><h3>GEOPDF MANAGER</h3><button id="amgClose" type="button">✕</button></div>
+  <div id="amgStorage" role="status">Checking map storage…</div>
+  <label>Choose GeoPDF <input type="file" id="amgFile" accept=".pdf,application/pdf"></label>
+  <label>Conversion quality
+    <select id="amgQuality">
+      <option value="2">Standard 2×</option>
+      <option value="3" selected>High 3× (recommended)</option>
+      <option value="4">Ultra 4×</option>
+      <option value="6">Maximum 6×</option>
+    </select>
+  </label>
+  <p><button type="button" id="amgConvert">CONVERT & SAVE MAP</button></p>
+  <p><a href="https://ftp.wildfire.gov/public/incident_specific_maps/pacific_nw/"
+    target="_blank" rel="noopener noreferrer">NIFC PNW INCIDENT MAPS LINK ↗</a></p>
+  <p class="amg-note">Download a GeoPDF from NIFC, then select it from it's downloaded location with the CHOOSE FILE button above. PDFs without usable georeferencing are rejected.</p>
+  <div id="amgStatus" role="status">Choose a georeferenced PDF to begin.</div>
+  <h3>Saved maps</h3><div id="amgList">Loading…</div>
+  <p class="amg-note">Maps are stored on this device, not the server. Clearing website data may remove them. Verify alignment before field use.</p>`;
+document.body.append(panel);
+const el = id => document.getElementById(id);
+const amgStatus = message => { el('amgStatus').textContent = message; };
+const MAX_MAPS = 3;
+const MAX_BYTES = 500 * 1024 * 1024;
+let converting = false;
+let deleting = false;
+const openManager = () => { panel.hidden = false; refresh(); };
+window.topotacOpenAMG = openManager;
+el('amgClose').onclick = () => { if (!converting) panel.hidden = true; };
+panel.addEventListener('click', event => event.stopPropagation());
+panel.addEventListener('pointerdown', event => event.stopPropagation());
+const DB='topotac-amg-maps-v1',STORE='maps';
+function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB,1);req.onupgradeneeded=()=>req.result.createObjectStore(STORE,{keyPath:'id'});req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+// Resolve writes only after the transaction commits, not merely when a request succeeds.
+async function dbAction(mode, method, arg) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    let result;
+    try {
+      const tx = db.transaction(STORE, mode);
+      const req = tx.objectStore(STORE)[method](...(arg === undefined ? [] : [arg]));
+      req.onsuccess = () => { result = req.result; };
+      tx.oncomplete = () => { db.close(); resolve(result); };
+      tx.onabort = () => { db.close(); reject(tx.error || Error('Map storage transaction aborted')); };
+      tx.onerror = () => {}; // onabort reports the final failure
+    } catch (error) { db.close(); reject(error); }
+  });
+}
+const layers = new Map();
+const mapRecords = new Map();
+const mapVisibility = new Map();
+const mapOpacity = new Map();
+const mapControls = new Map();
+// Existing single-PNG records remain readable; tiled records use a separate tile store.
+const TILEDB='topotac-amg-tiles-v1';
+function tileDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(TILEDB,1);r.onupgradeneeded=()=>r.result.createObjectStore('tiles');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+async function tileOp(method, key, value) {
+  const db = await tileDB();
+  return new Promise((resolve, reject) => {
+    let result;
+    try {
+      const mode = method === 'put' || method === 'delete' ? 'readwrite' : 'readonly';
+      const tx = db.transaction('tiles', mode);
+      const store = tx.objectStore('tiles');
+      const req = method === 'put' ? store.put(value, key) : store[method](key);
+      req.onsuccess = () => { result = req.result; };
+      tx.oncomplete = () => { db.close(); resolve(result); };
+      tx.onabort = () => { db.close(); reject(tx.error || Error('Tile storage transaction aborted')); };
+      tx.onerror = () => {};
+    } catch (error) { db.close(); reject(error); }
+  });
+}
+function removeLayer(id) {
+  const item = layers.get(id);
+  if (!item) return;
+  layerControl.removeLayer(item.layer);
+  map.removeLayer(item.layer);
+  item.cleanup?.();
+  if (item.url) URL.revokeObjectURL(item.url);
+  layers.delete(id);
+  mapControls.get(id)?.remove();
+  mapControls.delete(id);
+  mapRecords.delete(id);
+  mapVisibility.delete(id);
+  mapOpacity.delete(id);
+}
+
+// Place controls after the GEOPDF button inside Leaflet's existing overlay list.
+function updateLayerMenu() {
+  const container = layerControl.getContainer();
+  if (!container) return;
+  const overlays = container.querySelector('.leaflet-control-layers-overlays');
+  if (!overlays) return;
+  // Leaflet rebuilds this DOM when overlays are registered or removed.
+  // Reattach permanent controls after each rebuild.
+  const baseMenu = container.querySelector('.leaflet-control-layers-base');
+  const lidar = [...overlays.querySelectorAll('label')].find(label => label.textContent.includes('OR LiDAR'));
+  const lidarSlider = document.getElementById('opacityControl');
+  if (lidar && lidarSlider && lidarSlider.previousElementSibling !== lidar) lidar.after(lidarSlider);
+  const geoButton = document.getElementById('amgOpen');
+  if (geoButton && geoButton.parentElement !== overlays) overlays.append(geoButton);
+  for (const [id, record] of mapRecords) {
+    const item = layers.get(id);
+    if (!item) continue;
+    let control = mapControls.get(id);
+    if (!control) {
+      control = document.createElement('div');
+      control.className = 'amg-layer-item';
+      const slider = document.createElement('input');
+      slider.type = 'range'; slider.min = '0'; slider.max = '100';
+      slider.value = String(Math.round((mapOpacity.get(id) ?? .8) * 100));
+      slider.setAttribute('aria-label', 'Opacity: ' + record.meta.name);
+      slider.addEventListener('input', () => {
+        const opacity = Number(slider.value) / 100;
+        mapOpacity.set(id, opacity);
+        item.layer.setOpacity(opacity);
+      });
+      control.append(slider);
+      mapControls.set(id, control);
+    }
+    const label = [...overlays.querySelectorAll('label')].find(label =>
+      label.textContent.includes('GeoPDF: ' + record.meta.name));
+    if (label) label.after(control);
+  }
+}
+
+function tiledOverlay(record){
+ const group=L.layerGroup();
+ const active=new Map(),pending=new Set(),missing=new Set();
+ const MAX_TILE_READS=6;
+ let disposed=false, generation=0;
+ const m=record.meta, [sw,ne]=m.bounds;
+ const west=merc(0,sw[1])[0],east=merc(0,ne[1])[0],south=merc(sw[0],0)[1],north=merc(ne[0],0)[1];
+ function boundsFor(col,row){
+  const x0=west+(east-west)*(col*m.tileSize/m.width),x1=west+(east-west)*(Math.min(m.width,(col+1)*m.tileSize)/m.width);
+  const y0=north-(north-south)*(row*m.tileSize/m.height),y1=north-(north-south)*(Math.min(m.height,(row+1)*m.tileSize)/m.height);
+  return [unmerc(x0,y1),unmerc(x1,y0)];
+ }
+ function clearActive(){
+  for(const t of active.values()){group.removeLayer(t.layer);URL.revokeObjectURL(t.url);}
+  active.clear();
+ }
+ function update(){
+  if(disposed||!map.hasLayer(group))return;
+  const view=map.getBounds().pad(.15);
+  const visible=[];
+  for(let row=0;row<m.rows;row++)for(let col=0;col<m.cols;col++){
+   const key=row+':'+col, bounds=boundsFor(col,row);
+   if(!view.intersects(L.latLngBounds(bounds))){
+    const old=active.get(key);
+    if(old){group.removeLayer(old.layer);URL.revokeObjectURL(old.url);active.delete(key);}
+   }else visible.push({key,bounds});
+  }
+  // Only a bounded number of IndexedDB reads may be outstanding.
+  for(const {key,bounds} of visible){
+   if(pending.size>=MAX_TILE_READS)break;
+   if(active.has(key)||pending.has(key)||missing.has(key))continue;
+   pending.add(key);
+   const requestGeneration=generation;
+   tileOp('get',record.id+':'+key).then(blob=>{
+    if(!blob){missing.add(key);return;}
+    if(disposed||requestGeneration!==generation||!map.hasLayer(group)||
+       !map.getBounds().pad(.15).intersects(L.latLngBounds(bounds)))return;
+    const url=URL.createObjectURL(blob);
+    try{
+     const layer=L.imageOverlay(url,bounds,{opacity:group.amgOpacity??.8,interactive:false});
+     layer.addTo(group);active.set(key,{layer,url});
+    }catch(error){URL.revokeObjectURL(url);throw error;}
+   }).catch(error=>console.error('AMG tile read',error)).finally(()=>{
+    pending.delete(key);
+    // Continue filling visible tiles without waiting for another map movement.
+    if(!disposed&&map.hasLayer(group))update();
+   });
+  }
+ }
+ group.amgOpacity=.8;
+ group.setOpacity=v=>{group.amgOpacity=v;for(const t of active.values())t.layer.setOpacity(v);};
+ group.getBounds=()=>L.latLngBounds(m.bounds);
+ group.on('add',update);
+ group.on('remove',()=>{generation++;clearActive();});
+ map.on('moveend zoomend',update);
+ return {layer:group,cleanup:()=>{
+  disposed=true;generation++;map.off('moveend zoomend',update);
+  group.off('add',update);clearActive();pending.clear();
+ }};
+}
+window.topotacRefreshAMGLayers = updateLayerMenu;
+
+function showMap(record, zoom = false) {
+  removeLayer(record.id);
+  let item;
+  if (record.meta.tiled) {
+    item = tiledOverlay(record);
+  } else {
+    const url = URL.createObjectURL(record.blob);
+    item = {layer: L.imageOverlay(url, record.meta.bounds, {opacity:.8,interactive:false}), url};
+  }
+  mapRecords.set(record.id, record);
+  mapVisibility.set(record.id, true);
+  mapOpacity.set(record.id, .8);
+  item.layer.addTo(map);
+  layerControl.addOverlay(item.layer, 'GeoPDF: ' + record.meta.name);
+  layers.set(record.id, item);
+  updateLayerMenu();
+  if (zoom) map.fitBounds(record.meta.bounds, {padding:[20,20]});
+}
+
+// IndexedDB tiles are stored as blobs. Count actual bytes, not estimated pixels.
+async function tileBytes(record) {
+  if (!record.meta.tiled) return record.blob?.size || 0;
+  if (Number.isFinite(record.meta.storedBytes)) return record.meta.storedBytes;
+  let bytes = 0;
+  for (let row = 0; row < record.meta.rows; row++) {
+    for (let col = 0; col < record.meta.cols; col++) {
+      const blob = await tileOp('get', record.id + ':' + row + ':' + col);
+      bytes += blob?.size || 0;
+    }
+  }
+  return bytes;
+}
+
+async function storageReport(records) {
+  let total = 0;
+  for (const record of records) total += await tileBytes(record);
+  el('amgStorage').textContent = `${records.length} / ${MAX_MAPS} maps · ${(total / 1048576).toFixed(1)} / 500 MB`;
+  return total;
+}
+
+async function deleteTiled(record){if(!record.meta.tiled)return;for(let row=0;row<record.meta.rows;row++)for(let col=0;col<record.meta.cols;col++)await tileOp('delete',record.id+':'+row+':'+col);}
+async function refresh() {
+  try {
+    const records = await dbAction('readonly', 'getAll');
+    const total = await storageReport(records);
+    const list = el('amgList');
+    list.replaceChildren();
+    el('amgConvert').disabled = converting || deleting || records.length >= MAX_MAPS || total >= MAX_BYTES;
+    if (!records.length) { list.textContent = 'No saved GeoPDF maps.'; return; }
+    for (const record of records) {
+      const row = document.createElement('div');
+      row.className = 'amg-saved-map';
+      const title = document.createElement('div');
+      title.textContent = `${record.meta.name} · ${((await tileBytes(record)) / 1048576).toFixed(1)} MB`;
+      row.append(title);
+      const buttons = document.createElement('div');
+      buttons.className = 'amg-row';
+      const zoom = document.createElement('button');
+      zoom.textContent = 'ZOOM';
+      zoom.onclick = () => {
+        const item = layers.get(record.id);
+        if (item) map.fitBounds(record.meta.bounds, {padding:[20,20]});
+        panel.hidden = true;
+      };
+      const del = document.createElement('button');
+      del.textContent = 'DELETE';
+      del.disabled = converting || deleting;
+      del.onclick = async () => {
+        if (converting || deleting) return;
+        if (!confirm(`Delete "${record.meta.name}" and its saved tiles?`)) return;
+        deleting = true;
+        del.disabled = true;
+        try {
+          // Remove the map record first: a tile deletion failure cannot leave a
+          // registered map pointing at missing imagery. Orphans are recoverable.
+          await dbAction('readwrite', 'delete', record.id);
+          removeLayer(record.id);
+          try {
+            await deleteTiled(record);
+            amgStatus('Map deleted.');
+          } catch (tileError) {
+            amgStatus('Map removed; some unused tiles remain. They will be cleaned up on next startup. ' + tileError.message);
+          }
+        } catch (error) { amgStatus('Delete failed: ' + error.message); }
+        finally { deleting = false; await refresh(); }
+      };
+      buttons.append(zoom, del);
+      row.append(buttons);
+      list.append(row);
+    }
+  } catch (error) { amgStatus('Storage error: ' + error.message); }
+}
+function readNumbers(s){return (s.match(/[-+]?\d*\.?\d+(?:[Ee][-+]?\d+)?/g)||[]).map(Number)}
+function arrayAfter(s,key){const m=s.match(new RegExp('/'+key+'\\s*\\[([^\\]]+)\\]'));return m?readNumbers(m[1]):null}
+// Legacy direct viewport reader; retained until all GeoPDF variants are regression-tested.
+function getGeoViewport(bytes){
+ // PDF geospatial measurement dictionaries may be embedded or referenced as
+ // /Measure 322 0 R. Read the referenced dictionary without confusing it
+ // with unrelated coordinate arrays elsewhere in the PDF.
+ const raw=new TextDecoder('latin1').decode(bytes);
+ const start=raw.indexOf('/VP');
+ if(start<0)throw Error('No PDF /VP geospatial viewport found. This GeoPDF encoding is not supported yet.');
+ const end=raw.indexOf('endobj',start);
+ const region=raw.slice(start,end>start?end:start+30000);
+ const viewports=[];
+ const re=/\/Type\s*\/Viewport\b/g;let m;
+ function getObject(num){
+  const objRe=new RegExp('(?:^|[\\r\\n])\\s*'+num+'\\s+\\d+\\s+obj\\b');
+  const match=objRe.exec(raw);
+  if(!match)return null;
+  const finish=raw.indexOf('endobj',match.index+match[0].length);
+  return raw.slice(match.index,finish>=0?finish:match.index+16000);
+ }
+ while((m=re.exec(region))){
+  // The /Type /Viewport marker may appear after its /BBox and /Measure.
+  // Locate its enclosing dictionary by looking back to the nearest <<.
+  const dictStart=region.lastIndexOf('<<',m.index);
+  const dictEnd=region.indexOf('>>',m.index);
+  const segment=region.slice(Math.max(0,dictStart),dictEnd>=0?dictEnd+2:undefined);
+  const bbox=arrayAfter(segment,'BBox');
+  const measureRef=segment.match(/\/Measure\s+(\d+)\s+\d+\s+R\b/);
+  const measure=measureRef?getObject(Number(measureRef[1])):segment;
+  const gpts=arrayAfter(measure||segment,'GPTS')||arrayAfter(segment,'GPTS');
+  const lpts=arrayAfter(measure||segment,'LPTS')||arrayAfter(segment,'LPTS');
+  if(bbox?.length===4&&gpts?.length>=8&&lpts?.length>=8)
+   viewports.push({bbox,gpts,lpts,area:Math.abs((bbox[2]-bbox[0])*(bbox[3]-bbox[1]))});
+ }
+ // Preserve support for older GeoPDFs where arrays are in the same
+ // enclosing object, even when the viewport dictionary is nonstandard.
+ if(!viewports.length){
+  const bbox=arrayAfter(region,'BBox'),gpts=arrayAfter(region,'GPTS'),lpts=arrayAfter(region,'LPTS');
+  if(bbox?.length===4&&gpts?.length>=8&&lpts?.length>=8)
+   viewports.push({bbox,gpts,lpts,area:Math.abs((bbox[2]-bbox[0])*(bbox[3]-bbox[1]))});
+ }
+ if(!viewports.length)throw Error('GeoPDF viewport found, but its /Measure coordinates could not be read.');
+ return viewports.sort((a,b)=>b.area-a.area)[0];
+}
+// Object-aware viewport reader; do not alter coordinate transformations during CSS cleanup.
+async function getGeoViewportWithObjects(bytes){
+ // pdf-lib resolves indirect objects and compressed PDF object streams.
+ // This is required for BLM Cathedral Hills: /Measure 322 0 R.
+ if(!window.PDFLib)throw Error('GeoPDF object reader failed to load. Check internet connection.');
+ const {PDFDocument,PDFName}=window.PDFLib;
+ const doc=await PDFDocument.load(bytes,{ignoreEncryption:true,updateMetadata:false});
+ const context=doc.context, page=doc.getPages()[0];
+ const deref=value=>value?context.lookup(value):null;
+ const readArray=value=>{
+  const arr=deref(value);if(!arr||typeof arr.asArray!=='function')return null;
+  return arr.asArray().map(x=>{const n=deref(x);return typeof n?.asNumber==='function'?n.asNumber():Number(n?.toString());});
+ };
+ const vp=deref(page.node.get(PDFName.of('VP')));
+ if(!vp||typeof vp.asArray!=='function')throw Error('No /VP geospatial viewport found in PDF.');
+ const found=[];
+ for(const vpRef of vp.asArray()){
+  const v=deref(vpRef);if(!v||typeof v.get!=='function')continue;
+  const bbox=readArray(v.get(PDFName.of('BBox')));
+  const measure=deref(v.get(PDFName.of('Measure'))) || v;
+  const gpts=readArray(measure.get(PDFName.of('GPTS')));
+  const lpts=readArray(measure.get(PDFName.of('LPTS')));
+  if(bbox?.length===4&&gpts?.length>=8&&lpts?.length>=8)
+   found.push({bbox,gpts,lpts,area:Math.abs((bbox[2]-bbox[0])*(bbox[3]-bbox[1]))});
+ }
+ if(!found.length)throw Error('No supported /BBox + /GPTS + /LPTS found in PDF geospatial measurement dictionaries.');
+ return found.sort((a,b)=>b.area-a.area)[0];
+}
+function merc(lat,lon){const r=Math.PI/180,cl=Math.max(-85.051128,Math.min(85.051128,lat));return [lon*r,Math.log(Math.tan(Math.PI/4+cl*r/2))]}
+function unmerc(x,y){return [Math.atan(Math.sinh(y))*180/Math.PI,x*180/Math.PI]}
+function geoCorners(v){
+ // LPTS are geographic tie points, NOT necessarily the corners of /BBox.
+ // Galice has LPTS as far as -0.047 and 1.047, so selecting the nearest
+ // corner displaces and rotates the map. Fit all four points instead.
+ const points=[];
+ for(let i=0;i<Math.min(v.gpts.length,v.lpts.length)/2;i++){
+  const lat=v.gpts[2*i],lon=v.gpts[2*i+1],u=v.lpts[2*i],vv=v.lpts[2*i+1];
+  if(![lat,lon,u,vv].every(Number.isFinite)||Math.abs(lat)>85||Math.abs(lon)>180)
+   throw Error('Invalid geographic control points');
+  const canvasV=v.bbox[3]<v.bbox[1]?vv:1-vv;
+  points.push({u,v:canvasV,xy:merc(lat,lon)});
+ }
+ if(points.length<3)throw Error('GeoPDF requires at least three control points');
+ const A=[[0,0,0],[0,0,0],[0,0,0]],bx=[0,0,0],by=[0,0,0];
+ for(const p of points){const r=[1,p.u,p.v];for(let i=0;i<3;i++){
+  bx[i]+=r[i]*p.xy[0];by[i]+=r[i]*p.xy[1];
+  for(let j=0;j<3;j++)A[i][j]+=r[i]*r[j];
+ }}
+ function solve(b){
+  const m=A.map((r,i)=>[...r,b[i]]);
+  for(let k=0;k<3;k++){
+   let pivot=k;for(let j=k+1;j<3;j++)if(Math.abs(m[j][k])>Math.abs(m[pivot][k]))pivot=j;
+   [m[k],m[pivot]]=[m[pivot],m[k]];
+   if(Math.abs(m[k][k])<1e-14)throw Error('GeoPDF control points are degenerate');
+   const d=m[k][k];for(let j=k;j<4;j++)m[k][j]/=d;
+   for(let i=0;i<3;i++)if(i!==k){const f=m[i][k];for(let j=k;j<4;j++)m[i][j]-=f*m[k][j];}
+  }
+  return m.map(r=>r[3]);
+ }
+ const cx=solve(bx),cy=solve(by);
+ const predict=(u,v)=>[cx[0]+cx[1]*u+cx[2]*v,cy[0]+cy[1]*u+cy[2]*v];
+ const residual=Math.max(...points.map(p=>Math.hypot(...predict(p.u,p.v).map((x,i)=>x-p.xy[i]))));
+ const span=Math.max(Math.hypot(cx[1],cy[1]),Math.hypot(cx[2],cy[2]));
+ if(residual>Math.max(1e-7,span*.02))throw Error('GeoPDF control points disagree (affine fit error); cannot safely align');
+ return [[0,0],[1,0],[1,1],[0,1]].map(([u,v])=>{
+  const xy=predict(u,v),[lat,lon]=unmerc(...xy);return {u,v,xy,lat,lon};
+ });
+}
+function bilinear(c,u,v){const a=(1-u)*(1-v),b=u*(1-v),d=u*v,e=(1-u)*v;return [a*c[0].xy[0]+b*c[1].xy[0]+d*c[2].xy[0]+e*c[3].xy[0],a*c[0].xy[1]+b*c[1].xy[1]+d*c[2].xy[1]+e*c[3].xy[1]]}
+async function rectify(source,corners,renderScale){
+ amgStatus('AMG: correcting map orientation…'); await new Promise(r=>setTimeout(r,30));
+ const xs=corners.map(c=>c.xy[0]),ys=corners.map(c=>c.xy[1]);
+ const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+ const spanX=maxX-minX,spanY=maxY-minY;
+ if(!(spanX>0&&spanY>0))throw Error('Invalid geographic extent');
+ const aspect=spanX/spanY,maxDim=Math.round(2600*renderScale/2);
+ const outW=Math.max(1,Math.round(maxDim*Math.min(1,aspect)));
+ const outH=Math.max(1,Math.round(maxDim*Math.min(1,1/aspect)));
+ if(outW*outH>42000000)throw Error('Output image is too large for this browser. Select a lower quality.');const out=document.createElement('canvas');out.width=outW;out.height=outH;
+ const ctx=out.getContext('2d',{willReadFrequently:true});
+ // Mesh-based forward warp: canvas draws the actual PDF pixels into each geographic triangle.
+ // This avoids the blank-image failure caused by the earlier per-pixel inverse warp.
+ const project=(u,v)=>{
+  const [mx,my]=bilinear(corners,u,v);
+  return {x:(mx-minX)/spanX*outW,y:(maxY-my)/spanY*outH};
+ };
+ function triangle(s0,s1,s2,d0,d1,d2){
+  const den=(s0.x*(s1.y-s2.y)+s1.x*(s2.y-s0.y)+s2.x*(s0.y-s1.y));
+  if(Math.abs(den)<1e-8)return;
+  const a=(d0.x*(s1.y-s2.y)+d1.x*(s2.y-s0.y)+d2.x*(s0.y-s1.y))/den;
+  const c=(d0.x*(s2.x-s1.x)+d1.x*(s0.x-s2.x)+d2.x*(s1.x-s0.x))/den;
+  const e=(d0.x*(s1.x*s2.y-s2.x*s1.y)+d1.x*(s2.x*s0.y-s0.x*s2.y)+d2.x*(s0.x*s1.y-s1.x*s0.y))/den;
+  const b=(d0.y*(s1.y-s2.y)+d1.y*(s2.y-s0.y)+d2.y*(s0.y-s1.y))/den;
+  const d=(d0.y*(s2.x-s1.x)+d1.y*(s0.x-s2.x)+d2.y*(s1.x-s0.x))/den;
+  const f=(d0.y*(s1.x*s2.y-s2.x*s1.y)+d1.y*(s2.x*s0.y-s0.x*s2.y)+d2.y*(s0.x*s1.y-s1.x*s0.y))/den;
+  ctx.save();ctx.beginPath();ctx.moveTo(d0.x,d0.y);ctx.lineTo(d1.x,d1.y);ctx.lineTo(d2.x,d2.y);ctx.closePath();ctx.clip();
+  ctx.setTransform(a,b,c,d,e,f);ctx.drawImage(source,0,0);ctx.restore();
+ }
+ const grid=24;
+ for(let j=0;j<grid;j++){
+  for(let i=0;i<grid;i++){
+   const u0=i/grid,u1=(i+1)/grid,v0=j/grid,v1=(j+1)/grid;
+   const s00={x:u0*source.width,y:v0*source.height},s10={x:u1*source.width,y:v0*source.height};
+   const s01={x:u0*source.width,y:v1*source.height},s11={x:u1*source.width,y:v1*source.height};
+   const d00=project(u0,v0),d10=project(u1,v0),d01=project(u0,v1),d11=project(u1,v1);
+   triangle(s00,s10,s11,d00,d10,d11);triangle(s00,s11,s01,d00,d11,d01);
+  }
+  if(j%4===0){amgStatus('AMG: rectifying map '+Math.round((j+1)/grid*100)+'%');await new Promise(r=>setTimeout(r,0));}
+ }
+ // Reject a blank result instead of allowing a misleading map to be saved.
+ const probe=document.createElement('canvas');probe.width=128;probe.height=128;const pc=probe.getContext('2d',{willReadFrequently:true});pc.drawImage(out,0,0,128,128);const pixels=pc.getImageData(0,0,128,128).data;
+ let visible=0;for(let i=3;i<pixels.length;i+=4)if(pixels[i]>0)visible++;
+ if(visible<128*128*0.15)throw Error('Rectified output only '+(100*visible/(128*128)).toFixed(1)+'% visible ('+outW+'×'+outH+'). No files saved.');
+ return {canvas:out,bounds:[unmerc(minX,minY),unmerc(maxX,maxY)],size:[outW,outH]};
+}
+
+// Generate rectified map tiles without ever allocating a full-size PDF canvas.
+// PDF.js renders a small translated PDF region for each output tile.
+function invertGeo(c,mx,my){
+ let u=.5,v=.5;
+ for(let k=0;k<12;k++){
+  const [x,y]=bilinear(c,u,v),[xu,yu]=bilinear(c,u+.0001,v),[xv,yv]=bilinear(c,u,v+.0001);
+  const ax=(xu-x)*10000,ay=(yu-y)*10000,bx=(xv-x)*10000,by=(yv-y)*10000;
+  const det=ax*by-ay*bx;if(Math.abs(det)<1e-15)throw Error('Non-invertible geographic map');
+  const dx=mx-x,dy=my-y,du=(dx*by-dy*bx)/det,dv=(ax*dy-ay*dx)/det;
+  u+=du;v+=dv;if(Math.max(Math.abs(du),Math.abs(dv))<1e-8)break;
+ }
+ return [u,v];
+}
+function warpTriangle(ctx,source,s0,s1,s2,d0,d1,d2){
+ const den=s0.x*(s1.y-s2.y)+s1.x*(s2.y-s0.y)+s2.x*(s0.y-s1.y);if(Math.abs(den)<1e-9)return;
+ const a=(d0.x*(s1.y-s2.y)+d1.x*(s2.y-s0.y)+d2.x*(s0.y-s1.y))/den;
+ const c=(d0.x*(s2.x-s1.x)+d1.x*(s0.x-s2.x)+d2.x*(s1.x-s0.x))/den;
+ const e=(d0.x*(s1.x*s2.y-s2.x*s1.y)+d1.x*(s2.x*s0.y-s0.x*s2.y)+d2.x*(s0.x*s1.y-s1.x*s0.y))/den;
+ const b=(d0.y*(s1.y-s2.y)+d1.y*(s2.y-s0.y)+d2.y*(s0.y-s1.y))/den;
+ const d=(d0.y*(s2.x-s1.x)+d1.y*(s0.x-s2.x)+d2.y*(s1.x-s0.x))/den;
+ const f=(d0.y*(s1.x*s2.y-s2.x*s1.y)+d1.y*(s2.x*s0.y-s0.x*s2.y)+d2.y*(s0.x*s1.y-s1.x*s0.y))/den;
+ ctx.save();ctx.beginPath();ctx.moveTo(d0.x,d0.y);ctx.lineTo(d1.x,d1.y);ctx.lineTo(d2.x,d2.y);ctx.closePath();ctx.clip();ctx.setTransform(a,b,c,d,e,f);ctx.drawImage(source,0,0);ctx.restore();
+}
+const nextFrame=()=>new Promise(resolve=>setTimeout(resolve,0));
+async function buildTiles(page,geo,corners,scale,id,conversionBudget=MAX_BYTES){
+ let conversionBytes=0;
+ const xs=corners.map(p=>p.xy[0]),ys=corners.map(p=>p.xy[1]);
+ const west=Math.min(...xs),east=Math.max(...xs),south=Math.min(...ys),north=Math.max(...ys);
+ const aspect=(east-west)/(north-south);if(!(aspect>0&&Number.isFinite(aspect)))throw Error('Invalid map geographic extent');
+ const maxDim=Math.round(2600*scale/2),width=Math.max(1,Math.round(maxDim*Math.min(1,aspect))),height=Math.max(1,Math.round(maxDim*Math.min(1,1/aspect)));
+ const tileSize=512,cols=Math.ceil(width/tileSize),rows=Math.ceil(height/tileSize);
+ const viewport=page.getViewport({scale});const rect=viewport.convertToViewportRectangle(geo.bbox);
+ const pdfX=Math.min(rect[0],rect[2]),pdfY=Math.min(rect[1],rect[3]),pdfW=Math.abs(rect[2]-rect[0]),pdfH=Math.abs(rect[3]-rect[1]);
+ const produced=[];let saved=0;
+ if (!Number.isFinite(width*height) || width*height > 60000000) throw Error('Output resolution exceeds the 60 MP conversion safety limit. Choose a lower quality.');
+ try{
+ for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
+  const x=col*tileSize,y=row*tileSize,w=Math.min(tileSize,width-x),h=Math.min(tileSize,height-y);
+  const grid=6,uv=[];let minU=Infinity,maxU=-Infinity,minV=Infinity,maxV=-Infinity;
+  for(let j=0;j<=grid;j++){const line=[];for(let i=0;i<=grid;i++){
+   const px=x+w*i/grid,py=y+h*j/grid,mx=west+(east-west)*px/width,my=north-(north-south)*py/height;
+   const [u,v]=invertGeo(corners,mx,my);line.push([u,v]);minU=Math.min(minU,u);maxU=Math.max(maxU,u);minV=Math.min(minV,v);maxV=Math.max(maxV,v);
+  }uv.push(line);}
+  // Add 3px bleed so neighboring tiles do not expose edge gaps.
+  const sx=Math.max(0,Math.floor(pdfX+minU*pdfW)-3),sy=Math.max(0,Math.floor(pdfY+minV*pdfH)-3);
+  const ex=Math.min(Math.ceil(viewport.width),Math.ceil(pdfX+maxU*pdfW)+3),ey=Math.min(Math.ceil(viewport.height),Math.ceil(pdfY+maxV*pdfH)+3);
+  const rw=ex-sx,rh=ey-sy;if(rw<1||rh<1)continue;
+  if(rw*rh>16000000)throw Error('Single tile source crop '+rw+'×'+rh+' exceeds 16 MP. Try 2×.');
+  const src=document.createElement('canvas');
+  const dst=document.createElement('canvas');
+  let blob;
+  try {
+   src.width=rw;src.height=rh;
+   const sc=src.getContext('2d');if(!sc)throw Error('PDF tile canvas unavailable');
+   await page.render({canvasContext:sc,viewport,transform:[1,0,0,1,-sx,-sy],background:'rgba(255,255,255,0)'}).promise;
+   dst.width=w;dst.height=h;const dc=dst.getContext('2d');if(!dc)throw Error('Output tile canvas unavailable');
+   const point=(i,j)=>({x:pdfX+uv[j][i][0]*pdfW-sx,y:pdfY+uv[j][i][1]*pdfH-sy});
+   const target=(i,j)=>({x:w*i/grid,y:h*j/grid});
+   for(let j=0;j<grid;j++)for(let i=0;i<grid;i++){
+    const a=point(i,j),b=point(i+1,j),c=point(i+1,j+1),d=point(i,j+1);
+    const A=target(i,j),B=target(i+1,j),C=target(i+1,j),D=target(i,j+1);
+    warpTriangle(dc,src,a,b,c,A,B,C);warpTriangle(dc,src,a,c,d,A,C,D);
+   }
+   blob=await new Promise(resolve=>dst.toBlob(resolve,'image/png'));
+  } finally {
+   // Release both potentially large canvases even when rendering or encoding fails.
+   src.width=src.height=0;
+   dst.width=dst.height=0;
+  }
+  if(!blob)throw Error('PNG tile encoding failed');const key=id+':'+row+':'+col;
+  if (conversionBytes + blob.size > conversionBudget) throw Error('500 MB storage limit would be exceeded.');
+  await tileOp('put',key,blob);produced.push(key);saved++;conversionBytes += blob.size;
+  amgStatus('AMG '+scale+'×: generated '+saved+' / '+(cols*rows)+' tiles');await nextFrame();
+ }
+ if(saved===0)throw Error('No geographic tiles produced');
+ return {name:id,bounds:[unmerc(west,south),unmerc(east,north)],source:'GeoPDF',renderScale:scale,tiled:true,tileSize,width,height,cols,rows,outputPixels:[width,height],storedBytes:conversionBytes};
+ }catch(e){
+   for (const key of produced) {
+     try { await tileOp('delete', key); }
+     catch (cleanupError) { console.warn('AMG temporary tile cleanup', key, cleanupError); }
+   }
+   throw e;
+ }
+}
+// An interrupted conversion may leave temporary tiles. Clear uncommitted tile
+// prefixes on startup, without touching committed map records.
+async function cleanOrphanTiles(records) {
+  const ids = new Set(records.map(record => record.id));
+  const db = await tileDB();
+  try { await new Promise((resolve, reject) => {
+    const tx = db.transaction('tiles', 'readwrite');
+    const store = tx.objectStore('tiles');
+    const cursor = store.openCursor();
+    cursor.onsuccess = () => {
+      const item = cursor.result;
+      if (!item) return;
+      const key = String(item.key);
+      const id = key.slice(0, key.lastIndexOf(':', key.lastIndexOf(':') - 1));
+      if (!ids.has(id)) item.delete();
+      item.continue();
+    };
+    tx.oncomplete = resolve;
+    tx.onabort = () => reject(tx.error || Error('Orphan tile cleanup aborted'));
+  }); } finally { db.close(); }
+}
+
+el('amgConvert').onclick = async () => {
+  const file = el('amgFile').files[0];
+  if (!file) { amgStatus('Select a GeoPDF first.'); return; }
+  if (converting || deleting) return;
+  converting = true;
+  const button = el('amgConvert');
+  button.disabled = true;
+  let tempId = null;
+  let pdfDoc = null;
+  try {
+    const records = await dbAction('readonly', 'getAll');
+    const used = await storageReport(records);
+    if (records.length >= MAX_MAPS) throw Error('Three saved maps maximum. Delete one before importing another.');
+    if (used >= MAX_BYTES) throw Error('500 MB storage limit reached. Delete a map first.');
+    amgStatus('Reading geographic control points…');
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const geo = await getGeoViewportWithObjects(bytes);
+    const corners = geoCorners(geo);
+    // PDF.js may transfer the supplied buffer to its worker; do not reuse bytes afterward.
+    pdfDoc = await pdfjsLib.getDocument({data:bytes}).promise;
+    const page = await pdfDoc.getPage(1);
+    const requested = Number(el('amgQuality').value);
+    const attempts = [requested, ...[3,2].filter(n => n < requested)];
+    const name = file.name.replace(/\.pdf$/i, '').replace(/[^a-z0-9_-]+/gi, '_');
+    const failures = [];
+    let meta = null;
+    tempId = name + '__new_' + Date.now();
+    for (const scale of attempts) {
+      try {
+        meta = await buildTiles(page, geo, corners, scale, tempId, MAX_BYTES - used);
+        break;
+      } catch (error) {
+        failures.push(scale + '×: ' + error.message);
+        // Only resolution/memory pressure merits a lower-quality retry.
+        // Storage quota, disk failures and malformed PDFs will not improve at 2×.
+        const message = String(error?.message || error);
+        const retryable = /16 MP|60 MP|canvas|render|memory|allocation|too large|too many pixels/i.test(message);
+        if (!retryable || /quota|storage|indexeddb|transaction|500 MB/i.test(message)) throw error;
+        if (scale !== attempts[attempts.length - 1]) amgStatus('AMG: retrying at lower resolution…');
+      }
+    }
+    if (!meta) throw Error('Tiled rendering failed. ' + failures.join(' | '));
+    const record = {id:tempId, meta:{...meta,name,source:file.name},updated:Date.now()};
+    await dbAction('readwrite', 'put', record);
+    showMap(record, true);
+    amgStatus(`Saved ${meta.cols * meta.rows} tiles at ${meta.renderScale}×.`);
+    el('amgFile').value = '';
+  } catch (error) {
+    console.error('AMG conversion', error);
+    amgStatus('AMG stopped: ' + error.message);
+    if (tempId) {
+      // Failed conversions are not retained as saved maps.
+      const records = await dbAction('readonly', 'getAll').catch(() => []);
+      if (!records.some(record => record.id === tempId)) {
+        await cleanOrphanTiles(records).catch(console.error);
+      }
+    }
+  } finally {
+    // Release PDF.js page caches, workers and decoded images after each import.
+    if (pdfDoc) {
+      try { await pdfDoc.destroy(); }
+      catch (error) { console.warn('AMG PDF cleanup', error); }
+    }
+    converting = false;
+    await refresh(); // refresh handles and reports its own storage errors
+  }
+};
+
+try {
+  const records = await dbAction('readonly', 'getAll');
+  await cleanOrphanTiles(records);
+  for (const record of records) showMap(record, false);
+  await refresh();
+} catch (error) { amgStatus('IndexedDB unavailable: ' + error.message); }
+</script>
 </body>
 </html>
