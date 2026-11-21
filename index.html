@@ -2015,8 +2015,8 @@ html, body {
 <div id="hoseWarning" role="alert"></div>
 <div class="profile-scroll-tip" role="note">↔ Swipe horizontally to view full chart</div>
 <div id="hoseScroll"><svg id="hoseGraph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Elevation profile with static pressure and estimated available flow at each wye"></svg></div>
-<div id="hosePressureHelp"><strong>Understanding the chart labels</strong><p><strong>S = Static pressure (P = PSI):</strong> Negative pressures use a single minus sign after the colon, without a space (for example, <strong>S:-12P</strong>). Estimated pressure at the wye with no water flowing, including elevation changes.</p><p><strong>AF = Available Flow:</strong> Estimated maximum flow at that wye while retaining <strong>30 PSI</strong> residual pressure. For example, <strong>AF:5G@30P</strong> means 5 gallons per minute (G) at 30 PSI (P). Each wye is evaluated separately, with all other outlets closed.</p><p><strong>SL = Slope:</strong> Grade between adjacent wye dots, calculated from elevation change divided by hose distance. Positive values are uphill; negative values are downhill (example: <strong>SL:-45%</strong>).</p><p><strong>EG = Elevation Gain:</strong> Net elevation difference at the downstream gated wye relative to the pump position. Positive is above the pump; negative is below (example: <strong>EG:+167'</strong>).</p><p>Drawn distance snaps to complete 100-ft hose lengths: 50 ft or less rounds down, more than 50 ft rounds up. All wyes, terrain samples, and pressure calculations use the snapped distance. When rounding up, the final hose continues in the direction of the last drawn segment. Estimates assume 1½-inch supply hose, a gated wye every 100 ft, and a MARK-3 reference-flow limit. On opening a hose lay, TopoTac automatically recommends a pump pressure targeting 50 PSI flowing at the final wye, falling back to the 30 PSI minimum if needed. You can change the pump PSI and select CALCULATE to use your own setting. It estimates the pump operating point and leaves downstream laterals/nozzles to the crew.</p></div>
-<p id="hoseNote">Planning estimate only. The automatic initial recommendation uses the simplified MARK-3 curve and flow-dependent friction to target 50 PSI at the final wye (30 PSI fallback); it does not model laterals or nozzle demand. Hoselay distance is snapped to full 100-ft hose lengths (50 ft rounds down); extending a line follows its final drawn direction. AF is modeled for one open wye at a time, holding 30 PSI at that wye; 1½-inch hose and a gated wye per 100 ft. MARK-3 reference flow is a simplified cap, not a complete pump curve. Elevation comes from the selected DOGAMI bare-earth LiDAR or USGS 3DEP raster; elevations are sampled every 50 ft, but smaller terrain low spots can still be missed. Actual flow, hose friction, nozzle demand, appliance losses and pump shutoff pressure may differ. Pump reference flow below 100 PSI is extrapolated; between 250 and 380 PSI it interpolates to the approximate 380 PSI shutoff point (0 GPM). At 380 PSI, static pressures are shown but available flow is zero. 300 PSI is a planning alert, not a hose rating. Closed valves and water hammer can produce higher pressures.</p>
+<div id="hosePressureHelp"><strong>Understanding the chart labels</strong><p><strong>S = Static pressure (P = PSI):</strong> Negative pressures use a single minus sign after the colon, without a space (for example, <strong>S:-12P</strong>). Estimated pressure at the wye with no water flowing, including elevation changes.</p><p><strong>AF = Available Flow:</strong> Estimated maximum flow at that wye while retaining <strong>30 PSI</strong> residual pressure. For example, <strong>AF:5G@30P</strong> means 5 gallons per minute (G) at 30 PSI (P). Flow below 10 GPM is shown in red. Each wye is evaluated separately, with all other outlets closed; the pump discharge pressure can decrease as flow increases along the MARK-3 reference curve.</p><p><strong>SL = Slope:</strong> Grade between adjacent wye dots, calculated from elevation change divided by hose distance. Positive values are uphill; negative values are downhill (example: <strong>SL:-45%</strong>).</p><p><strong>EG = Elevation Gain:</strong> Net elevation difference at the downstream gated wye relative to the pump position. Positive is above the pump; negative is below (example: <strong>EG:+167'</strong>).</p><p>Drawn distance snaps to complete 100-ft hose lengths: 50 ft or less rounds down, more than 50 ft rounds up. All wyes, terrain samples, and pressure calculations use the snapped distance. When rounding up, the final hose continues in the direction of the last drawn segment. Estimates assume 1½-inch supply hose, a gated wye every 100 ft, and a MARK-3 reference-flow limit. On opening a hose lay, TopoTac automatically recommends the lowest pump pressure for at least 10 GPM at 30 PSI at the final wye. If that target cannot be met, it selects the highest MARK-3 reference pressure that still supports 10 GPM and warns that the target is not met. You can change the pump PSI and select CALCULATE to use your own setting. It estimates the pump operating point and leaves downstream laterals/nozzles to the crew.</p></div>
+<p id="hoseNote">Planning estimate only. Automatic recommendation finds the minimum pump discharge pressure for 10 GPM at 30 PSI residual at the final gated wye, using terrain elevation and flow-dependent friction, and checks the simplified MARK-3 reference curve for feasibility. If the target is unreachable, the auto setting is limited to approximately 345.7 PSI (displayed as 346 PSI; at least 10 GPM on this reference curve) and the result is flagged. It does not model laterals or nozzle demand. Distance is snapped to full 100-ft hose lengths (50 ft rounds down); extending a line follows its final drawn direction. Each wye's AF estimates maximum available flow independently with all other outlets closed, holding 30 PSI residual and accounting for pump pressure dropping at higher flow. Assumptions: 1½-inch hose and one gated wye per 100 ft. Terrain comes from selected DOGAMI LiDAR or USGS 3DEP, sampled every 50 ft; small low spots can be missed. Actual flow, friction, nozzle demand, appliance losses and pump pressure can differ. Reference flow from 0–380 PSI uses the classic 185cc MARK-3 reference points; 380 PSI is approximate shutoff (0 GPM). 350 PSI is a planning alert, not a hose rating. Closed valves and water hammer can produce higher pressures.</p>
 </div></div>
 
 <div id="lineConstModal" hidden role="dialog" aria-modal="true" aria-labelledby="lineConstTitle"><div id="lineConstPanel">
@@ -5357,56 +5357,62 @@ clearGpxButton.addEventListener("click", function () {
     calculateHoseProfile(line,true);
   }
   // MARK-3 reference points including approximate shutoff (380 PSI, 0 GPM).
-  // Interpolate between points; extrapolate below 100 PSI. Planning estimates only.
+  // Interpolate between supplied classic 185cc MARK-3 reference points. Planning estimates only.
   function mark3Flow(psi){
-    const pts=[[100,78],[150,65],[250,38],[380,0]];
+    const pts=[[0,98],[100,78],[150,65],[175,58],[250,38],[380,0]];
     const i=psi<=pts[0][0]?1:psi>=pts[pts.length-1][0]?pts.length-1:pts.findIndex(p=>psi<=p[0]);
     const a=pts[i-1],b=pts[i];
     return Math.max(0,a[1]+(psi-a[0])*(b[1]-a[1])/(b[0]-a[0]));
   }
-  // AF model: independently solve each outlet for the maximum GPM that leaves
-  // 30 PSI residual at the wye. The chosen pump discharge pressure is treated
-  // as constant, and the MARK-3 flow reference at that PSI caps the estimate.
-  // This is a planning approximation, not a full pump-system operating-point solution.
-  const HOSE_MIN_WYE_PSI=30;
-  function availableWyeFlow(staticPsi,feet,pumpFlowCap){
-    if(staticPsi<=HOSE_MIN_WYE_PSI||feet<=0||pumpFlowCap<=0)return 0;
-    const wyes=Math.floor((feet+1e-6)/100);
-    // Loss = 15 PSI per 100 ft at 60 GPM + 0.46 PSI per wye at 50 GPM.
-    const lossCoefficient=(15/3600)*(feet/100)+(.46/2500)*wyes;
-    if(lossCoefficient<=0)return 0;
-    return Math.min(pumpFlowCap,Math.sqrt((staticPsi-HOSE_MIN_WYE_PSI)/lossCoefficient));
+  // AF: solve each gated wye independently with all other outlets closed.
+  // At greater flow, the pump moves along its MARK-3 reference curve; it does
+  // not remain at its selected discharge PSI. Treat selected PSI as the upper
+  // discharge-pressure setting, and the full-throttle curve as another ceiling.
+  // This is a simplified operating-point estimate, not a measured pump curve.
+  const HOSE_TARGET_WYE_PSI=30;
+  const HOSE_LOW_FLOW_GPM=10;
+  function mark3PressureAtFlow(gpm){
+    // Inverse of the piecewise linear MARK-3 reference curve.
+    const pts=[[0,380],[38,250],[58,175],[65,150],[78,100],[98,0]];
+    const i=gpm<=pts[0][0]?1:gpm>=pts[pts.length-1][0]?pts.length-1:pts.findIndex(p=>gpm<=p[0]);
+    const a=pts[i-1],b=pts[i];
+    return a[1]+(gpm-a[0])*(b[1]-a[1])/(b[0]-a[0]);
   }
-  // Reverse solve the simplified MARK-3 curve against the hose system curve.
-  // One flowing outlet at the FINAL wye; target 50 PSI, fallback minimum 30 PSI.
-  // Flow is calculated at the actual pump operating point, not at a user-selected
-  // shutoff pressure. This does not model downstream lateral hose or nozzles.
+  function hoseLossCoefficient(feet){
+    const wyes=Math.floor((feet+1e-6)/100);
+    return (15/3600)*(feet/100)+(.46/2500)*wyes;
+  }
+  function availableWyeFlow(staticPsi,feet,selectedPumpPsi){
+    if(feet<=0||staticPsi<=HOSE_TARGET_WYE_PSI)return 0;
+    const elevationPressure=selectedPumpPsi-staticPsi;
+    const k=hoseLossCoefficient(feet);
+    const requiredPressure=q=>HOSE_TARGET_WYE_PSI+elevationPressure+k*q*q;
+    const pumpPressure=q=>Math.min(selectedPumpPsi,mark3PressureAtFlow(q));
+    if(requiredPressure(0)>=pumpPressure(0))return 0;
+    // Search all the way to the zero-pressure extrapolation point; the
+    // pressure and system constraints naturally determine the usable flow.
+    let lo=0,hi=100;
+    for(let i=0;i<45;i++){
+      const mid=(lo+hi)/2;
+      if(requiredPressure(mid)<=pumpPressure(mid))lo=mid;
+      else hi=mid;
+    }
+    return lo;
+  }
+  // Maximum discharge pressure on the reference curve that still supports 10 GPM.
+  const HOSE_MAX_10GPM_PSI=250+(38-HOSE_LOW_FLOW_GPM)*(380-250)/38;
+  // Minimum pump discharge pressure for 10 GPM at 30 PSI at the final wye.
+  // At this fixed design flow, elevation and friction determine the required
+  // pressure. The MARK-3 curve is checked separately for feasibility.
   function recommendHosePressure(stations,target){
     const end=stations[stations.length-1],feet=end.ft;
     const rise=end.elevation-stations[0].elevation;
     const wyes=Math.floor((feet+1e-6)/100);
     const k=(15/3600)*(feet/100)+(.46/2500)*wyes;
-    const required=q=>target+.433*rise+k*q*q;
-    // Solve the pump supply = system demand intersection over 25..380 PSI.
-    // mark3Flow(psi) is the maximum available flow at that discharge pressure.
-    // At low pressure, gravity may supply additional head; the reference pump
-    // curve is still a simplified approximation, not a measured system curve.
-    const f=psi=>psi-required(mark3Flow(psi));
-    let lo=25,hi=380;
-    if(f(lo)>=0){
-      // At the low-pressure boundary, the simplified curve may allow more flow
-      // than the hose can use. Solve the system flow at 25 PSI instead.
-      const q=Math.sqrt(Math.max(0,(lo-target-.433*rise)/k));
-      return {psi:lo,gpm:Math.min(mark3Flow(lo),q),residual:target,limited:true};
-    }
-    if(f(hi)<0)return null;
-    for(let i=0;i<65;i++){
-      const mid=(lo+hi)/2;
-      if(f(mid)>=0)hi=mid;else lo=mid;
-    }
-    const psi=(lo+hi)/2;
-    const gpm=mark3Flow(psi);
-    return {psi,gpm,residual:target,limited:false};
+    const required=target+.433*rise+k*HOSE_LOW_FLOW_GPM**2;
+    const psi=Math.max(25,required);
+    if(psi>HOSE_MAX_10GPM_PSI+1e-9)return {psi:HOSE_MAX_10GPM_PSI,gpm:HOSE_LOW_FLOW_GPM,residual:target,limited:true,required};
+    return {psi,gpm:HOSE_LOW_FLOW_GPM,residual:target,limited:false,required};
   }
   // Snap hose deployment to complete 100-foot lengths. A remainder of exactly
   // 50 feet rounds down; 51+ rounds up. Terrain is sampled at the actual
@@ -5590,9 +5596,11 @@ clearGpxButton.addEventListener("click", function () {
       Math.abs(p.ft / 100 - Math.round(p.ft / 100)) < .00001
     );
     for (const p of labels) {
-      const xx = x(p.ft), yy = y(p.rel), alert = p.staticPsi >= 300, depleted = Math.round(p.staticPsi) <= 0, color = alert ? "#c00" : "#222";
+      const xx = x(p.ft), yy = y(p.rel), alert = p.staticPsi >= 350, depleted = Math.round(p.staticPsi) <= 0;
+      const lowFlow = p.ft > 0.001 && p.availableFlow < HOSE_LOW_FLOW_GPM;
+      const color = lowFlow ? "#c00" : "#222";
       const labelX = xx;
-      svg.append(svgEl("circle", {cx:xx,cy:yy,r:4,fill:(alert||depleted)?"#c00":"#ff861c",stroke:"white","stroke-width":1}));
+      svg.append(svgEl("circle", {cx:xx,cy:yy,r:4,fill:(alert||depleted||lowFlow)?"#c00":"#ff861c",stroke:"white","stroke-width":1}));
       const ty = Math.max(34, yy - 24);
       svg.append(svgEl("line", {x1:labelX,y1:ty+4,x2:xx,y2:yy-5,stroke:"#999","stroke-dasharray":"2 3"}));
       svg.append(svgEl("text", {x:labelX,y:ty-15,"text-anchor":"middle","font-size":11,"font-weight":"bold",fill:(alert||depleted)?"#c00":"#222"}, "S:" + Math.round(p.staticPsi) + "P"));
@@ -5631,7 +5639,7 @@ clearGpxButton.addEventListener("click", function () {
     if(!recommend){hoseRecommendation=null;recommendationEl.textContent="";}
     let psi=Number(hosePsi.value);if(!Number.isFinite(psi)||psi<25||psi>380){status.textContent="Enter pump PSI between 25 and 380.";return;}let flow=mark3Flow(psi);
     const path=sampleHosePath(line.vertices,50),{stations,total,clickedTotal}=path;
-    summary.textContent=`Pump: ${psi} PSI | MARK-3 reference limit: ~${Math.round(flow)} GPM | Hoselay: ${Math.round(total).toLocaleString()} ft (drawn ${Math.round(clickedTotal).toLocaleString()} ft; snapped to full 100-ft hose)`;
+    summary.textContent=`Pump: ${psi} PSI | MARK-3 flow at selected PSI: ~${Math.round(flow)} GPM | Hoselay: ${Math.round(total).toLocaleString()} ft (drawn ${Math.round(clickedTotal).toLocaleString()} ft; snapped to full 100-ft hose)`;
     if(total<=0||total>10000){status.textContent="Snapped hoselay must be between 100 and 10,000 ft.";return;}
     // Sample every 50 ft for terrain dips; show pressure labels every 100 ft.
     status.classList.add("hose-loading");
@@ -5640,20 +5648,24 @@ clearGpxButton.addEventListener("click", function () {
     try{
       if(!await loadHoseElevations(stations,token,status,sourceKey))return;
       if(recommend){
-        const desired=recommendHosePressure(stations,50);
-        const minimum=desired||recommendHosePressure(stations,30);
-        if(!minimum || minimum.gpm<0.5){
-          hoseRecommendation=null;
-          recommendationEl.textContent="No usable MARK-3 flow predicted at the final wye with 30 PSI residual. Check the elevation and hose length.";
+        const desired=recommendHosePressure(stations,HOSE_TARGET_WYE_PSI);
+        hoseRecommendation=desired;
+        // Round down at the pump-flow ceiling, so rounding cannot reduce
+        // the MARK-3 reference flow below the 10-GPM minimum.
+        psi=desired.limited
+          ? Math.floor(desired.psi*10+1e-8)/10
+          : Math.ceil(desired.psi*10-1e-8)/10;
+        hosePsi.value=String(psi);
+        flow=mark3Flow(psi);
+        const end=stations[stations.length-1];
+        const endStatic=psi-.433*(end.elevation-stations[0].elevation);
+        const endFlow=availableWyeFlow(endStatic,total,psi);
+        if(desired.limited){
+          recommendationEl.textContent=`TARGET NOT MET: 10 GPM @30 PSI at final wye requires ~${desired.required.toFixed(1)} PSI pump. AUTO SET TO ${psi.toFixed(1)} PSI (highest tenth-PSI setting supporting at least 10 GPM on MARK-3 reference curve; ~${flow.toFixed(1)} GPM pump limit). Final wye estimated ~${endFlow.toFixed(1)} GPM @30 PSI. Planning estimate; verify actual flowing pressure.`;
         }else{
-          hoseRecommendation=minimum;
-          psi=Math.round(minimum.psi*10)/10;
-          hosePsi.value=String(psi);
-          flow=mark3Flow(psi);
-          const label=desired?"50 PSI desired":"30 PSI minimum only";
-          recommendationEl.textContent=`AUTO RECOMMENDED: ${psi.toFixed(1)} PSI pump | ~${minimum.gpm.toFixed(1)} GPM at final wye | ${label}. Planning estimate; verify actual flowing pressure.`;
-          summary.textContent=`Pump: ${psi} PSI | MARK-3 reference limit: ~${Math.round(flow)} GPM | Hoselay: ${Math.round(total).toLocaleString()} ft (drawn ${Math.round(clickedTotal).toLocaleString()} ft; snapped to full 100-ft hose)`;
+          recommendationEl.textContent=`AUTO RECOMMENDED: ${psi.toFixed(1)} PSI pump | minimum design: 10 GPM @30 PSI at final wye | estimated available: ${endFlow.toFixed(1)} GPM @30 PSI. Planning estimate; verify actual flowing pressure.`;
         }
+        summary.textContent=`Pump: ${psi} PSI | MARK-3 flow at selected PSI: ~${Math.round(flow)} GPM | Hoselay: ${Math.round(total).toLocaleString()} ft (drawn ${Math.round(clickedTotal).toLocaleString()} ft; snapped to full 100-ft hose)`;
       }
       // Compute static pressure from elevation, then solve each station's
       // single-outlet available flow subject to a 30-PSI residual target.
@@ -5661,10 +5673,10 @@ clearGpxButton.addEventListener("click", function () {
       for(const p of stations){
         p.rel=p.elevation-base;
         p.staticPsi=psi-.433*p.rel;
-        p.availableFlow=availableWyeFlow(p.staticPsi,p.ft,flow);
+        p.availableFlow=availableWyeFlow(p.staticPsi,p.ft,psi);
       }
       const worst=stations.reduce((a,p)=>p.staticPsi>a.staticPsi?p:a,stations[0]);
-      if(worst.staticPsi>=300)warning.textContent=`⚠ HIGH STATIC PRESSURE: estimated ${Math.round(worst.staticPsi)} PSI near ${Math.round(worst.ft)} ft. Verify hose/fitting ratings and actual pressures.`;
+      if(worst.staticPsi>=350)warning.textContent=`⚠ HIGH STATIC PRESSURE: estimated ${Math.round(worst.staticPsi)} PSI near ${Math.round(worst.ft)} ft. Verify hose/fitting ratings and actual pressures.`;
       status.classList.remove("hose-loading");
       status.textContent=`${elevationServices[sourceKey].name} terrain profile loaded · ${stations.length} elevation samples at 50-ft intervals · S, AF and EG labels every 100 ft · 30 PSI residual target`;
       drawHoseChart(stations,total);
