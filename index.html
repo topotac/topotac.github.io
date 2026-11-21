@@ -2008,7 +2008,7 @@ html, body {
 <div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tap a saved line for Hose Lay, Line Construction, GPX Export, or Delete</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button><button id="lineDeleteAllButton" type="button" style="background:#8b1e1e;color:#fff;border-color:#ff861c">DELETE ALL LINES</button></div>
 <div id="hoseModal" hidden role="dialog" aria-modal="true" aria-labelledby="hoseTitle"><div id="hosePanel">
 <div id="hoseHeader"><h2 id="hoseTitle">HOSE LAY PROFILE</h2><button id="hoseClose" type="button" aria-label="Close hose lay profile">✕</button></div>
-<div id="hoseControls"><label for="hosePsi">Pump discharge PSI</label><input id="hosePsi" type="number" min="50" max="300" step="5" value="125"><button id="hoseCalculate" type="button">CALCULATE</button></div>
+<div id="hoseControls"><label for="hosePsi">Pump discharge PSI</label><input id="hosePsi" type="number" min="25" max="380" step="5" value="125"><button id="hoseCalculate" type="button">CALCULATE</button></div>
 <fieldset class="elevation-source" aria-label="Elevation data source"><legend>Elevation source</legend><label><input type="radio" name="hoseElevationSource" value="dogami" checked> DOGAMI (Oregon)</label><label><input type="radio" name="hoseElevationSource" value="usgs"> USGS 3DEP (nationwide)</label><span id="hoseElevationSourceHint">DOGAMI selected for Oregon routes.</span></fieldset>
 <div id="hoseSummary"></div>
 <div id="hoseStatus" role="status"></div>
@@ -2016,7 +2016,7 @@ html, body {
 <div class="profile-scroll-tip" role="note">↔ Swipe horizontally to view full chart</div>
 <div id="hoseScroll"><svg id="hoseGraph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Elevation profile with static pressure and estimated available flow at each wye"></svg></div>
 <div id="hosePressureHelp"><strong>Understanding the chart labels</strong><p><strong>S = Static pressure (P = PSI):</strong> Negative pressures use a single minus sign after the colon, without a space (for example, <strong>S:-12P</strong>). Estimated pressure at the wye with no water flowing, including elevation changes.</p><p><strong>AF = Available Flow:</strong> Estimated maximum flow at that wye while retaining <strong>30 PSI</strong> residual pressure. For example, <strong>AF:5G@30P</strong> means 5 gallons per minute (G) at 30 PSI (P). Each wye is evaluated separately, with all other outlets closed.</p><p><strong>SL = Slope:</strong> Grade between adjacent wye dots, calculated from elevation change divided by hose distance. Positive values are uphill; negative values are downhill (example: <strong>SL:-45%</strong>).</p><p><strong>EG = Elevation Gain:</strong> Net elevation difference at the downstream gated wye relative to the pump position. Positive is above the pump; negative is below (example: <strong>EG:+167'</strong>).</p><p>Drawn distance snaps to complete 100-ft hose lengths: 50 ft or less rounds down, more than 50 ft rounds up. All wyes, terrain samples, and pressure calculations use the snapped distance. When rounding up, the final hose continues in the direction of the last drawn segment. Estimates assume 1½-inch supply hose, a gated wye every 100 ft, and a MARK-3 reference-flow limit.</p></div>
-<p id="hoseNote">Planning estimate only. Hoselay distance is snapped to full 100-ft hose lengths (50 ft rounds down); extending a line follows its final drawn direction. AF is modeled for one open wye at a time, holding 30 PSI at that wye; 1½-inch hose and a gated wye per 100 ft. MARK-3 reference flow is a simplified cap, not a complete pump curve. Elevation comes from the selected DOGAMI bare-earth LiDAR or USGS 3DEP raster; elevations are sampled every 50 ft, but smaller terrain low spots can still be missed. Actual flow, hose friction, nozzle demand, appliance losses and pump shutoff pressure may differ. Pump reference flow below 100 or above 250 PSI is extrapolated beyond MARK-3 reference points. 300 PSI is a planning alert, not a hose rating. Closed valves and water hammer can produce higher pressures.</p>
+<p id="hoseNote">Planning estimate only. Hoselay distance is snapped to full 100-ft hose lengths (50 ft rounds down); extending a line follows its final drawn direction. AF is modeled for one open wye at a time, holding 30 PSI at that wye; 1½-inch hose and a gated wye per 100 ft. MARK-3 reference flow is a simplified cap, not a complete pump curve. Elevation comes from the selected DOGAMI bare-earth LiDAR or USGS 3DEP raster; elevations are sampled every 50 ft, but smaller terrain low spots can still be missed. Actual flow, hose friction, nozzle demand, appliance losses and pump shutoff pressure may differ. Pump reference flow below 100 PSI is extrapolated; between 250 and 380 PSI it interpolates to the approximate 380 PSI shutoff point (0 GPM). At 380 PSI, static pressures are shown but available flow is zero. 300 PSI is a planning alert, not a hose rating. Closed valves and water hammer can produce higher pressures.</p>
 </div></div>
 
 <div id="lineConstModal" hidden role="dialog" aria-modal="true" aria-labelledby="lineConstTitle"><div id="lineConstPanel">
@@ -5350,10 +5350,10 @@ clearGpxButton.addEventListener("click", function () {
     hoseModal.hidden = false;
     calculateHoseProfile(line);
   }
-  // MARK-3 reference points. Interpolate within the reference range and linearly
-  // extrapolate using the nearest two points outside it. Planning estimates only.
+  // MARK-3 reference points including approximate shutoff (380 PSI, 0 GPM).
+  // Interpolate between points; extrapolate below 100 PSI. Planning estimates only.
   function mark3Flow(psi){
-    const pts=[[100,78],[150,65],[250,38]];
+    const pts=[[100,78],[150,65],[250,38],[380,0]];
     const i=psi<=pts[0][0]?1:psi>=pts[pts.length-1][0]?pts.length-1:pts.findIndex(p=>psi<=p[0]);
     const a=pts[i-1],b=pts[i];
     return Math.max(0,a[1]+(psi-a[0])*(b[1]-a[1])/(b[0]-a[0]));
@@ -5590,7 +5590,7 @@ clearGpxButton.addEventListener("click", function () {
     const summary = document.getElementById("hoseSummary");
     const svg = document.getElementById("hoseGraph");
     status.classList.remove("hose-loading");status.textContent="";warning.textContent="";summary.textContent="";svg.replaceChildren();
-    const psi=Number(hosePsi.value);if(!Number.isFinite(psi)||psi<50||psi>300){status.textContent="Enter pump PSI between 50 and 300.";return;}const flow=mark3Flow(psi);
+    const psi=Number(hosePsi.value);if(!Number.isFinite(psi)||psi<25||psi>380){status.textContent="Enter pump PSI between 25 and 380.";return;}const flow=mark3Flow(psi);
     const path=sampleHosePath(line.vertices,50),{stations,total,clickedTotal}=path;
     summary.textContent=`Pump: ${psi} PSI | MARK-3 reference limit: ~${Math.round(flow)} GPM | Hoselay: ${Math.round(total).toLocaleString()} ft (drawn ${Math.round(clickedTotal).toLocaleString()} ft; snapped to full 100-ft hose)`;
     if(total<=0||total>10000){status.textContent="Snapped hoselay must be between 100 and 10,000 ft.";return;}
