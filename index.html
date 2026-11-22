@@ -1734,6 +1734,21 @@ html, body {
   border-radius: 5px;
   font-weight: bold;
 }
+/* Hose-lay pressure inputs: keep labels paired with inputs on portrait phones. */
+@media (max-width: 600px) and (orientation: portrait) {
+  #hoseControls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    align-items: stretch;
+  }
+  #hoseControls label[for="hosePsi"] { grid-column: 1; grid-row: 1; }
+  #hosePsi { grid-column: 1; grid-row: 2; }
+  #hoseControls label[for="hoseShutoffPsi"] { grid-column: 1; grid-row: 3; }
+  #hoseShutoffPsi { grid-column: 1; grid-row: 4; }
+  #hoseCalculate { grid-column: 1; grid-row: 5; justify-self: start; margin-top: 5px; }
+  #hoseControls input { width: 100%; max-width: 180px; box-sizing: border-box; }
+}
 #hosePressureHelp {
   background: #f5f5f5;
   border: 1px solid #ddd;
