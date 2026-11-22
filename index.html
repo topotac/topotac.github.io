@@ -5622,8 +5622,8 @@ clearGpxButton.addEventListener("click", function () {
       const geometry={points:group.map(({p})=>[p.lng,p.lat]),spatialReference:{wkid:4326}};
       const body=new URLSearchParams({f:'json',geometryType:'esriGeometryMultipoint',geometry:JSON.stringify(geometry),returnFirstValueOnly:'true',interpolation:'RSP_BilinearInterpolation'});
       let data,lastError;
-      for(let attempt=0;attempt<2;attempt++){
-        const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+      for(let attempt=0;attempt<(sourceKey==='dogami'?1:2);attempt++){
+        const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),sourceKey==='dogami'?5000:20000);
         try{
           const r=await fetch(service.url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),signal:controller.signal});
           if(!r.ok)throw Error(`${service.name} HTTP ${r.status}`);
@@ -5659,6 +5659,25 @@ clearGpxButton.addEventListener("click", function () {
     if(missing.length)throw Error(`${missing.length} of ${stations.length} ${service.name} elevation samples unavailable`);
     status.textContent=`Loaded ${stations.length} elevations from ${service.name}`;
     return true;
+  }
+  // Automatically use a complete USGS profile if DOGAMI fails. Never mix sources.
+  async function loadHoseElevationsWithFallback(stations,token,status,preferredSource,kind){
+    try{
+      if(!await loadHoseElevations(stations,token,status,preferredSource))return null;
+      return preferredSource;
+    }catch(err){
+      if(preferredSource!=='dogami'||token!==hoseRequestId)throw err;
+      console.warn('DOGAMI elevation failed; switching entire profile to USGS 3DEP',err);
+      // Remove all DOGAMI samples from this calculation before loading USGS.
+      stations.forEach(p=>{delete p.elevation;delete p._elevKey;});
+      status.textContent='DOGAMI unavailable — automatically loading USGS 3DEP backup…';
+      if(!await loadHoseElevations(stations,token,status,'usgs'))return null;
+      if(token!==hoseRequestId)return null;
+      const hint='DOGAMI unavailable. USGS 3DEP automatic backup loaded for this profile.';
+      const info=document.getElementById(kind==='hose'?'hoseElevationSourceHint':'lineConstElevationSourceHint');
+      if(info)info.textContent=hint;
+      return 'usgs';
+    }
   }
   function svgEl(tag, attrs, text) {
     const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
@@ -5746,10 +5765,11 @@ clearGpxButton.addEventListener("click", function () {
     if(total<=0||total>10000){status.textContent="Snapped hoselay must be between 100 and 10,000 ft.";return;}
     // Sample elevation and evaluate pressures at 100-ft wye stations only.
     status.classList.add("hose-loading");
-    const sourceKey=selectedElevationSource("hose");
+    let sourceKey=selectedElevationSource("hose");
     status.textContent=`Retrieving ${stations.length} terrain elevations from ${elevationServices[sourceKey].name}…`;
     try{
-      if(!await loadHoseElevations(stations,token,status,sourceKey))return;
+      sourceKey=await loadHoseElevationsWithFallback(stations,token,status,sourceKey,"hose");
+      if(!sourceKey)return;
       if(recommend){
         const desired=recommendHosePressure(stations,HOSE_TARGET_WYE_PSI);
         hoseRecommendation=desired;
@@ -5809,12 +5829,12 @@ clearGpxButton.addEventListener("click", function () {
       if(!Number.isFinite(shutoffModel.psi))warning.textContent+=' ⚠ Modeled shutoff pressure unavailable at this pump setting; static pressures cannot be estimated.';
       if(worst.staticPsi>=350)warning.textContent+=' ' +`⚠ HIGH STATIC PRESSURE: estimated pressure ${Math.round(worst.staticPsi)} PSI near ${Math.round(worst.ft)} ft. Verify hose/fitting ratings and actual pressures.`;
       status.classList.remove("hose-loading");
-      status.textContent=`${elevationServices[sourceKey].name} terrain profile loaded · ${stations.length} elevation samples at 100-ft intervals.`;
+      status.textContent=`${sourceKey==='usgs'&&selectedElevationSource("hose")==="dogami"?"USGS 3DEP (automatic backup)":elevationServices[sourceKey].name} terrain profile loaded · ${stations.length} elevation samples at 100-ft intervals.`;
       drawHoseChart(stations,total);
     } catch (err) {
       if (token !== hoseRequestId) return;
       status.classList.remove("hose-loading");
-      status.textContent = sourceKey==="dogami" ? "DOGAMI elevation unavailable at this location. Tap CALCULATE again to retry, or select USGS 3DEP." : "Elevation data unavailable. Tap CALCULATE again to retry. If it continues, check your internet connection.";
+      status.textContent = "Elevation unavailable from both DOGAMI and USGS backup, or the selected USGS service failed. Check your connection and retry.";
       console.warn("Hose elevation query failed", err);
     }
   }
@@ -5951,10 +5971,11 @@ clearGpxButton.addEventListener("click", function () {
     const {stations,total}=sampleConstructionPath(line.vertices);
     if(total<=0||total>10000){status.textContent='Line distance must be between 0 and 10,000 feet.';return;}
     status.classList.add('hose-loading');
-    const sourceKey=selectedElevationSource("lineConst");
+    let sourceKey=selectedElevationSource("lineConst");
     status.textContent=`Retrieving ${stations.length} terrain elevations from ${elevationServices[sourceKey].name}…`;
     try{
-      if(!await loadHoseElevations(stations,token,status,sourceKey))return;
+      sourceKey=await loadHoseElevationsWithFallback(stations,token,status,sourceKey,"lineConst");
+      if(!sourceKey)return;
       if(token!==hoseRequestId)return;
       const base=stations[0].elevation;
       stations.forEach(p=>p.rel=p.elevation-base);
@@ -5984,12 +6005,12 @@ clearGpxButton.addEventListener("click", function () {
       summary.textContent=`${resourceLabel} | ${fuelLabel} | Distance: ${Math.round(total).toLocaleString()} ft (${(total/66).toFixed(1)} chains) | Estimated construction time: ${result}`;
       if(invalidSegments)warning.textContent=`⚠ ${invalidSegments} construction segment(s) have unsupported or zero-only dozer rates. All slope labels and calculations use the same 100-ft intervals (or the shorter final interval). N/A begins after the first affected segment. Details: ${invalidDetails.join('; ')}.`;
       status.classList.remove('hose-loading');
-      status.textContent=`${elevationServices[sourceKey].name} loaded · ${stations.length} terrain samples · calculations and chart at 100-ft stations · NWCG 2021 production tables`;
+      status.textContent=`${sourceKey==='usgs'&&selectedElevationSource("lineConst")==="dogami"?"USGS 3DEP (automatic backup)":elevationServices[sourceKey].name} loaded · ${stations.length} terrain samples · calculations and chart at 100-ft stations · NWCG 2021 production tables`;
       drawConstructionChart(stations,total,segments);
     }catch(err){
       if(token!==hoseRequestId)return;
       status.classList.remove('hose-loading');
-      status.textContent=sourceKey==='dogami' ? 'DOGAMI elevation unavailable at this location. Tap CALCULATE again to retry, or select USGS 3DEP.' : 'Elevation data unavailable. Tap CALCULATE again to retry. If it continues, check your internet connection.';
+      status.textContent='Elevation unavailable from both DOGAMI and USGS backup, or the selected USGS service failed. Check your connection and retry.';
       console.warn('Line construction elevation query failed',err);
     }
   }
