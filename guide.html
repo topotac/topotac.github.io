@@ -191,6 +191,12 @@ footer a { margin-right: 14px; }
 @media (max-width: 750px) {
   .layer-order li { white-space: normal; font-size: 13px; }
 }
+
+/* Alternate minimum criteria table */
+#alternate-minimum-criteria-reference-chart + .card th,
+#alternate-minimum-criteria-reference-chart + .card td {border:1px solid #514b46;padding:9px 7px;}
+#alternate-minimum-criteria-reference-chart + .card thead th {background:#35271c;color:#ffb66f;}
+#alternate-minimum-criteria-reference-chart + .card tbody tr:nth-child(even) {background:#252527;}
 </style>
 </head>
 <body id="top">
@@ -473,8 +479,8 @@ footer a { margin-right: 14px; }
       </div>
 </section>
 </div>
-<h2 class="section-title" id="radio-comms">
-<p class="intro"><strong>Radio model power:</strong> All seven repeaters are modeled at 50 W transmitter power and 10 m antenna height. Predictions were adjusted from the original 100 W Radio Mobile results by −3.01 dB, with the display cutoff remaining −116 dBm. These are predicted repeater-to-portable downlink strengths, not verified two-way coverage. Portable transmit power, antenna placement, interference and terrain can prevent successful communication even where the map shows coverage.</p>Radio coverage — GP &amp; MFR COMMS</h2>
+<h2 class="section-title" id="radio-comms">Radio coverage — GP &amp; MFR COMMS</h2>
+<p><strong>Radio coverage model:</strong> All seven repeaters are modeled at 50 W transmitter power and 10 m antenna height, with a minimum displayed signal level of −116 dBm. The maps predict repeater-to-portable signal strength, not guaranteed two-way communication. Actual coverage may vary with terrain, antenna placement, interference, and portable radio performance.</p>
 <div class="grid">
 <section class="card"><h3>GP COMMS — Grants Pass</h3>
 <p>Enable <strong>GP COMMS</strong> in the upper-right Layers menu. The colored overlay identifies the repeater with the strongest predicted signal at each covered location.</p>
@@ -508,32 +514,46 @@ footer a { margin-right: 14px; }
 <p><strong>On-demand requests:</strong> County parcel details are queried on map clicks at zoom 14+ when the relevant county layer is enabled; the statewide taxlot layer does not provide clickable parcel-detail balloons. GPS situs addresses are queried independently of layer visibility for the reported GPS position. GPX files are read locally. Saved GeoPDF maps use browser-local tiles after conversion.</p>
 <p>Remote layers generally load when enabled. The current perimeter layer refreshes periodically; historical perimeter requests are view-driven. Data availability, geographic coverage, and provider limits may affect completeness.</p>
 </section>
-<h2 class="section-title" id="hose-lay">Hose Lay Profile — static pressure and available flow</h2>
+<h2 class="section-title" id="hose-lay">Hose Lay Profile — pressure and available flow</h2>
 <div class="grid">
 <section class="card"><h3>Open and calculate a hose lay</h3>
 <p>Use <strong>DRAW LINE</strong> to trace a proposed hose route. Tap <strong>FINISH</strong>, name and save the line, then tap the finished line and select <strong>HOSE LAY PROFILE</strong>.</p>
-<p>When the profile opens, TopoTac retrieves terrain elevations and <strong>automatically recommends the lowest pump discharge pressure</strong> estimated to provide at least <strong>10 GPM at 30 PSI flowing pressure</strong> at the final gated wye. The recommendation fills the pump-pressure field and updates the chart. To use a different pressure, enter it and tap <strong>CALCULATE</strong>; manual adjustments are not overwritten by automatic recommendation.</p>
-<p>The <strong>Pump discharge PSI</strong> input allows <strong>25–380 PSI</strong> (initial field value <strong>125 PSI</strong> before automatic calculation). Automatic recommendations are limited to approximately <strong>346 PSI</strong>, the highest modeled MARK-3 pressure supporting 10 GPM. If the final-wye target cannot be achieved, TopoTac selects the highest feasible modeled setting and displays <strong>TARGET NOT MET</strong>, including the estimated final-wye flow. The summary shows pump pressure, reference pump flow, drawn distance, and adjusted hose length.</p>
-<p>TopoTac snaps the route to whole 100-foot hose lengths: a remainder of <strong>50 feet or less rounds down</strong>; more than 50 feet rounds up (723′ becomes 700′; 762′ becomes 800′). The snapped distance determines the endpoint, chart, elevation sampling, and hydraulic estimates. When rounding up, the route extends along its last drawn segment. Hose lays must be between <strong>100 and 10,000 feet</strong>.</p>
-<p>Select <strong>DOGAMI (Oregon)</strong> for Oregon LiDAR elevations (the default for Oregon routes) or <strong>USGS 3DEP (nationwide)</strong> as an alternative. Outside Oregon, USGS is selected automatically. Terrain is sampled every <strong>50 feet</strong>, with gated-wye labels every <strong>100 feet</strong>. Wait for the flashing red loading status to finish.</p>
-<div class="callout"><strong>Internet required for elevation retrieval.</strong> If DOGAMI is unavailable, try USGS 3DEP. Missing terrain samples prevent a reliable profile calculation.</div></section>
+<p>TopoTac retrieves terrain elevations and automatically recommends the lowest modeled <strong>Pump Flowing PSI</strong> that supports at least <strong>10 GPM @ 30 PSI at every gated wye</strong>. The most demanding wye governs the AUTO recommendation; it may not be the final wye.</p>
+<p>Enter a different <strong>Pump Flowing PSI</strong> or <strong>Pump Shutoff PSI</strong> and tap <strong>CALCULATE</strong> to use MANUAL mode. Entering either pressure estimates the other using the MARK-3 reference model at 10 GPM. Flowing pressure accepts <strong>25–380 PSI</strong>; the initial field shows 125 PSI before AUTO runs. Shutoff pressure is a modeled estimate, not a measured setting.</p>
+<p>If AUTO cannot meet the 10 GPM target at every wye, it selects the highest modeled MARK-3 pressure still supporting 10 GPM (approximately <strong>346 PSI</strong>) and displays <strong>TARGET NOT MET</strong>. The dashboard reports the first wye below minimum flow; when all pass, it identifies the lowest-flow wye.</p>
+<p>Hose length snaps to complete 100-ft lengths: <strong>50 ft or less rounds down</strong>; more than 50 ft rounds up (723′ becomes 700′; 762′ becomes 800′). When rounding up, the last hose extends along the final drawn segment. Hose lays must be <strong>100–10,000 ft</strong> after snapping.</p>
+<p>Select <strong>DOGAMI (Oregon)</strong> for Oregon LiDAR elevation data or <strong>USGS 3DEP (nationwide)</strong>. Outside Oregon, USGS is selected automatically. All terrain samples, wyes, and pressure calculations use <strong>100-ft stations</strong>. Wait for the loading status to finish.</p>
+<div class="callout"><strong>Internet required for elevation retrieval.</strong> If DOGAMI is unavailable, try USGS 3DEP. Missing terrain data may prevent a reliable profile.</div></section>
 <section class="card"><h3>Reading the chart</h3>
-<p><strong>S = Static pressure:</strong> For example, <strong>S:54P</strong> means an estimated 54 PSI at that wye with no water flowing, based on the selected pump discharge pressure and elevation. Uphill elevation reduces static pressure; downhill elevation increases it. Static pressures at or below zero are highlighted in red.</p>
-<p><strong>AF = Available Flow:</strong> For example, <strong>AF:11G@30P</strong> means an estimated maximum <strong>11 gallons per minute</strong> at that gated wye while maintaining <strong>30 PSI flowing pressure at the wye</strong>, with all other outlets closed. It does <strong>not</strong> mean the pump simultaneously maintains its static discharge pressure at that higher flow. <strong>AF below 10 GPM appears in red.</strong></p>
-<p><strong>SL = Slope:</strong> For example, <strong>SL:45%</strong> indicates uphill grade between adjacent wye dots; <strong>SL:-45%</strong> indicates downhill grade. Grade is elevation change divided by hose distance.</p>
-<p><strong>EG = Elevation Gain relative to pump:</strong> For example, <strong>EG:+167′</strong> means that wye is 167 feet above the pump; <strong>EG:-42′</strong> means 42 feet below. EG is net elevation difference from the pump, not the difference between adjacent wyes. Labels use compact formatting.</p>
-<div class="callout"><strong>CHART SCROLLS HORIZONTALLY ↔</strong><p>Long hose lays extend beyond the visible screen. Swipe horizontally or use the scrollbar beneath the chart to inspect all wyes and labels.</p></div></section>
-<section class="card"><h3>How available flow is estimated</h3>
-<p>Each gated wye is evaluated <strong>independently, assuming all other outlets are closed</strong>. TopoTac solves for the estimated maximum flow while retaining 30 PSI at that wye. The calculation includes elevation change, flow-dependent hose friction, gated-wye losses, and the pressure decrease associated with increasing flow along the modeled MARK-3 pump curve. Early wyes can therefore have substantially more available flow than the final wye.</p>
-<p>The model assumes <strong>1½-inch forestry supply hose</strong>, <strong>one gated wye every 100 feet</strong>, <strong>15 PSI friction loss per 100 feet at 60 GPM</strong>, and <strong>0.46 PSI loss per wye at 50 GPM</strong>. Friction and fitting losses scale approximately with the square of flow. Elevation pressure changes by approximately <strong>0.433 PSI per foot</strong>.</p>
-<p>The classic <strong>185cc MARK-3</strong> reference curve uses these points: <strong>0 PSI / 98 GPM; 100 / 78; 150 / 65; 175 / 58; 250 / 38; 380 / 0</strong>. Flow and pressure between reference points are linearly interpolated. The pump-pressure input is modeled as an upper discharge-pressure setting, while the reference pump curve constrains available flow; this is a simplified operating-point estimate.</p>
-<p><strong>Do not add AF values together.</strong> Multiple open wyes share upstream hose, increase friction losses, and change the pump operating point. The chart does not predict simultaneous flow from multiple outlets.</p></section>
-<section class="card"><h3>Operational limitations and pressure safety</h3>
-<p><strong>30 PSI at the gated wye is a planning target, not a nozzle-pressure guarantee.</strong> TopoTac does not model hose laterals, nozzle demand, or losses downstream of the gated wye. Actual available flow depends on the pump's condition and operating speed, water supply, hose diameter and condition, fittings, valves, and nozzle configuration.</p>
-<p><strong>350 PSI is the high static-pressure planning warning</strong>, not an equipment rating. The 346 PSI automatic recommendation limit is based on the simplified MARK-3 reference curve; manual settings may extend to 380 PSI, where the model estimates zero flow at shutoff. Downhill locations can experience greater static pressure than pump discharge pressure. Closed valves, pressure surges, and water hammer can also create higher pressures.</p>
-<p>Terrain samples may miss short dips, high points, or other conditions affecting water delivery. Verify the estimates with <strong>field pressure and flow measurements</strong> and follow agency procedures and the ratings of the lowest-rated hose, coupling, wye, or other component.</p>
-<div class="callout"><strong>Hydraulic planning estimate only.</strong> These results have not been field-validated and must not replace measured pressures, measured flows, or operational judgment.</div></section>
+<p><strong>S = Static Pressure:</strong> Estimated no-flow pressure at the wye, including elevation changes. Negative values indicate pressure below zero (<strong>S:-12P</strong>).</p>
+<p><strong>AF = Available Flow:</strong> Estimated flow at the wye while maintaining 30 PSI (<strong>AF:5G@30P</strong>). Below 10 GPM appears red. Each wye is evaluated independently using the MARK-3 pump curve.</p>
+<p><strong>SL = Slope:</strong> Grade between wyes. Positive is uphill; negative is downhill (<strong>SL:-45%</strong>).</p>
+<p><strong>EG = Elevation Gain:</strong> Elevation difference from the pump. Positive is higher; negative is lower (<strong>EG:+167'</strong>).</p>
+<p><strong>Hose Length:</strong> Rounded to 100-ft increments (50 ft or less rounds down; over 50 ft rounds up). All calculations use 100-ft intervals.</p>
+<p><strong>Calculations:</strong> Assume 1½-inch hose, gated wyes every 100 ft, and MARK-3 pump performance. AUTO recommends pump pressure to achieve at least 10 GPM @ 30 PSI at every wye, within pump limits. MANUAL uses your selected pressure. Downstream laterals and nozzles are excluded.</p>
+<div class="callout"><strong>CHART SCROLLS HORIZONTALLY ↔</strong><p>Swipe sideways or use the scrollbar beneath the chart to view all wyes and labels on long hose lays.</p></div></section>
+<section class="card"><h3>How the hydraulic estimates work</h3>
+<p>Each gated wye is modeled <strong>separately, with all other outlets closed</strong>. Available flow accounts for terrain elevation, flow-dependent hose friction, gated-wye losses, and the pressure/flow relationship of the MARK-3 reference curve. <strong>Do not add AF values together:</strong> the chart does not model multiple open wyes at once.</p>
+<p>The model assumes <strong>1½-inch forestry supply hose</strong>, a gated wye every <strong>100 ft</strong>, <strong>15 PSI friction loss per 100 ft at 60 GPM</strong>, and <strong>0.46 PSI loss per wye at 50 GPM</strong>. Friction and fitting losses scale approximately with flow squared; elevation changes pressure by approximately <strong>0.433 PSI per foot</strong>.</p>
+<p>The classic <strong>185cc MARK-3</strong> reference curve uses <strong>0 PSI / 98 GPM; 100 / 78; 150 / 65; 175 / 58; 250 / 38; 380 / 0</strong>, with linear interpolation between reference points. Flowing PSI determines available-flow calculations; modeled shutoff PSI determines no-flow static-pressure estimates.</p>
+<p><strong>Pump shutoff pressure is modeled. Actual required pressure may vary.</strong></p></section>
+<section class="card"><h3>Warnings and field limitations</h3>
+<p><strong>Minimum flow:</strong> A red AF value means less than 10 GPM @ 30 PSI at that wye. The dashboard and warning identify the <strong>first failing wye</strong> along the hose lay, not necessarily the most demanding wye used for AUTO pressure selection.</p>
+<p><strong>High static pressure:</strong> TopoTac warns when modeled no-flow static pressure reaches <strong>350 PSI</strong> anywhere on the hose lay. This is a planning warning, <strong>not an equipment rating</strong>. Downhill wyes can have higher static pressure than the pump.</p>
+<p><strong>30 PSI at the gated wye</strong> is a planning target, not guaranteed nozzle pressure. Laterals, nozzles, multiple open outlets, water supply, actual pump performance, hose condition, valves, and pressure surges are not fully modeled. Sampling at 100-ft intervals can miss short terrain highs or dips.</p>
+<div class="callout"><strong>Hydraulic planning estimate only.</strong> These results have not been field-validated. Confirm with field pressure and flow measurements and follow agency procedures and the ratings of all hose and fittings.</div></section>
 </div>
+
+<h2 class="section-title" id="alternate-minimum-criteria-reference-chart">Alternate Minimum Criteria Reference Chart</h2>
+<section class="card">
+<h3>MARK-3 modeled pump shutoff pressure — alternate flowing criteria</h3>
+<p>Choose a <strong>flow rate (GPM)</strong> and a <strong>flowing pump discharge pressure (PSI)</strong>. The table shows the corresponding <strong>estimated pump shutoff PSI</strong>, with all outlets closed, using the same affinity-law model as TopoTac's hose-lay dashboard. These are <strong>pump operating points</strong>, not pressures measured at a gated wye.</p>
+<div style="overflow-x:auto;max-width:100%;margin:14px 0"><table style="width:100%;min-width:520px;border-collapse:collapse;text-align:center;font-size:14px"><caption style="text-align:left;color:#ffad60;font-weight:bold;padding-bottom:8px">Estimated shutoff PSI by required pump flowing PSI and GPM</caption>
+<thead><tr><th scope="col" style="text-align:left">Flow (GPM)</th><th scope="col">100 PSI</th><th scope="col">150 PSI</th><th scope="col">200 PSI</th><th scope="col">250 PSI</th><th scope="col">300 PSI</th></tr></thead><tbody><tr><th scope="row">10</th><td>119.2</td><td>173.1</td><td>226.4</td><td>279.3</td><td>332.0</td></tr><tr><th scope="row">20</th><td>141.8</td><td>199.6</td><td>256.2</td><td>312.0</td><td>367.3</td></tr><tr><th scope="row">30</th><td>169.6</td><td>229.9</td><td>289.6</td><td>348.3</td><td>—</td></tr><tr><th scope="row">40</th><td>202.9</td><td>266.9</td><td>328.7</td><td>—</td><td>—</td></tr><tr><th scope="row">50</th><td>240.8</td><td>308.9</td><td>373.6</td><td>—</td><td>—</td></tr></tbody></table></div>
+<p><strong>—</strong> means that operating point exceeds the modeled full-speed MARK-3 reference curve; no shutoff estimate is supplied. The table uses the reference curve 0 GPM / 380 PSI; 38 / 250; 58 / 175; 65 / 150; 78 / 100; and 98 / 0, with piecewise-linear interpolation and pump affinity scaling (<strong>flow ∝ speed; pressure ∝ speed²</strong>).</p>
+<p><strong>How this relates to wye minimums:</strong> TopoTac's standard criterion is <strong>10 GPM at 30 PSI residual pressure at the wye</strong>. Raising that residual requirement to 40, 50, or 60 PSI increases the <em>pump flowing pressure</em> needed after accounting for elevation, hose friction, and wye losses. Use that calculated pump operating pressure with the corresponding GPM to interpret this reference chart. A 40 PSI wye requirement does <strong>not</strong> mean a 40 PSI pump discharge setting.</p>
+<div class="callout"><strong>Pump shutoff pressure is modeled. Actual required pressure may vary.</strong> The affinity-law values are theoretical, not field-validated pressure settings or equipment ratings. The reference chart does not change the live AUTO target of 10 GPM @ 30 PSI at the wye.</div>
+</section>
 <h2 class="section-title" id="mir">MIR — Medical Incident Report</h2>
 <div class="grid">
 <section class="card"><h3>Open and complete the report</h3>
