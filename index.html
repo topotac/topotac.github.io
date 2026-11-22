@@ -1949,6 +1949,26 @@ html, body {
   pointer-events: auto;
 }
 
+
+/* Compact MARK-3 hose lay instrument panel */
+.hose-dashboard{background:#14191e;color:#fff;border-radius:8px;padding:9px;margin:8px 0;font:12px/1.4 Arial,sans-serif}
+.hose-dashboard[hidden]{display:none!important}
+.hose-dash-title{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#ff9a3d;margin-bottom:7px;font-size:12px}
+#hoseAutoBadge{color:#8eecb0;font-size:10px;white-space:nowrap}
+.hose-dash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.hose-dash-card{background:#252d35;border-radius:6px;padding:9px;min-width:0;overflow-wrap:anywhere}
+.hose-dash-label{font-size:11px;font-weight:bold;letter-spacing:.1px}
+.hose-dash-reading{font-size:clamp(24px,5vw,36px);font-weight:bold;line-height:1.25;margin:3px 0 6px;font-variant-numeric:tabular-nums}
+.hose-dash-reading small{font-size:12px}
+.hose-green{color:#75f2a5}.hose-criteria{color:#ffffff}
+#hoseDashAvailable.hose-below-minimum{color:#ff6969;font-weight:bold}
+.hose-orange,.hose-orange a{color:#ffba55}.hose-orange a{display:block;text-decoration:underline;margin-top:4px;font-size:11px}
+.hose-white{color:#fff}.hose-dash-small{font-size:17px;font-weight:bold;margin-top:3px}
+.hose-dash-note{font-size:10px;color:#aebbc6;margin-top:7px}
+#hosePanel>.elevation-source{margin:6px 0;padding:5px 8px}
+#hosePanel>.elevation-source span{display:none}
+#hoseStatus{font-size:11px}
+@media(max-width:430px){.hose-dashboard{padding:7px}.hose-dash-card{padding:7px}.hose-dash-label{font-size:10px}.hose-dash-reading{font-size:26px}.hose-orange a{font-size:10px}}
 </style>
 </head>
 
@@ -2008,15 +2028,30 @@ html, body {
 <div id="lineDrawPanel" hidden><div class="line-hint" id="lineDrawHint">Tap map to place vertices</div><div class="line-hint">Tap a saved line for Hose Lay, Line Construction, GPX Export, or Delete</div><button id="lineUndoButton" type="button">UNDO</button><button id="lineFinishButton" type="button">FINISH</button><button id="lineCancelButton" type="button">CANCEL</button><button id="lineDeleteAllButton" type="button" style="background:#8b1e1e;color:#fff;border-color:#ff861c">DELETE ALL LINES</button></div>
 <div id="hoseModal" hidden role="dialog" aria-modal="true" aria-labelledby="hoseTitle"><div id="hosePanel">
 <div id="hoseHeader"><h2 id="hoseTitle">HOSE LAY PROFILE</h2><button id="hoseClose" type="button" aria-label="Close hose lay profile">✕</button></div>
-<div id="hoseControls"><label for="hosePsi">Pump discharge PSI</label><input id="hosePsi" type="number" min="25" max="380" step="5" value="125"><button id="hoseCalculate" type="button">CALCULATE</button></div><div id="hoseRecommendation" role="status" aria-live="polite"></div>
+<div id="hoseControls"><label for="hosePsi">Pump flowing PSI</label><input id="hosePsi" type="number" min="25" max="380" step="any" value="125"><label for="hoseShutoffPsi">Pump shutoff PSI</label><input id="hoseShutoffPsi" type="number" min="0" max="380" step="any" placeholder="Calculated" title="Enter modeled shutoff pressure to calculate flowing PSI using the same MARK-3 model"><button id="hoseCalculate" type="button">CALCULATE</button></div><div id="hoseDashboard" class="hose-dashboard" hidden>
+  <div class="hose-dash-title"><strong>PUMP - HOSE LAY - PSI - GPM</strong><span id="hoseAutoBadge">AUTO RECOMMENDED</span></div>
+  <div class="hose-dash-grid">
+    <div class="hose-dash-card hose-green"><div class="hose-dash-label">PUMP FLOWING PRESSURE</div><div class="hose-dash-reading"><span id="hoseDashFlowPsi">—</span> <small>PSI</small></div><div class="hose-criteria">Minimum Wye Criteria: 10 GPM @ 30 PSI</div><div id="hoseDashAvailable">Modeled Minimum: —</div></div>
+    <div class="hose-dash-card hose-orange"><div class="hose-dash-label">PUMP SHUTOFF PRESSURE</div><div class="hose-dash-reading"><span id="hoseDashShutoff">—</span> <small>PSI</small></div><div id="hoseDashIncrease">Modeled increase: —</div><a href="guide.html#alternate-minimum-criteria-reference-chart" id="hoseDashChartLink">Alternate Minimum Criteria Reference Chart ↗</a></div>
+    <div class="hose-dash-card hose-white"><div class="hose-dash-label">HOSE LENGTH</div><div class="hose-dash-small" id="hoseDashLength">—</div></div>
+    <div class="hose-dash-card hose-white"><div class="hose-dash-label">NET ELEVATION CHANGE</div><div class="hose-dash-small" id="hoseDashElevation">—</div></div>
+  </div>
+  <div class="hose-dash-note">Flowing and shutoff PSI are linked through the modeled MARK-3 10-GPM operating point. Actual pump performance may vary.</div>
+</div>
+<div id="hoseRecommendation" role="status" aria-live="polite" hidden></div>
 <fieldset class="elevation-source" aria-label="Elevation data source"><legend>Elevation source</legend><label><input type="radio" name="hoseElevationSource" value="dogami" checked> DOGAMI (Oregon)</label><label><input type="radio" name="hoseElevationSource" value="usgs"> USGS 3DEP (nationwide)</label><span id="hoseElevationSourceHint">DOGAMI selected for Oregon routes.</span></fieldset>
-<div id="hoseSummary"></div>
 <div id="hoseStatus" role="status"></div>
 <div id="hoseWarning" role="alert"></div>
 <div class="profile-scroll-tip" role="note">↔ Swipe horizontally to view full chart</div>
 <div id="hoseScroll"><svg id="hoseGraph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Elevation profile with static pressure and estimated available flow at each wye"></svg></div>
-<div id="hosePressureHelp"><strong>Understanding the chart labels</strong><p><strong>S = Static pressure (P = PSI):</strong> Negative pressures use a single minus sign after the colon, without a space (for example, <strong>S:-12P</strong>). Estimated pressure at the wye with no water flowing, including elevation changes.</p><p><strong>AF = Available Flow:</strong> Estimated maximum flow at that wye while retaining <strong>30 PSI</strong> residual pressure. For example, <strong>AF:5G@30P</strong> means 5 gallons per minute (G) at 30 PSI (P). Flow below 10 GPM is shown in red. Each wye is evaluated separately, with all other outlets closed; the pump discharge pressure can decrease as flow increases along the MARK-3 reference curve.</p><p><strong>SL = Slope:</strong> Grade between adjacent wye dots, calculated from elevation change divided by hose distance. Positive values are uphill; negative values are downhill (example: <strong>SL:-45%</strong>).</p><p><strong>EG = Elevation Gain:</strong> Net elevation difference at the downstream gated wye relative to the pump position. Positive is above the pump; negative is below (example: <strong>EG:+167'</strong>).</p><p>Drawn distance snaps to complete 100-ft hose lengths: 50 ft or less rounds down, more than 50 ft rounds up. All wyes, terrain samples, and pressure calculations use the snapped distance. When rounding up, the final hose continues in the direction of the last drawn segment. Estimates assume 1½-inch supply hose, a gated wye every 100 ft, and a MARK-3 reference-flow limit. On opening a hose lay, TopoTac automatically recommends the lowest pump pressure for at least 10 GPM at 30 PSI at the final wye. If that target cannot be met, it selects the highest MARK-3 reference pressure that still supports 10 GPM and warns that the target is not met. You can change the pump PSI and select CALCULATE to use your own setting. It estimates the pump operating point and leaves downstream laterals/nozzles to the crew.</p></div>
-<p id="hoseNote">Planning estimate only. Automatic recommendation finds the minimum pump discharge pressure for 10 GPM at 30 PSI residual at the final gated wye, using terrain elevation and flow-dependent friction, and checks the simplified MARK-3 reference curve for feasibility. If the target is unreachable, the auto setting is limited to approximately 345.7 PSI (displayed as 346 PSI; at least 10 GPM on this reference curve) and the result is flagged. It does not model laterals or nozzle demand. Distance is snapped to full 100-ft hose lengths (50 ft rounds down); extending a line follows its final drawn direction. Each wye's AF estimates maximum available flow independently with all other outlets closed, holding 30 PSI residual and accounting for pump pressure dropping at higher flow. Assumptions: 1½-inch hose and one gated wye per 100 ft. Terrain comes from selected DOGAMI LiDAR or USGS 3DEP, sampled every 50 ft; small low spots can be missed. Actual flow, friction, nozzle demand, appliance losses and pump pressure can differ. Reference flow from 0–380 PSI uses the classic 185cc MARK-3 reference points; 380 PSI is approximate shutoff (0 GPM). 350 PSI is a planning alert, not a hose rating. Closed valves and water hammer can produce higher pressures.</p>
+<div id="hosePressureHelp"><strong>Understanding the chart labels</strong>
+<p><strong>S = Static Pressure:</strong> Estimated no-flow pressure at the wye, including elevation changes. Negative values indicate pressure below zero (S:-12P).</p>
+<p><strong>AF = Available Flow:</strong> Estimated flow at the wye while maintaining 30 PSI (AF:5G@30P). Below 10 GPM appears red. Each wye is evaluated independently using the MARK-3 pump curve.</p>
+<p><strong>SL = Slope:</strong> Grade between wyes. Positive is uphill; negative is downhill (SL:-45%).</p>
+<p><strong>EG = Elevation Gain:</strong> Elevation difference from the pump. Positive is higher; negative is lower (EG:+167').</p>
+<p><strong>Hose Length:</strong> Rounded to 100-ft increments (50 ft or less rounds down; over 50 ft rounds up). All calculations use 100-ft intervals.</p>
+<p><strong>Calculations:</strong> Assume 1½-inch hose, gated wyes every 100 ft, and MARK-3 pump performance. AUTO recommends pump pressure to achieve at least 10 GPM @ 30 PSI at every wye, within pump limits. MANUAL uses your selected pressure. Downstream laterals and nozzles are excluded.</p></div>
+<div id="hoseNote"><p><strong>Pump Shutoff Pressure:</strong> Enter either flowing PSI or shutoff PSI. The other value is calculated using the same MARK-3 reference model at 10 GPM. This is a modeled relationship, not a measurement of another pump’s performance. Otherwise, this model estimates the pump pressure with all outlets closed. When water begins flowing, pump pressure is expected to decrease toward the calculated Pump Flowing Pressure, providing the minimum required flow and residual pressure at the final wye. This assumes constant pump speed and is a theoretical estimate pending field verification.</p><p><strong>Hose Lay Calculations:</strong> AUTO recommends the minimum pump pressure for 10 GPM at 30 PSI at the governing location, accounting for terrain, friction, and the classic MARK-3 reference curve. Assumes 1½-inch hose, one gated wye per 100 ft, and full 100-ft hose lengths. Each wye's available flow is modeled separately with other outlets closed. Laterals and nozzle demand are not modeled.</p><p><strong>Planning Limitations:</strong> DOGAMI or USGS terrain is sampled every 100 ft and may miss small elevation changes. Actual pump performance, flow, friction, and pressure may differ. If the target is unreachable, AUTO is capped near 346 PSI and flags the result; 350 PSI is a planning alert, not a hose rating. Closed valves and water hammer can produce higher pressures.</p></div>
 </div></div>
 
 <div id="lineConstModal" hidden role="dialog" aria-modal="true" aria-labelledby="lineConstTitle"><div id="lineConstPanel">
@@ -4914,6 +4949,8 @@ clearGpxButton.addEventListener("click", function () {
   let nextPointId = 1;
   const pointMarkers = new Map();
   function saveMarkedPoints() {
+    // Reset numbering only when no marked points remain.
+    if (markedPoints.length === 0) nextPointId = 1;
     try { localStorage.setItem(pointStorageKey, JSON.stringify({points:markedPoints,nextId:nextPointId})); }
     catch (err) { console.warn("Marked points could not be saved:", err); }
   }
@@ -4966,7 +5003,7 @@ clearGpxButton.addEventListener("click", function () {
           lng: p.lng,
           name: String(p.name || "").slice(0, 80)
         }));
-      nextPointId=Math.max(Number.isSafeInteger(stored.nextId)?stored.nextId:1,1,...markedPoints.map(p=>p.id+1));
+      nextPointId=markedPoints.length ? Math.max(Number.isSafeInteger(stored.nextId)?stored.nextId:1,1,...markedPoints.map(p=>p.id+1)) : 1;
       markedPoints.forEach(renderMarkedPoint);
     }
   } catch(err) {console.warn("Could not restore marked points:",err);}
@@ -5121,6 +5158,8 @@ clearGpxButton.addEventListener("click", function () {
     lineDeleteAllButton.disabled = drawnLines.length === 0;
   }
   function saveDrawnLines() {
+    // Reset numbering only when no saved drawn lines remain.
+    if (drawnLines.length === 0) nextDrawnLineId = 1;
     updateDeleteAllLinesButton();
     try {
       localStorage.setItem(lineStorageKey, JSON.stringify({lines: drawnLines, nextId: nextDrawnLineId}));
@@ -5264,7 +5303,7 @@ clearGpxButton.addEventListener("click", function () {
           color: lineColors[l.colorName] || lineColors.Orange,
           vertices: l.vertices.map(v => ({lat: v.lat, lng: v.lng}))
         }));
-      nextDrawnLineId=Math.max(1,Number.isSafeInteger(stored.nextId)?stored.nextId:1,...drawnLines.map(l=>l.id+1));
+      nextDrawnLineId=drawnLines.length ? Math.max(1,Number.isSafeInteger(stored.nextId)?stored.nextId:1,...drawnLines.map(l=>l.id+1)) : 1;
       drawnLines.forEach(renderDrawnLine);
     }
   } catch(err) {console.warn("Could not restore drawn lines:",err);}
@@ -5345,10 +5384,24 @@ clearGpxButton.addEventListener("click", function () {
   hoseModal.addEventListener("click",e=>{if(e.target===hoseModal)closeHoseProfile();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!hoseModal.hidden)closeHoseProfile();});
   document.getElementById("hoseCalculate").addEventListener("click",()=>{if(hoseSelectedLine)calculateHoseProfile(hoseSelectedLine);});
-  hosePsi.addEventListener("input",()=>{
+  const hoseShutoffInput=document.getElementById('hoseShutoffPsi');
+  // Both fields describe the SAME modeled 10-GPM operating point. The last
+  // edited field is authoritative; the other is its inverse, not an override.
+  function hosePressureEdited(source){
     hoseRecommendation=null;
-    document.getElementById("hoseRecommendation").textContent="";
-  });
+    document.getElementById('hoseRecommendation').textContent='';
+    if(source==='flow'){
+      const psi=Number(hosePsi.value);
+      const m=hosePsi.value.trim()!==''?mark3EstimatedShutoff(psi,HOSE_LOW_FLOW_GPM):null;
+      hoseShutoffInput.value=m?m.psi.toFixed(1):'';
+    }else{
+      const psi=hoseShutoffInput.value.trim()!==''?Number(hoseShutoffInput.value):NaN;
+      const m=mark3FlowingFromShutoff(psi,HOSE_LOW_FLOW_GPM);
+      hosePsi.value=m?m.psi.toFixed(1):'';
+    }
+  }
+  hosePsi.addEventListener('input',()=>hosePressureEdited('flow'));
+  hoseShutoffInput.addEventListener('input',()=>hosePressureEdited('shutoff'));
   L.DomEvent.disableClickPropagation(hoseModal);L.DomEvent.disableScrollPropagation(hoseModal);
   function openHoseProfile(line) {
     hoseSelectedLine = line;
@@ -5378,6 +5431,41 @@ clearGpxButton.addEventListener("click", function () {
     const a=pts[i-1],b=pts[i];
     return a[1]+(gpm-a[0])*(b[1]-a[1])/(b[0]-a[0]);
   }
+  // Affinity-law model: scale the existing full-speed MARK-3 pressure/flow
+  // reference curve to the speed required for a specified flowing point.
+  // Differential-pressure approximation; NOT a verified gauge setpoint.
+  function mark3EstimatedShutoff(flowingPsi,gpm){
+    if(!Number.isFinite(flowingPsi)||!Number.isFinite(gpm)||flowingPsi<=0||gpm<0)return null;
+    if(gpm>98||flowingPsi>mark3PressureAtFlow(gpm)+1e-7)return null;
+    if(gpm===0)return {psi:flowingPsi,percent:0,speedRatio:Math.sqrt(flowingPsi/380)};
+    // At speed ratio r, available pressure is r² * P_reference(Q/r).
+    // Require r >= Q/98 so the reference curve is never extrapolated.
+    let lo=gpm/98,hi=1;
+    for(let i=0;i<64;i++){
+      const r=(lo+hi)/2;
+      const pressure=r*r*mark3PressureAtFlow(gpm/r);
+      if(pressure<flowingPsi)lo=r;else hi=r;
+    }
+    const r=(lo+hi)/2,psi=380*r*r;
+    return {psi,percent:(psi/flowingPsi-1)*100,speedRatio:r};
+  }
+  function mark3FlowingFromShutoff(shutoffPsi,gpm){
+    if(!Number.isFinite(shutoffPsi)||shutoffPsi<=0||shutoffPsi>380)return null;
+    const speedRatio=Math.sqrt(shutoffPsi/380);
+    const referenceFlow=gpm/speedRatio;
+    if(referenceFlow>98)return null;
+    const psi=speedRatio*speedRatio*mark3PressureAtFlow(referenceFlow);
+    return {psi,percent:psi>0?(shutoffPsi/psi-1)*100:NaN,speedRatio};
+  }
+  function getHoseShutoff(psi){
+    const model=mark3EstimatedShutoff(psi,HOSE_LOW_FLOW_GPM);
+    return model?{...model,manual:false}:{psi:NaN,manual:false};
+  }
+  function updateHosePumpEstimate(psi,shutoff){
+    document.getElementById('hoseDashFlowPsi').textContent=psi.toFixed(1);
+    document.getElementById('hoseDashShutoff').textContent=Number.isFinite(shutoff.psi)?shutoff.psi.toFixed(1):'N/A';
+    document.getElementById('hoseDashIncrease').textContent=Number.isFinite(shutoff.percent)?`+${shutoff.percent.toFixed(1)}% modeled increase`:'Modeled increase unavailable';
+  }
   function hoseLossCoefficient(feet){
     const wyes=Math.floor((feet+1e-6)/100);
     return (15/3600)*(feet/100)+(.46/2500)*wyes;
@@ -5401,18 +5489,17 @@ clearGpxButton.addEventListener("click", function () {
   }
   // Maximum discharge pressure on the reference curve that still supports 10 GPM.
   const HOSE_MAX_10GPM_PSI=250+(38-HOSE_LOW_FLOW_GPM)*(380-250)/38;
-  // Minimum pump discharge pressure for 10 GPM at 30 PSI at the final wye.
-  // At this fixed design flow, elevation and friction determine the required
-  // pressure. The MARK-3 curve is checked separately for feasibility.
+  // Check only 100-ft gated-wye stations for the minimum-flow criterion.
   function recommendHosePressure(stations,target){
-    const end=stations[stations.length-1],feet=end.ft;
-    const rise=end.elevation-stations[0].elevation;
-    const wyes=Math.floor((feet+1e-6)/100);
-    const k=(15/3600)*(feet/100)+(.46/2500)*wyes;
-    const required=target+.433*rise+k*HOSE_LOW_FLOW_GPM**2;
-    const psi=Math.max(25,required);
-    if(psi>HOSE_MAX_10GPM_PSI+1e-9)return {psi:HOSE_MAX_10GPM_PSI,gpm:HOSE_LOW_FLOW_GPM,residual:target,limited:true,required};
-    return {psi,gpm:HOSE_LOW_FLOW_GPM,residual:target,limited:false,required};
+    const base=stations[0].elevation;
+    let governing=null;
+    for(const p of stations.slice(1)){
+      const required=target+.433*(p.elevation-base)+hoseLossCoefficient(p.ft)*HOSE_LOW_FLOW_GPM**2;
+      if(!governing||required>governing.required)governing={ft:p.ft,required,elevation:p.elevation};
+    }
+    const psi=Math.max(25,governing.required);
+    return {psi:Math.min(psi,HOSE_MAX_10GPM_PSI),gpm:HOSE_LOW_FLOW_GPM,residual:target,
+      limited:psi>HOSE_MAX_10GPM_PSI+1e-9,required:psi,governing};
   }
   // Snap hose deployment to complete 100-foot lengths. A remainder of exactly
   // 50 feet rounds down; 51+ rounds up. Terrain is sampled at the actual
@@ -5457,7 +5544,7 @@ clearGpxButton.addEventListener("click", function () {
     });
     return {stations, total, clickedTotal};
   }
-  // Shared elevation sampler. Both profiles keep their original 50/100-ft stations.
+  // Shared elevation sampler. Hose and construction profiles use 100-ft stations.
   // DOGAMI bare-earth DTM values are feet; USGS 3DEP values are meters.
   const elevationServices={
     dogami:{name:'DOGAMI',url:'https://gis.dogami.oregon.gov/arcgis/rest/services/lidar/DIGITAL_TERRAIN_MODEL_MOSAIC/ImageServer/getSamples',feetPerUnit:1},
@@ -5603,7 +5690,7 @@ clearGpxButton.addEventListener("click", function () {
       svg.append(svgEl("circle", {cx:xx,cy:yy,r:4,fill:(alert||depleted||lowFlow)?"#c00":"#ff861c",stroke:"white","stroke-width":1}));
       const ty = Math.max(34, yy - 24);
       svg.append(svgEl("line", {x1:labelX,y1:ty+4,x2:xx,y2:yy-5,stroke:"#999","stroke-dasharray":"2 3"}));
-      svg.append(svgEl("text", {x:labelX,y:ty-15,"text-anchor":"middle","font-size":11,"font-weight":"bold",fill:(alert||depleted)?"#c00":"#222"}, "S:" + Math.round(p.staticPsi) + "P"));
+      svg.append(svgEl("text", {x:labelX,y:ty-15,"text-anchor":"middle","font-size":11,"font-weight":"bold",fill:(alert||depleted)?"#c00":"#222"}, "S:" + (Number.isFinite(p.staticPsi)?Math.round(p.staticPsi)+"P":"N/A")));
       svg.append(svgEl("text", {x:labelX,y:ty-2,"text-anchor":"middle","font-size":11,fill:color}, p.ft < 0.001 ? "PUMP" : "AF:" + Math.round(p.availableFlow) + "G@30P"));
       svg.append(svgEl("text", {x:labelX,y:height-39,"text-anchor":"middle","font-size":11,fill:"#333"}, Math.round(p.ft) + " ft"));
     }
@@ -5632,16 +5719,17 @@ clearGpxButton.addEventListener("click", function () {
     const token = ++hoseRequestId;
     const status = document.getElementById("hoseStatus");
     const warning = document.getElementById("hoseWarning");
-    const summary = document.getElementById("hoseSummary");
+    const dashboard = document.getElementById("hoseDashboard");
     const svg = document.getElementById("hoseGraph");
-    status.classList.remove("hose-loading");status.textContent="";warning.textContent="";summary.textContent="";svg.replaceChildren();
+    status.classList.remove("hose-loading");status.textContent="";warning.textContent="";dashboard.hidden=true;svg.replaceChildren();
+
     const recommendationEl=document.getElementById("hoseRecommendation");
     if(!recommend){hoseRecommendation=null;recommendationEl.textContent="";}
     let psi=Number(hosePsi.value);if(!Number.isFinite(psi)||psi<25||psi>380){status.textContent="Enter pump PSI between 25 and 380.";return;}let flow=mark3Flow(psi);
-    const path=sampleHosePath(line.vertices,50),{stations,total,clickedTotal}=path;
-    summary.textContent=`Pump: ${psi} PSI | MARK-3 flow at selected PSI: ~${Math.round(flow)} GPM | Hoselay: ${Math.round(total).toLocaleString()} ft (drawn ${Math.round(clickedTotal).toLocaleString()} ft; snapped to full 100-ft hose)`;
+    const path=sampleHosePath(line.vertices,100),{stations,total,clickedTotal}=path;
+
     if(total<=0||total>10000){status.textContent="Snapped hoselay must be between 100 and 10,000 ft.";return;}
-    // Sample every 50 ft for terrain dips; show pressure labels every 100 ft.
+    // Sample elevation and evaluate pressures at 100-ft wye stations only.
     status.classList.add("hose-loading");
     const sourceKey=selectedElevationSource("hose");
     status.textContent=`Retrieving ${stations.length} terrain elevations from ${elevationServices[sourceKey].name}…`;
@@ -5656,29 +5744,57 @@ clearGpxButton.addEventListener("click", function () {
           ? Math.floor(desired.psi*10+1e-8)/10
           : Math.ceil(desired.psi*10-1e-8)/10;
         hosePsi.value=String(psi);
+        const autoShutoff=mark3EstimatedShutoff(psi,HOSE_LOW_FLOW_GPM);
+        hoseShutoffInput.value=autoShutoff?autoShutoff.psi.toFixed(1):'';
         flow=mark3Flow(psi);
-        const end=stations[stations.length-1];
-        const endStatic=psi-.433*(end.elevation-stations[0].elevation);
-        const endFlow=availableWyeFlow(endStatic,total,psi);
+        const g=desired.governing;
+        const head=psi-.433*(g.elevation-stations[0].elevation);
+        const governingFlow=availableWyeFlow(head,g.ft,psi);
         if(desired.limited){
-          recommendationEl.textContent=`TARGET NOT MET: 10 GPM @30 PSI at final wye requires ~${desired.required.toFixed(1)} PSI pump. AUTO SET TO ${psi.toFixed(1)} PSI (highest tenth-PSI setting supporting at least 10 GPM on MARK-3 reference curve; ~${flow.toFixed(1)} GPM pump limit). Final wye estimated ~${endFlow.toFixed(1)} GPM @30 PSI. Planning estimate; verify actual flowing pressure.`;
+          recommendationEl.textContent=`TARGET NOT MET: governing location near ${Math.round(g.ft)} ft requires ~${desired.required.toFixed(1)} PSI for 10 GPM @30 PSI. AUTO SET TO ${psi.toFixed(1)} PSI (MARK-3 10-GPM curve ceiling). Modeled availability there: ${governingFlow.toFixed(1)} GPM @30 PSI. Planning estimate; verify actual flowing pressure.`;
         }else{
-          recommendationEl.textContent=`AUTO RECOMMENDED: ${psi.toFixed(1)} PSI pump | minimum design: 10 GPM @30 PSI at final wye | estimated available: ${endFlow.toFixed(1)} GPM @30 PSI. Planning estimate; verify actual flowing pressure.`;
+          recommendationEl.textContent=`AUTO RECOMMENDED: ${psi.toFixed(1)} PSI pump | governing location near ${Math.round(g.ft)} ft | minimum design: 10 GPM @30 PSI throughout hose lay. Planning estimate; verify actual flowing pressure.`;
         }
-        summary.textContent=`Pump: ${psi} PSI | MARK-3 flow at selected PSI: ~${Math.round(flow)} GPM | Hoselay: ${Math.round(total).toLocaleString()} ft (drawn ${Math.round(clickedTotal).toLocaleString()} ft; snapped to full 100-ft hose)`;
+
       }
-      // Compute static pressure from elevation, then solve each station's
-      // single-outlet available flow subject to a 30-PSI residual target.
+      const shutoffModel=getHoseShutoff(psi);
+      if(shutoffModel.error){status.classList.remove('hose-loading');status.textContent=shutoffModel.error;return;}
+      updateHosePumpEstimate(psi,shutoffModel);
+      document.querySelector('#hoseDashboard .hose-dash-note').textContent='Pump shutoff pressure is modeled. Actual required pressure may vary.';
+      document.getElementById('hoseAutoBadge').textContent=recommend?(hoseRecommendation&&hoseRecommendation.limited?'AUTO · TARGET NOT MET':'AUTO RECOMMENDED'):'MANUAL PRESSURE';
+      document.getElementById('hoseDashLength').textContent=`${Math.round(total).toLocaleString()} ft`;
+      const endStation=stations[stations.length-1];
+      const elevationDelta=Math.round(endStation.elevation-stations[0].elevation);
+      document.getElementById('hoseDashElevation').textContent=`${elevationDelta>0?'+':''}${elevationDelta.toLocaleString()} ft`;
+      // Check all 100-ft wyes. Report the first failing wye; if all pass, report the lowest-flow wye.
+      const baseElevation=stations[0].elevation;
+      const demand=stations.slice(1).map(p=>({p,flow:availableWyeFlow(psi-.433*(p.elevation-baseElevation),p.ft,psi),
+        required:HOSE_TARGET_WYE_PSI+.433*(p.elevation-baseElevation)+hoseLossCoefficient(p.ft)*HOSE_LOW_FLOW_GPM**2}));
+      const governing=demand.reduce((a,b)=>b.required>a.required?b:a);
+      const lowest=demand.reduce((a,b)=>b.flow<a.flow?b:a);
+      const firstBelow=demand.find(d=>!Number.isFinite(d.flow)||d.flow<HOSE_LOW_FLOW_GPM-1e-6);
+      const anyBelow=!!firstBelow;
+      const reported=firstBelow||lowest;
+      const availableReadout=document.getElementById('hoseDashAvailable');
+      availableReadout.textContent=`Modeled Minimum ${anyBelow?'NOT MET':'met'} @ ${Math.round(reported.p.ft).toLocaleString()} ft.`;
+      availableReadout.classList.toggle('hose-below-minimum',anyBelow);
+      dashboard.hidden=false;
+      // Static labels and the high-static-pressure alert use modeled no-flow
+      // pump shutoff pressure. Flow availability must remain tied to the
+      // selected FLOWING pump pressure, not the higher shutoff estimate.
       const base=stations[0].elevation;
       for(const p of stations){
         p.rel=p.elevation-base;
-        p.staticPsi=psi-.433*p.rel;
-        p.availableFlow=availableWyeFlow(p.staticPsi,p.ft,psi);
+        const flowingHead=psi-.433*p.rel;
+        p.staticPsi=Number.isFinite(shutoffModel.psi)?shutoffModel.psi-.433*p.rel:NaN;
+        p.availableFlow=availableWyeFlow(flowingHead,p.ft,psi);
       }
       const worst=stations.reduce((a,p)=>p.staticPsi>a.staticPsi?p:a,stations[0]);
-      if(worst.staticPsi>=350)warning.textContent=`⚠ HIGH STATIC PRESSURE: estimated ${Math.round(worst.staticPsi)} PSI near ${Math.round(worst.ft)} ft. Verify hose/fitting ratings and actual pressures.`;
+      if(anyBelow)warning.textContent=`⚠ Minimum criteria not met near ${Math.round(reported.p.ft)} ft (${reported.flow.toFixed(1)} GPM @ 30 PSI). `;
+      if(!Number.isFinite(shutoffModel.psi))warning.textContent+=' ⚠ Modeled shutoff pressure unavailable at this pump setting; static pressures cannot be estimated.';
+      if(worst.staticPsi>=350)warning.textContent+=' ' +`⚠ HIGH STATIC PRESSURE: estimated pressure ${Math.round(worst.staticPsi)} PSI near ${Math.round(worst.ft)} ft. Verify hose/fitting ratings and actual pressures.`;
       status.classList.remove("hose-loading");
-      status.textContent=`${elevationServices[sourceKey].name} terrain profile loaded · ${stations.length} elevation samples at 50-ft intervals · S, AF and EG labels every 100 ft · 30 PSI residual target`;
+      status.textContent=`${elevationServices[sourceKey].name} terrain profile loaded · ${stations.length} elevation samples at 100-ft intervals.`;
       drawHoseChart(stations,total);
     } catch (err) {
       if (token !== hoseRequestId) return;
@@ -6267,6 +6383,28 @@ const mapRecords = new Map();
 const mapVisibility = new Map();
 const mapOpacity = new Map();
 const mapControls = new Map();
+const GEOPDF_SELECTION_KEY='topotac-geopdf-visibility-v1';
+function readGeoPDFSelections(){
+  try {const obj=JSON.parse(localStorage.getItem(GEOPDF_SELECTION_KEY)||'{}');return obj&&typeof obj==='object'&&!Array.isArray(obj)?obj:{};}
+  catch{return {};}
+}
+const geoPDFSelections=readGeoPDFSelections();
+function saveGeoPDFSelection(id,visible){
+  geoPDFSelections[id]=!!visible;
+  try{localStorage.setItem(GEOPDF_SELECTION_KEY,JSON.stringify(geoPDFSelections));}
+  catch(error){console.warn('GeoPDF selection persistence unavailable',error);}
+}
+// Only GeoPDF overlays participate; other layer defaults are untouched.
+map.on('overlayadd overlayremove',event=>{
+  for(const [id,item] of layers){
+    if(item.layer!==event.layer)continue;
+    const visible=event.type==='overlayadd';
+    mapVisibility.set(id,visible);
+    saveGeoPDFSelection(id,visible);
+    break;
+  }
+});
+
 // Existing single-PNG records remain readable; tiled records use a separate tile store.
 const TILEDB='topotac-amg-tiles-v1';
 function tileDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(TILEDB,1);r.onupgradeneeded=()=>r.result.createObjectStore('tiles');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
@@ -6299,6 +6437,7 @@ function removeLayer(id) {
   mapRecords.delete(id);
   mapVisibility.delete(id);
   mapOpacity.delete(id);
+  // Preserve selection when replacing a layer, but remove it on explicit deletion.
 }
 
 // Place controls after the GEOPDF button inside Leaflet's existing overlay list.
@@ -6410,7 +6549,9 @@ function tiledOverlay(record){
 window.topotacRefreshAMGLayers = updateLayerMenu;
 
 function showMap(record, zoom = false) {
+  const priorSelection=geoPDFSelections[record.id];
   removeLayer(record.id);
+  if(priorSelection!==undefined)geoPDFSelections[record.id]=priorSelection;
   let item;
   if (record.meta.tiled) {
     item = tiledOverlay(record);
@@ -6419,9 +6560,10 @@ function showMap(record, zoom = false) {
     item = {layer: L.imageOverlay(url, record.meta.bounds, {opacity:1,interactive:false}), url};
   }
   mapRecords.set(record.id, record);
-  mapVisibility.set(record.id, true);
-  mapOpacity.set(record.id, 1);
-  item.layer.addTo(map);
+  const selected=geoPDFSelections[record.id]!==false;
+  mapVisibility.set(record.id,selected);
+  mapOpacity.set(record.id,1);
+  if(selected)item.layer.addTo(map);
   layerControl.addOverlay(item.layer, 'GeoPDF: ' + record.meta.name);
   layers.set(record.id, item);
   updateLayerMenu();
@@ -6486,6 +6628,8 @@ async function refresh() {
           // registered map pointing at missing imagery. Orphans are recoverable.
           await dbAction('readwrite', 'delete', record.id);
           removeLayer(record.id);
+          delete geoPDFSelections[record.id];
+          try{localStorage.setItem(GEOPDF_SELECTION_KEY,JSON.stringify(geoPDFSelections));}catch{}
           try {
             await deleteTiled(record);
             amgStatus('Map deleted.');
