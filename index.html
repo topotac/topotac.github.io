@@ -1984,6 +1984,15 @@ html, body {
 #hosePanel>.elevation-source span{display:none}
 #hoseStatus{font-size:11px}
 @media(max-width:430px){.hose-dashboard{padding:7px}.hose-dash-card{padding:7px}.hose-dash-label{font-size:10px}.hose-dash-reading{font-size:26px}.hose-orange a{font-size:10px}}
+
+
+/* Line construction readouts reuse the Hose Lay instrument design. */
+#lineConstDashboard .hose-dash-note{line-height:1.5}
+#lineConstDashboard .line-dash-detail{color:#e5e9ed;font-size:11px;margin-top:7px;overflow-wrap:anywhere}
+#lineConstDashboard .line-dash-meta{color:#aebbc6;font-size:10px;margin-top:4px;overflow-wrap:anywhere}
+#lineConstPanel>.elevation-source{margin:6px 0;padding:5px 8px}
+#lineConstPanel>.elevation-source span{display:none}
+#lineConstStatus{font-size:11px}
 </style>
 </head>
 
@@ -2075,7 +2084,18 @@ html, body {
 <option value="1">1 — Short Grass</option><option value="2">2 — Grass / Open Timber &amp; Shrubs</option><option value="4">4 — Chaparral / Mature Brush</option><option value="5">5 — Young Brush</option><option value="6">6 — Intermediate / Dormant Brush</option><option value="8">8 — Closed Timber / Short-Needle Litter</option><option value="9">9 — Hardwood / Long-Needle Pine Litter</option><option value="10">10 — Mature Timber / Heavy Understory</option><option value="11">11 — Light Slash</option><option value="12">12 — Medium Slash</option><option value="13">13 — Heavy Slash</option>
 </select><label for="lineConstResource">Resource</label><select id="lineConstResource"><option value="crew1">Type 1 Crew (20-person)</option><option value="crew2">Type 2 Crew (20-person)</option><option value="dozer1">Type 1 Dozer (heavy)</option><option value="dozer2">Type 2 Dozer (medium)</option><option value="dozer3">Type 3 Dozer (light)</option></select><button id="lineConstCalculate" type="button">CALCULATE</button></div>
 <fieldset class="elevation-source" aria-label="Elevation data source"><legend>Elevation source</legend><label><input type="radio" name="lineConstElevationSource" value="dogami" checked> DOGAMI (Oregon)</label><label><input type="radio" name="lineConstElevationSource" value="usgs"> USGS 3DEP (nationwide)</label><span id="lineConstElevationSourceHint">DOGAMI selected for Oregon routes.</span></fieldset>
-<div id="lineConstSummary"></div>
+<div id="lineConstDashboard" class="hose-dashboard" hidden aria-live="polite">
+  <div class="hose-dash-title"><strong>LINE CONSTRUCTION - PRODUCTION</strong><span style="color:#8eecb0;font-size:10px">NWCG 2021 ESTIMATE</span></div>
+  <div class="hose-dash-grid">
+    <div class="hose-dash-card hose-green"><div class="hose-dash-label">ESTIMATED CONSTRUCTION TIME</div><div class="hose-dash-reading" id="lineDashTime">—</div><div class="hose-criteria">Estimated for the complete drawn route</div></div>
+    <div class="hose-dash-card hose-orange"><div class="hose-dash-label">AVERAGE PRODUCTION RATE</div><div class="hose-dash-reading"><span id="lineDashRate">—</span> <small>ft/hr</small></div><div>Overall average: total distance ÷ total estimated time</div></div>
+    <div class="hose-dash-card hose-white"><div class="hose-dash-label">LINE DISTANCE</div><div class="hose-dash-small" id="lineDashDistance">—</div></div>
+    <div class="hose-dash-card hose-white"><div class="hose-dash-label">NET ELEVATION CHANGE</div><div class="hose-dash-small" id="lineDashElevation">—</div></div>
+  </div>
+  <div class="line-dash-detail" id="lineDashDetails"></div>
+  <div class="line-dash-meta" id="lineDashMeta"></div>
+  <div class="hose-dash-note">Planning estimate only. Actual construction rates depend on field conditions.</div>
+</div>
 <div id="lineConstStatus" role="status"></div>
 <div id="lineConstWarning" role="alert"></div>
 <div class="profile-scroll-tip" role="note">↔ Swipe horizontally to view full chart</div>
@@ -5928,7 +5948,7 @@ clearGpxButton.addEventListener("click", function () {
   L.DomEvent.disableClickPropagation(lineConstModal);L.DomEvent.disableScrollPropagation(lineConstModal);
   function openLineConstructionProfile(line){
     lineConstSelected=line;initializeElevationSource("lineConst",line.vertices);lineConstModal.hidden=false;
-    document.getElementById('lineConstSummary').textContent='';
+    document.getElementById('lineConstDashboard').hidden=true;
     document.getElementById('lineConstStatus').classList.remove('hose-loading');
     document.getElementById('lineConstStatus').textContent='Choose a fuel model and resource, then select CALCULATE.';
     document.getElementById('lineConstWarning').textContent='';
@@ -5987,7 +6007,7 @@ clearGpxButton.addEventListener("click", function () {
       const ty=Math.max(42,yy-32);
       svg.append(svgEl('line',{x1:lx,y1:ty+5,x2:xx,y2:yy-5,stroke:'#999','stroke-dasharray':'2 3'}));
       const txt=p.timeValid?lineTimeText(p.timeMin):'N/A';
-      svg.append(svgEl('text',{x:lx,y:ty-16,'text-anchor':'middle','font-size':11,'font-weight':'bold',fill:'#222'},'T:'+txt));
+      svg.append(svgEl('text',{x:lx,y:ty-16,'text-anchor':'middle','font-size':11,'font-weight':'bold',fill:p.timeValid?'#222':'#d62828'},'T:'+txt));
       svg.append(svgEl('text',{x:lx,y:ty-2,'text-anchor':'middle','font-size':11,fill:'#222'},i===0?'START':Math.round(p.ft)+"'"));
       svg.append(svgEl('text',{x:xx,y:height-39,'text-anchor':'middle','font-size':11,fill:'#333'},Math.round(p.ft)+' ft'));
     }
@@ -6002,14 +6022,14 @@ clearGpxButton.addEventListener("click", function () {
       const seg=segments.filter(z=>z.endFt>a.ft+0.00001&&z.startFt<b.ft-0.00001);
       const bad=seg.some(z=>(z.lowRate+z.highRate)<=0);
       const avg=seg.length&&!bad?seg.reduce((v,z)=>v+(z.highRate+z.lowRate)/2*(Math.min(z.endFt,b.ft)-Math.max(z.startFt,a.ft)),0)/seg.reduce((v,z)=>v+(Math.min(z.endFt,b.ft)-Math.max(z.startFt,a.ft)),0):null;
-      svg.append(svgEl('text',{...tAttrs,y:yy+28},'R:'+(avg===null?'N/A':Math.round(avg))+'ft/h'));
+      svg.append(svgEl('text',{...tAttrs,y:yy+28,fill:avg===null?'#d62828':tAttrs.fill},'R:'+(avg===null?'N/A':Math.round(avg))+'ft/h'));
     }
     svg.append(svgEl('text',{x:width/2,y:height-10,'text-anchor':'middle','font-size':13,'font-weight':'bold'},'Fireline distance from start (feet)'));
     svg.append(svgEl('text',{x:15,y:top-24,'font-size':12,'font-weight':'bold'},'Relative elevation'));
   }
   async function calculateLineConstruction(line){
-    const token=invalidateElevationRequest(),status=document.getElementById('lineConstStatus'),summary=document.getElementById('lineConstSummary'),warning=document.getElementById('lineConstWarning'),svg=document.getElementById('lineConstGraph');
-    status.classList.remove('hose-loading');status.textContent='';summary.textContent='';warning.textContent='';svg.replaceChildren();
+    const token=invalidateElevationRequest(),status=document.getElementById('lineConstStatus'),dashboard=document.getElementById('lineConstDashboard'),warning=document.getElementById('lineConstWarning'),svg=document.getElementById('lineConstGraph');
+    status.classList.remove('hose-loading');status.textContent='';dashboard.hidden=true;warning.textContent='';svg.replaceChildren();
     const fuel=Number(document.getElementById('lineConstFuel').value),resource=document.getElementById('lineConstResource').value;
     const {stations,total}=sampleConstructionPath(line.vertices);
     if(total<=0||total>10000){status.textContent='Line distance must be between 0 and 10,000 feet.';return;}
@@ -6045,7 +6065,14 @@ clearGpxButton.addEventListener("click", function () {
       const resourceLabel=document.getElementById('lineConstResource').selectedOptions[0].textContent;
       const fuelLabel=document.getElementById('lineConstFuel').selectedOptions[0].textContent;
       const result=valid?lineTimeText(estimatedHours):'Unavailable for entire route';
-      summary.textContent=`${resourceLabel} | ${fuelLabel} | Distance: ${Math.round(total).toLocaleString()} ft (${(total/66).toFixed(1)} chains) | Estimated construction time: ${result}`;
+      document.getElementById('lineDashTime').textContent=result;
+      document.getElementById('lineDashRate').textContent=valid&&estimatedHours>0?Math.round(total/estimatedHours).toLocaleString():'N/A';
+      document.getElementById('lineDashDistance').textContent=`${Math.round(total).toLocaleString()} ft`;
+      const netChange=stations[stations.length-1].elevation-base;
+      document.getElementById('lineDashElevation').textContent=`${netChange>0?'+':''}${Math.round(netChange).toLocaleString()} ft`;
+      document.getElementById('lineDashDetails').textContent=`${resourceLabel} · ${fuelLabel} · ${(total/66).toFixed(1)} chains`;
+      document.getElementById('lineDashMeta').textContent=`${sourceKey==='usgs'&&selectedElevationSource('lineConst')==='dogami'?'USGS 3DEP (automatic backup)':elevationServices[sourceKey].name} · ${stations.length} terrain samples · 100-ft stations · NWCG 2021`;
+      dashboard.hidden=false;
       if(invalidSegments)warning.textContent=`⚠ ${invalidSegments} construction segment(s) have unsupported or zero-only dozer rates. All slope labels and calculations use the same 100-ft intervals (or the shorter final interval). N/A begins after the first affected segment. Details: ${invalidDetails.join('; ')}.`;
       status.classList.remove('hose-loading');
       status.textContent=`${sourceKey==='usgs'&&selectedElevationSource("lineConst")==="dogami"?"USGS 3DEP (automatic backup)":elevationServices[sourceKey].name} loaded · ${stations.length} terrain samples · calculations and chart at 100-ft stations · NWCG 2021 production tables`;
