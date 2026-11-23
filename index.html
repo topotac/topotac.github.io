@@ -5299,12 +5299,113 @@ clearGpxButton.addEventListener("click", function () {
     }
     return dots;
   }
+  // Vertex editing is opt-in from a saved line's popup. Long-press a handle
+  // for 450ms, then move it; adjacent segments update, other vertices stay put.
+  let activeLineEdit = null;
+  function bearingDegrees(a,b) {
+    const r=Math.PI/180, p1=a.lat*r, p2=b.lat*r, d=(b.lng-a.lng)*r;
+    const y=Math.sin(d)*Math.cos(p2);
+    const x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(d);
+    return (Math.atan2(y,x)*180/Math.PI+360)%360;
+  }
+  function stopLineVertexEdit() {
+    if(!activeLineEdit)return;
+    const edit=activeLineEdit;
+    activeLineEdit=null;
+    edit.cleanup();
+    edit.handles.remove();
+    edit.bar.remove();
+    if(edit.draggingWasEnabled)map.dragging.enable();
+    saveDrawnLines();
+  }
+  function startLineVertexEdit(line, redraw) {
+    stopLineVertexEdit();
+    map.closePopup();
+    const handles=L.layerGroup().addTo(map);
+    const bar=document.createElement('div');
+    bar.className='topotac-vertex-edit-bar';
+    bar.style.cssText='position:fixed;bottom:76px;left:50%;transform:translateX(-50%);z-index:15000;background:#202020;color:#fff;border:2px solid #ff861c;border-radius:8px;padding:9px 12px;max-width:94vw;text-align:center;font:13px Arial,sans-serif;box-shadow:0 3px 15px #0008';
+    const status=document.createElement('div');
+    status.textContent='Long-press an orange vertex, then drag';
+    const done=document.createElement('button');
+    done.type='button';done.textContent='DONE EDITING';
+    done.style.cssText='margin-top:7px;background:#ff861c;color:#111;border:0;border-radius:5px;padding:8px 14px;font-weight:bold';
+    bar.append(status,done);document.body.append(bar);
+    L.DomEvent.disableClickPropagation(bar);L.DomEvent.disableScrollPropagation(bar);
+    done.addEventListener('click',stopLineVertexEdit);
+    let pending=null,dragging=null,timer=null,priorMapDragging=map.dragging.enabled();
+    function clearPending(){if(timer!==null){clearTimeout(timer);timer=null;}pending=null;}
+    function onMove(e){
+      if(!dragging){if(pending && (Math.abs(e.clientX-pending.x)>12||Math.abs(e.clientY-pending.y)>12))clearPending();return;}
+      if(e.cancelable)e.preventDefault();
+      const ll=map.mouseEventToLatLng(e);
+      if(!Number.isFinite(ll.lat)||!Number.isFinite(ll.lng))return;
+      const i=dragging.index;
+      line.vertices[i]={lat:Math.max(-90,Math.min(90,ll.lat)),lng:ll.lng};
+      dragging.marker.setLatLng(line.vertices[i]);
+      redraw();
+      const segments=[];
+      for(const j of [i-1,i])if(j>=0&&j<line.vertices.length-1){
+        const a=line.vertices[j],b=line.vertices[j+1];
+        segments.push('S'+(j+1)+': '+bearingDegrees(a,b).toFixed(1)+'° · '+Math.round(map.distance(a,b)*3.28084)+' ft');
+      }
+      status.textContent='Point '+(i+1)+' · '+segments.join('  |  ');
+    }
+    function onUp(e){
+      if(dragging){
+        if(e.cancelable)e.preventDefault();
+        dragging=null;
+        if(priorMapDragging)map.dragging.enable();
+        saveDrawnLines();
+        suppressPointClicksUntil=Date.now()+500;
+      }
+      clearPending();
+    }
+    document.addEventListener('pointermove',onMove,{passive:false});
+    document.addEventListener('pointerup',onUp,{passive:false});
+    document.addEventListener('pointercancel',onUp,{passive:false});
+    line.vertices.forEach((v,i)=>{
+      const marker=L.marker(v,{interactive:true,keyboard:false,zIndexOffset:1500,icon:L.divIcon({
+        className:'topotac-vertex-handle',
+        html:'<div style="width:17px;height:17px;border:2px solid white;border-radius:50%;background:#ff861c;box-shadow:0 1px 5px #000b;box-sizing:border-box;touch-action:none"></div>',
+        iconSize:[22,22],iconAnchor:[11,11]
+      })}).addTo(handles);
+      const el=marker.getElement();
+      if(!el)return;
+      el.style.touchAction='none';
+      el.addEventListener('pointerdown',e=>{
+        if(e.button!==undefined&&e.button!==0)return;
+        e.stopPropagation();
+        clearPending();
+        pending={index:i,marker,x:e.clientX,y:e.clientY};
+        timer=setTimeout(()=>{
+          if(!pending)return;
+          dragging=pending;pending=null;timer=null;
+          map.dragging.disable();
+          status.textContent='Moving point '+(i+1)+'…';
+          if(navigator.vibrate)navigator.vibrate(30);
+        },450);
+      });
+      el.addEventListener('click',e=>{e.stopPropagation();});
+      el.addEventListener('contextmenu',e=>e.preventDefault());
+    });
+    activeLineEdit={handles,bar,draggingWasEnabled:priorMapDragging,cleanup(){
+      clearPending();document.removeEventListener('pointermove',onMove);
+      document.removeEventListener('pointerup',onUp);
+      document.removeEventListener('pointercancel',onUp);
+    }};
+  }
   function renderDrawnLine(line) {
     // A broad, nearly transparent hit target makes saved lines easier to tap on phones.
     // Keep it underneath the normal 5px visible line and distance dots.
     const tapTarget=L.polyline(line.vertices,{color:line.color,weight:24,opacity:0.001});
     const poly=L.polyline(line.vertices,{color:line.color,weight:5,opacity:0.95});
-    const lineDisplay=L.layerGroup([tapTarget,poly,...drawnLineDistanceDots(line.vertices)]).addTo(drawnLineLayer);
+    const dotLayer=L.layerGroup(drawnLineDistanceDots(line.vertices));
+    const lineDisplay=L.layerGroup([tapTarget,poly,dotLayer]).addTo(drawnLineLayer);
+    const redraw=()=>{
+      tapTarget.setLatLngs(line.vertices);poly.setLatLngs(line.vertices);
+      dotLayer.clearLayers();drawnLineDistanceDots(line.vertices).forEach(d=>dotLayer.addLayer(d));
+    };
     const linePopup=()=>{
       const wrap=document.createElement("div");
       const title=document.createElement("strong");title.textContent=line.name;wrap.append(title);
@@ -5319,6 +5420,8 @@ clearGpxButton.addEventListener("click", function () {
         actions.appendChild(btn);
         return btn;
       };
+      const editBtn=makeAction("EDIT VERTICES");
+      editBtn.addEventListener("click",()=>startLineVertexEdit(line,redraw));
       const exportBtn=makeAction("EXPORT GPX");
       exportBtn.addEventListener("click",()=>exportDrawnLineGpx(line));
       const hoseBtn=makeAction("HOSE LAY PROFILE");
@@ -5328,6 +5431,7 @@ clearGpxButton.addEventListener("click", function () {
       const deleteBtn=makeAction("DELETE LINE");
       deleteBtn.addEventListener("click",()=>{
         if(!confirm('Delete line "'+line.name+'"?'))return;
+        if(activeLineEdit)stopLineVertexEdit();
         blockDialogClickThrough();drawnLines=drawnLines.filter(x=>x.id!==line.id);
         drawnLineLayer.removeLayer(lineDisplay);saveDrawnLines();map.closePopup();
       });wrap.append(actions);return wrap;
@@ -5376,6 +5480,7 @@ clearGpxButton.addEventListener("click", function () {
   }
   drawLineButton.addEventListener("click",()=>{
     if(lineDrawingActive){cancelLineDrawing();return;}
+    stopLineVertexEdit();
     if(measureActive)stopMeasure();setPointMode(false);pointActionsPanel.hidden=true;
     lineDrawingActive=true;draftVertices=[];lineDrawPanel.hidden=false;
     drawLineButton.setAttribute("aria-pressed","true");drawLineButton.textContent="✓ DRAW LINE";
@@ -5388,6 +5493,7 @@ clearGpxButton.addEventListener("click", function () {
     const count = drawnLines.length;
     if (!confirm("Permanently delete all " + count + " saved drawn line" + (count === 1 ? "" : "s") + "? This cannot be undone.")) return;
     blockDialogClickThrough();
+    stopLineVertexEdit();
     drawnLines = [];
     drawnLineLayer.clearLayers();
     map.closePopup();
