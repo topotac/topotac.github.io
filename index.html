@@ -5468,42 +5468,45 @@ clearGpxButton.addEventListener("click", function () {
     hoseModal.hidden = false;
     calculateHoseProfile(line,true);
   }
-  // MARK-3 reference points including approximate shutoff (380 PSI, 0 GPM).
-  // Interpolate between supplied classic 185cc MARK-3 reference points. Planning estimates only.
-  function mark3Flow(psi){
-    const pts=[[0,98],[100,78],[150,65],[175,58],[250,38],[380,0]];
-    const i=psi<=pts[0][0]?1:psi>=pts[pts.length-1][0]?pts.length-1:pts.findIndex(p=>psi<=p[0]);
-    const a=pts[i-1],b=pts[i];
-    return Math.max(0,a[1]+(psi-a[0])*(b[1]-a[1])/(b[0]-a[0]));
-  }
-  // AF: solve each gated wye independently with all other outlets closed.
-  // At greater flow, the pump moves along its MARK-3 reference curve; it does
-  // not remain at its selected discharge PSI. Treat selected PSI as the upper
-  // discharge-pressure setting, and the full-throttle curve as another ceiling.
-  // This is a simplified operating-point estimate, not a measured pump curve.
+  // WATERAX original MARK-3 185cc manufacturer reference data (rated operation):
+  // 0 GPM / 380 PSI maximum shutoff, 38/250, 58/175, 65/150, 78/100,
+  // 98 GPM maximum free flow. Straight-line interpolation is an approximation.
+  // Sources: WATERAX MARK-3 2016 datasheet and MARK-3 Specification Document.
+  // Reduced-speed performance is estimated with centrifugal-pump affinity laws;
+  // WATERAX has NOT published validation for these partial-throttle curves.
+  const MARK3_FULL_SPEED=[[0,380],[38,250],[58,175],[65,150],[78,100],[98,0]];
   const HOSE_TARGET_WYE_PSI=30;
   const HOSE_LOW_FLOW_GPM=10;
   function mark3PressureAtFlow(gpm){
-    // Inverse of the piecewise linear MARK-3 reference curve.
-    const pts=[[0,380],[38,250],[58,175],[65,150],[78,100],[98,0]];
-    const i=gpm<=pts[0][0]?1:gpm>=pts[pts.length-1][0]?pts.length-1:pts.findIndex(p=>gpm<=p[0]);
+    if(!Number.isFinite(gpm)||gpm<0)return NaN;
+    if(gpm>=98)return 0;
+    const pts=MARK3_FULL_SPEED;
+    const i=pts.findIndex(p=>gpm<=p[0]);
+    if(i<=0)return pts[0][1];
     const a=pts[i-1],b=pts[i];
     return a[1]+(gpm-a[0])*(b[1]-a[1])/(b[0]-a[0]);
   }
-  // Affinity-law model: scale the existing full-speed MARK-3 pressure/flow
-  // reference curve to the speed required for a specified flowing point.
-  // Differential-pressure approximation; NOT a verified gauge setpoint.
+  function mark3Flow(psi){
+    if(!Number.isFinite(psi))return NaN;
+    const p=Math.max(0,Math.min(380,psi));
+    for(let i=1;i<MARK3_FULL_SPEED.length;i++){
+      const a=MARK3_FULL_SPEED[i-1],b=MARK3_FULL_SPEED[i];
+      if(p>=b[1])return a[0]+(p-a[1])*(b[0]-a[0])/(b[1]-a[1]);
+    }
+    return 98;
+  }
+  function mark3PressureAtSpeed(gpm,speedRatio){
+    if(!Number.isFinite(gpm)||!Number.isFinite(speedRatio)||speedRatio<=0||gpm<0)return NaN;
+    return speedRatio*speedRatio*mark3PressureAtFlow(gpm/speedRatio);
+  }
   function mark3EstimatedShutoff(flowingPsi,gpm){
     if(!Number.isFinite(flowingPsi)||!Number.isFinite(gpm)||flowingPsi<=0||gpm<0)return null;
     if(gpm>98||flowingPsi>mark3PressureAtFlow(gpm)+1e-7)return null;
     if(gpm===0)return {psi:flowingPsi,percent:0,speedRatio:Math.sqrt(flowingPsi/380)};
-    // At speed ratio r, available pressure is r² * P_reference(Q/r).
-    // Require r >= Q/98 so the reference curve is never extrapolated.
     let lo=gpm/98,hi=1;
     for(let i=0;i<64;i++){
       const r=(lo+hi)/2;
-      const pressure=r*r*mark3PressureAtFlow(gpm/r);
-      if(pressure<flowingPsi)lo=r;else hi=r;
+      if(mark3PressureAtSpeed(gpm,r)<flowingPsi)lo=r;else hi=r;
     }
     const r=(lo+hi)/2,psi=380*r*r;
     return {psi,percent:(psi/flowingPsi-1)*100,speedRatio:r};
@@ -5511,10 +5514,9 @@ clearGpxButton.addEventListener("click", function () {
   function mark3FlowingFromShutoff(shutoffPsi,gpm){
     if(!Number.isFinite(shutoffPsi)||shutoffPsi<=0||shutoffPsi>380)return null;
     const speedRatio=Math.sqrt(shutoffPsi/380);
-    const referenceFlow=gpm/speedRatio;
-    if(referenceFlow>98)return null;
-    const psi=speedRatio*speedRatio*mark3PressureAtFlow(referenceFlow);
-    return {psi,percent:psi>0?(shutoffPsi/psi-1)*100:NaN,speedRatio};
+    const psi=mark3PressureAtSpeed(gpm,speedRatio);
+    if(!Number.isFinite(psi)||psi<=0)return null;
+    return {psi,percent:(shutoffPsi/psi-1)*100,speedRatio};
   }
   function getHoseShutoff(psi){
     const model=mark3EstimatedShutoff(psi,HOSE_LOW_FLOW_GPM);
@@ -5530,24 +5532,25 @@ clearGpxButton.addEventListener("click", function () {
     return (15/3600)*(feet/100)+(.46/2500)*wyes;
   }
   function availableWyeFlow(staticPsi,feet,selectedPumpPsi){
-    if(feet<=0||staticPsi<=HOSE_TARGET_WYE_PSI)return 0;
+    if(feet<=0||!Number.isFinite(staticPsi))return 0;
+    const model=mark3EstimatedShutoff(selectedPumpPsi,HOSE_LOW_FLOW_GPM);
+    if(!model)return 0;
     const elevationPressure=selectedPumpPsi-staticPsi;
     const k=hoseLossCoefficient(feet);
     const requiredPressure=q=>HOSE_TARGET_WYE_PSI+elevationPressure+k*q*q;
-    const pumpPressure=q=>Math.min(selectedPumpPsi,mark3PressureAtFlow(q));
+    // Consistent operating curve: the chosen flowing PSI is the 10-GPM
+    // reference point, not a constant pressure ceiling at all flow rates.
+    const pumpPressure=q=>mark3PressureAtSpeed(q,model.speedRatio);
     if(requiredPressure(0)>=pumpPressure(0))return 0;
-    // Search all the way to the zero-pressure extrapolation point; the
-    // pressure and system constraints naturally determine the usable flow.
-    let lo=0,hi=100;
-    for(let i=0;i<45;i++){
+    let lo=0,hi=98*model.speedRatio;
+    for(let i=0;i<48;i++){
       const mid=(lo+hi)/2;
-      if(requiredPressure(mid)<=pumpPressure(mid))lo=mid;
-      else hi=mid;
+      if(requiredPressure(mid)<=pumpPressure(mid))lo=mid;else hi=mid;
     }
     return lo;
   }
   // Maximum discharge pressure on the reference curve that still supports 10 GPM.
-  const HOSE_MAX_10GPM_PSI=250+(38-HOSE_LOW_FLOW_GPM)*(380-250)/38;
+  const HOSE_MAX_10GPM_PSI=mark3PressureAtFlow(HOSE_LOW_FLOW_GPM);
   // Check only 100-ft gated-wye stations for the minimum-flow criterion.
   function recommendHosePressure(stations,target){
     const base=stations[0].elevation;
@@ -5858,7 +5861,7 @@ clearGpxButton.addEventListener("click", function () {
       const shutoffModel=getHoseShutoff(psi);
       if(shutoffModel.error){status.classList.remove('hose-loading');status.textContent=shutoffModel.error;return;}
       updateHosePumpEstimate(psi,shutoffModel);
-      document.querySelector('#hoseDashboard .hose-dash-note').textContent='Pump shutoff pressure is modeled. Actual required pressure may vary.';
+      document.querySelector('#hoseDashboard .hose-dash-note').textContent='Original MARK-3 185cc manufacturer rated curve; reduced-throttle pressures are affinity-law estimates. Verify in field.';
       document.getElementById('hoseAutoBadge').textContent=recommend?(hoseRecommendation&&hoseRecommendation.limited?'AUTO · TARGET NOT MET':'AUTO RECOMMENDED'):'MANUAL PRESSURE';
       document.getElementById('hoseDashLength').textContent=`${Math.round(total).toLocaleString()} ft`;
       const endStation=stations[stations.length-1];
