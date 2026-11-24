@@ -244,6 +244,7 @@ footer a { margin-right: 14px; }
 <a href="#address-search">Address search</a>
 <a href="#tax-lots-and-parcel-addresses">Tax lots and parcel addresses</a>
 <a href="#fire-and-weather-overlays">Fire and weather overlays</a>
+<a href="#ngfs-detections">NGFS Detections — satellite heat detection</a>
 <a href="#radio-comms">Radio coverage — GP &amp; MFR COMMS</a>
 <a href="#us-air-quality-aqi">US Air Quality (AQI)</a>
 <a href="#gps-recording-and-gpx-tools">GPS, recording, and GPX tools</a>
@@ -268,7 +269,9 @@ footer a { margin-right: 14px; }
 <li><strong>Marked Points</strong><span class="layer-description"> — Points you place on the map.</span></li>
 <li><strong>Drawn Lines</strong><span class="layer-description"> — Show or hide saved lines without deleting them.</span></li>
 <li><strong>OR LiDAR</strong><span class="layer-description"> — Oregon terrain hillshade; loads at zoom 12 or higher.</span></li>
-<li><strong>ODF Statewide Roads</strong><span class="layer-description"> — ODF roads and road names; visible at zoom 12–19 when enabled.</span></li>
+<li><strong>GP COMMS</strong><span class="layer-description"> — Grants Pass modeled strongest-repeater radio coverage.</span></li>
+<li><strong>MFR COMMS</strong><span class="layer-description"> — Medford modeled strongest-repeater radio coverage.</span></li>
+<li><strong>OR State Roads</strong><span class="layer-description"> — ODF roads and road names; visible at zoom 12–19 when enabled.</span></li>
 <li><strong>OR TRS</strong><span class="layer-description"> — Township, range, and section boundaries.</span></li>
 <li><strong>Josephine Co Taxlots</strong><span class="layer-description"> — Josephine County parcel boundaries.</span></li>
 <li><strong>Jackson Co Taxlots</strong><span class="layer-description"> — Jackson County parcel boundaries (orange styling).</span></li>
@@ -276,11 +279,10 @@ footer a { margin-right: 14px; }
 <li><strong>OR Public Land</strong><span class="layer-description"> — Mapped public land ownership.</span></li>
 <li><strong>Lakes/Ponds ¼ Acre+</strong><span class="layer-description"> — Mapped lakes and ponds.</span></li>
 <li><strong>OR New Fires (24Hr)</strong><span class="layer-description"> — Recently reported Oregon fires.</span></li>
+<li><strong>NGFS Detections</strong><span class="layer-description"> — NOAA satellite heat detections, enabled by default.</span></li>
 <li><strong>US Current Fires</strong><span class="layer-description"> — Current mapped fire perimeters.</span></li>
 <li><strong>OR Historical Fires</strong><span class="layer-description"> — Past Oregon fire perimeters.</span></li>
 <li><strong>OR RAWS WX</strong><span class="layer-description"> — Oregon remote weather stations with NWS observation graphs.</span></li>
-<li><strong>GP COMMS</strong><span class="layer-description"> — Grants Pass modeled strongest-repeater radio coverage.</span></li>
-<li><strong>MFR COMMS</strong><span class="layer-description"> — Medford modeled strongest-repeater radio coverage.</span></li>
 <li><strong>US Air Quality (AQI)</strong><span class="layer-description"> — EPA AirNow estimated PM2.5 AQI regions; updates while enabled.</span></li>
 </ol>
 <p>Choose one base map at a time; check or uncheck overlays independently. Imported GPX files and saved GeoPDF maps add their own named overlay entries when loaded, so those entries may appear in addition to this default list. Long filenames may be shortened visually in the menu. The <strong>GEOPDF</strong> button in the layer menu opens the GeoPDF importer; it is not an overlay checkbox.</p>
@@ -515,6 +517,35 @@ footer a { margin-right: 14px; }
       </div>
 </section>
 </div>
+<h2 class="section-title" id="ngfs-detections">NGFS Detections — satellite heat detection</h2>
+<div class="grid">
+<section class="card"><h3>Rapid detection and coverage</h3>
+<p>NOAA's Next Generation Fire System (NGFS) uses infrared observations from GOES-18 (GOES-West) to identify and track heat sources. The satellite observes the continental United States approximately every five minutes, day and night. Processing and publication can add delay.</p>
+<p>NGFS Detections is enabled by default. It requests the visible map area from the western CONUS feed, not just Oregon, at all zoom levels. TopoTac requests the last 24 hours and retains the newest observation of each identical pixel footprint. All reported classifications are included.</p>
+<p>The satellite is geostationary, approximately 22,236 miles above the equator. Its nominal 2 km infrared pixels become larger and skewed over Oregon because of the viewing angle.</p></section>
+<section class="card"><h3>Polygon colors — last detection</h3>
+<div class="legend-row"><span class="swatch" style="border:2px solid #ff2525;background:#ff252533;transform:skewX(-15deg)"></span>Under 15 minutes</div>
+<div class="legend-row"><span class="swatch" style="border:2px solid #ff8500;background:#ff850033;transform:skewX(-15deg)"></span>15 to under 60 minutes</div>
+<div class="legend-row"><span class="swatch" style="border:2px solid #d6b500;background:#d6b50033;transform:skewX(-15deg)"></span>1 to under 3 hours</div>
+<div class="legend-row"><span class="swatch" style="border:2px solid #888888;background:#88888833;transform:skewX(-15deg)"></span>3–24 hours</div>
+<p>Colors indicate time since the last observation, not fire intensity or incident type. Adjacent polygons are separate satellite pixels.</p></section>
+<section class="card"><h3>Popup classification dot</h3>
+<div class="legend-row"><span class="dot" style="background:#d62828"></span>Possible wildland fire / known wildfire</div>
+<div class="legend-row"><span class="dot" style="background:#2e9d50"></span>Known prescribed fire (RX)</div>
+<div class="legend-row"><span class="dot" style="background:#f28c00"></span>Incident complex (CX)</div>
+<div class="legend-row"><span class="dot" style="background:#9333ea"></span>Volcano</div>
+<div class="legend-row"><span class="dot" style="background:#64748b"></span>Other / unknown classification</div>
+<p>Tap a footprint to see its classification. Known incident types are shown when recognized from the feed; a possible wildfire is not a confirmed incident.</p></section>
+<section class="card"><h3>Reading the detection balloon</h3><ul>
+<li><strong>Last detected:</strong> Most recent observation of that pixel, in local time.</li>
+<li><strong>First detected:</strong> Start of the tracked event, when available; not necessarily the ignition time or first observation of this pixel.</li>
+<li><strong>Confidence:</strong> NOAA's reported detection confidence.</li>
+<li><strong>Pixel FRP:</strong> Fire radiative power in megawatts; not acreage or fireline intensity.</li>
+<li><strong>Known incident:</strong> Name when supplied.</li>
+<li><strong>Fuel composition:</strong> Three dominant reported fuel categories, with model descriptions where recognized; remaining percentages grouped as Other. These describe the pixel, not just burning vegetation.</li></ul></section>
+<section class="card"><h3>Refresh and connection status</h3><p>TopoTac refreshes every five minutes while the page is visible and the layer is enabled, and after map movement. Requests have a 45-second timeout and a 30-page limit (up to 1,000 records requested per page). Large regional views may exceed these limits.</p><p>If a refresh fails, previous detections remain visible with an NGFS stale warning; if no data has loaded, NGFS unavailable is shown. Check timestamps and zoom into the area of interest if necessary.</p></section>
+<section class="card"><h3>Operational limitations</h3><div class="callout"><strong>Detection footprint, not fire perimeter.</strong> A polygon is the satellite's observation area, not the burned area or precise ignition location. Clouds, smoke, terrain, small or cool fires and sensor limitations can prevent detection. No detection does not mean no fire.</div><p>Use NGFS for early situational awareness alongside dispatch information, IRWIN incident markers, mapped perimeters and field verification. Do not rely on satellite detections alone for tactical safety decisions.</p><p>Source: <a href="https://fire.data.nesdis.noaa.gov/map/">NOAA NGFS</a>.</p></section>
+</div>
 <h2 class="section-title" id="radio-comms">Radio coverage — GP &amp; MFR COMMS</h2>
 <p><strong>Radio coverage model:</strong> All seven repeaters are modeled at 50 W transmitter power and 10 m antenna height, with a minimum displayed signal level of −116 dBm. The maps predict repeater-to-portable signal strength, not guaranteed two-way communication. Actual coverage may vary with terrain, antenna placement, interference, and portable radio performance.</p>
 <div class="grid">
@@ -547,6 +578,7 @@ footer a { margin-right: 14px; }
 <section class="card">
 <p><strong>Visible-area requests:</strong> Base maps request tiles around the current view. OR LiDAR, ODF Statewide Roads, OR Public Land, OR TRS, and the three taxlot layers request images for the visible extent. LiDAR and ODF roads are shown only at zoom 12–19 when checked. Taxlot boundaries display at zoom 14 or higher; statewide situs-address labels appear at zoom 16 or higher. US Current Fires and Lakes/Ponds ¼ Acre+ query the visible area at zoom 9 or higher; their source services are not restricted to Oregon.</p>
 <p><strong>Oregon-filtered requests:</strong> OR Historical Fires queries Oregon incident records from 2020 onward, within the visible map extent at zoom 9 or higher. OR New Fires (24Hr) and OR RAWS WX retrieve statewide Oregon point data regardless of zoom. US Air Quality (AQI) loads estimated air-quality regions for the current view while enabled.</p>
+<p><strong>NGFS requests:</strong> The enabled-by-default satellite layer queries the visible area using the western CONUS feed and a rolling 24-hour window. See <a href="#ngfs-detections">NGFS Detections</a> for refresh behavior and limitations.</p>
 <p><strong>On-demand requests:</strong> County parcel details are queried on map clicks at zoom 14+ when the relevant county layer is enabled; the statewide taxlot layer does not provide clickable parcel-detail balloons. GPS situs addresses are queried independently of layer visibility for the reported GPS position. GPX files are read locally. Saved GeoPDF maps use browser-local tiles after conversion.</p>
 <p>Remote layers generally load when enabled. The current perimeter layer refreshes periodically; historical perimeter requests are view-driven. Data availability, geographic coverage, and provider limits may affect completeness.</p>
 </section>
