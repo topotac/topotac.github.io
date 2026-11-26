@@ -1993,6 +1993,10 @@ html, body {
 #lineConstPanel>.elevation-source{margin:6px 0;padding:5px 8px}
 #lineConstPanel>.elevation-source span{display:none}
 #lineConstStatus{font-size:11px}
+/* Drawing tools take precedence over informational SVG paths and markers. */
+#map.tt-drawing .leaflet-pane .leaflet-interactive {
+  pointer-events: none !important;
+}
 </style>
 </head>
 
@@ -4568,7 +4572,21 @@ function historicalPerimeterStyle() {
   map.createPane('ngfsPane');
   map.getPane('ngfsPane').style.zIndex = 390;
   const ngfsLayer = L.geoJSON(null, {pane:'ngfsPane', style:ngfsStyle,
-    onEachFeature:(f,l)=>l.bindPopup(()=>ngfsPopup(f),{maxWidth:300})}).addTo(map);
+    onEachFeature:(f,l)=>l.bindPopup(()=>ngfsPopup(l.feature),{maxWidth:300})}).addTo(map);
+  // Keep existing Leaflet objects (and their open popups) across refreshes.
+  function reconcileNGFS(latest) {
+    const existing = new Map();
+    ngfsLayer.eachLayer(layer => existing.set(JSON.stringify(layer.feature.geometry), layer));
+    for (const [key, feature] of latest) {
+      const layer = existing.get(key);
+      if (!layer) { ngfsLayer.addData(feature); continue; }
+      existing.delete(key);
+      layer.feature = feature;
+      layer.setStyle(ngfsStyle(feature));
+      if (layer.isPopupOpen()) layer.setPopupContent(()=>ngfsPopup(layer.feature));
+    }
+    for (const layer of existing.values()) ngfsLayer.removeLayer(layer);
+  }
   let ngfsController, ngfsTimer, ngfsGeneration=0, ngfsStale=true, ngfsLast=0;
   const ngfsStatus=L.control({position:'bottomright'});
   ngfsStatus.onAdd=()=>{const el=L.DomUtil.create('div');el.style.cssText='background:#fff;color:#a44d00;padding:4px 7px;border-radius:4px;font:11px Arial;max-width:180px';el.textContent='NGFS loading…';return el;};
@@ -4587,8 +4605,8 @@ function historicalPerimeterStyle() {
   async function updateNGFS(){if(!map.hasLayer(ngfsLayer))return;ngfsController?.abort();const generation=++ngfsGeneration;const controller=ngfsController=new AbortController();const timeout=setTimeout(()=>controller.abort(),45000);const status=ngfsStatus.getContainer();const b=map.getBounds();const west=Math.max(-180,b.getWest()),east=Math.min(180,b.getEast());const end=Date.now();const base='https://fire.data.nesdis.noaa.gov/api/ogc/detections/collections/ngfs_schema.ngfs_detections_scene_west_conus/items';
     let url=new URL(base);url.search=new URLSearchParams({bbox:[west,Math.max(-90,b.getSouth()),east,Math.min(90,b.getNorth())].join(','),limit:'1000',f:'json',datetime:new Date(end-86400000).toISOString()+'/'+new Date(end).toISOString()});const seen=new Set(),latest=new Map();let count=0;
     try{while(url){if(seen.has(url.href)||seen.size>=30)throw Error('Pagination limit');seen.add(url.href);const r=await fetch(url,{signal:controller.signal,cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const j=await r.json();if(j.type!=='FeatureCollection'||!Array.isArray(j.features))throw Error('Invalid GeoJSON');count+=j.features.length;for(const f of j.features){const t=Date.parse(f.properties?.pixel_date_time);if(!Number.isFinite(t)||t<end-86400000||!['Polygon','MultiPolygon'].includes(f.geometry?.type))continue;const k=JSON.stringify(f.geometry);if(!latest.has(k)||t>Date.parse(latest.get(k).properties.pixel_date_time))latest.set(k,f);}const next=j.links?.find(l=>l.rel==='next');if(!next&&Number(j.numberMatched)>count)throw Error('Incomplete response');url=next?new URL(next.href,r.url):null;}
-      if(generation!==ngfsGeneration||!map.hasLayer(ngfsLayer))return;ngfsLayer.clearLayers();ngfsLayer.addData([...latest.values()]);ngfsStale=false;ngfsLast=Date.now();status.style.display='none';
-    }catch(e){if(generation!==ngfsGeneration||!map.hasLayer(ngfsLayer))return;ngfsStale=true;status.style.display='block';status.textContent=ngfsLast?'NGFS stale · '+new Date(ngfsLast).toLocaleTimeString():'NGFS unavailable';console.warn('NGFS',e);}finally{clearTimeout(timeout);}}
+      if(generation!==ngfsGeneration||!map.hasLayer(ngfsLayer))return;ngfsStale=false;reconcileNGFS(latest);ngfsLast=Date.now();status.style.display='none';
+    }catch(e){if(generation!==ngfsGeneration||!map.hasLayer(ngfsLayer))return;ngfsStale=true;ngfsLayer.eachLayer(layer=>{if(layer.isPopupOpen())layer.setPopupContent(()=>ngfsPopup(layer.feature));});status.style.display='block';status.textContent=ngfsLast?'NGFS stale · '+new Date(ngfsLast).toLocaleTimeString():'NGFS unavailable';console.warn('NGFS',e);}finally{clearTimeout(timeout);}}
   function scheduleNGFS(){clearTimeout(ngfsTimer);ngfsGeneration++;ngfsController?.abort();if(map.hasLayer(ngfsLayer))ngfsTimer=setTimeout(updateNGFS,700);}
   map.on('moveend',scheduleNGFS);
   map.on('overlayadd',e=>{if(e.layer===ngfsLayer){ngfsStatus.getContainer().style.display='block';scheduleNGFS();}});
@@ -5108,8 +5126,14 @@ clearGpxButton.addEventListener("click", function () {
       markedPoints.forEach(renderMarkedPoint);
     }
   } catch(err) {console.warn("Could not restore marked points:",err);}
+  function syncDrawingPriority() {
+    const active = pointPlacementActive || lineDrawingActive || measureActive;
+    map.getContainer().classList.toggle('tt-drawing', active);
+    if (active) map.closePopup();
+  }
   function setPointMode(active) {
     pointPlacementActive=active;
+    syncDrawingPriority();
     addPointButton.setAttribute("aria-pressed",String(active));
     document.getElementById("pointSingleButton").setAttribute("aria-pressed",String(active));
     document.getElementById("pointActionsHint").textContent=active?"Tap the map to place a point":"Choose a point action";
@@ -5130,6 +5154,7 @@ clearGpxButton.addEventListener("click", function () {
   document.getElementById("pointSingleButton").addEventListener("click",()=>{
     if(lineDrawingActive)cancelLineDrawing();
     if(measureActive)stopMeasure();
+    stopLineVertexEdit();
     setPointMode(true);
     pointActionsPanel.hidden=true;
   });
@@ -5522,7 +5547,7 @@ clearGpxButton.addEventListener("click", function () {
     lineFinishButton.disabled=draftVertices.length<2;
   }
   function cancelLineDrawing() {
-    lineDrawingActive=false;draftVertices=[];draftLineLayer.clearLayers();lineDrawPanel.hidden=true;
+    lineDrawingActive=false;syncDrawingPriority();draftVertices=[];draftLineLayer.clearLayers();lineDrawPanel.hidden=true;
     drawLineButton.setAttribute("aria-pressed","false");drawLineButton.textContent="DRAW LINE";
     map.getContainer().style.cursor="";
   }
@@ -5530,7 +5555,7 @@ clearGpxButton.addEventListener("click", function () {
     if(lineDrawingActive){cancelLineDrawing();return;}
     stopLineVertexEdit();
     if(measureActive)stopMeasure();setPointMode(false);pointActionsPanel.hidden=true;
-    lineDrawingActive=true;draftVertices=[];lineDrawPanel.hidden=false;
+    lineDrawingActive=true;syncDrawingPriority();draftVertices=[];lineDrawPanel.hidden=false;
     drawLineButton.setAttribute("aria-pressed","true");drawLineButton.textContent="✓ DRAW LINE";
     map.getContainer().style.cursor="crosshair";refreshDraftLine();
   });
@@ -6275,6 +6300,7 @@ clearGpxButton.addEventListener("click", function () {
   }
   function stopMeasure(){
     measureActive=false;
+    syncDrawingPriority();
     measureAreaButton.textContent="MEASURE AREA";
     measureAreaButton.setAttribute("aria-pressed","false");
     map.getContainer().style.cursor=pointPlacementActive?"crosshair":"";
@@ -6294,7 +6320,7 @@ clearGpxButton.addEventListener("click", function () {
       }).addTo(measureLayer);
       showMeasureStatus("Area: "+measureText());stopMeasure();return;
     }
-    clearMeasure();if(lineDrawingActive)cancelLineDrawing();setPointMode(false);measureActive=true;
+    stopLineVertexEdit();clearMeasure();if(lineDrawingActive)cancelLineDrawing();setPointMode(false);measureActive=true;syncDrawingPriority();
     measureAreaButton.textContent="FINISH MEASURE";
     measureAreaButton.setAttribute("aria-pressed","true");
     map.getContainer().style.cursor="crosshair";
@@ -6302,7 +6328,7 @@ clearGpxButton.addEventListener("click", function () {
   });
   clearMeasureButton.addEventListener("click",clearMeasure);
   map.on("click",e=>{
-    if(!measureActive)return;
+    if(!measureActive||Date.now()<suppressPointClicksUntil)return;
     measureVertices.push(e.latlng);
     L.circleMarker(e.latlng,{radius:4,color:"#fff",weight:1,fillColor:"#ff861c",fillOpacity:1,interactive:false}).addTo(measureLayer);
     if(measureLine)measureLayer.removeLayer(measureLine);
